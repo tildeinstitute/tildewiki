@@ -115,13 +115,7 @@ func main() {
 		http.HandleFunc("/", makeHandler(viewHandler))
 		runtime.Gosched()
 	}()
-	go func() {
-		http.HandleFunc("/edit/", makeHandler(editHandler))
-		runtime.Gosched()
-	}()
-	go func() {
-		http.HandleFunc("/save/", makeHandler(saveHandler))
-		runtime.Gosched()
-	}()
+	http.HandleFunc("/edit/", makeHandler(editHandler))
+	http.HandleFunc("/save/", makeHandler(saveHandler))
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
