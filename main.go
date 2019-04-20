@@ -45,7 +45,6 @@ func loadPage(filename string) (*Page, error) {
 
 func getTitle(filename string) string {
 	mdfile, err := os.Open(filename)
-	var title string
 	if err == nil {
 		titlefinder := bufio.NewScanner(mdfile)
 		for titlefinder.Scan() {
@@ -70,7 +69,11 @@ func viewHandler(w http.ResponseWriter, r *http.Request, filename string) {
 func editHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	p, err := loadPage(filename)
 	if err != nil {
-		p = &Page{Filename: filename}
+		p, err := loadPage("template")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		p.Filename = filename
 	}
 	renderTemplate(w, "edit", p)
 }
@@ -78,7 +81,7 @@ func editHandler(w http.ResponseWriter, r *http.Request, filename string) {
 func saveHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	body := r.FormValue("body")
 	filename = r.FormValue("filename") + ".md"
-	p := &Page{Filename: filename, Title: title, Body: []byte(body)}
+	p := &Page{Filename: filename, Body: []byte(body)}
 	err := p.save()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
