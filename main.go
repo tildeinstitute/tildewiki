@@ -38,6 +38,12 @@ func loadPage(filename string) (*Page, error) {
 	if err != nil {
 		return nil, err
 	}
+	title := getTitle(filename)
+	parsed := blackfriday.Run(body)
+	return &Page{Filename: filename, Title: title, Body: parsed}, nil
+}
+
+func getTitle(filename string) string {
 	mdfile, err := os.Open(filename)
 	var title string
 	if err == nil {
@@ -45,43 +51,40 @@ func loadPage(filename string) (*Page, error) {
 		for titlefinder.Scan() {
 			splitter := strings.Split(titlefinder.Text(), ":")
 			if splitter[0] == "title" {
-				title = strings.TrimSpace(splitter[1])
-				break
+				return strings.TrimSpace(splitter[1])
 			}
 		}
-	} else {
-		title = filename
 	}
-	parsed := blackfriday.Run(body)
-	return &Page{Filename: filename, Title: title, Body: parsed}, nil
+	return filename
 }
 
-func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
-	p, err := loadPage(title)
+func viewHandler(w http.ResponseWriter, r *http.Request, filename string) {
+	p, err := loadPage(filename)
 	if err != nil {
-		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
+		http.Redirect(w, r, "/edit/"+filename, http.StatusFound)
 		return
 	}
 	renderTemplate(w, "view", p)
 }
 
-func editHandler(w http.ResponseWriter, r *http.Request, title string) {
-	p, err := loadPage(title)
+func editHandler(w http.ResponseWriter, r *http.Request, filename string) {
+	p, err := loadPage(filename)
 	if err != nil {
-		p = &Page{Title: title}
+		p = &Page{Filename: filename}
 	}
 	renderTemplate(w, "edit", p)
 }
 
-func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
+func saveHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	body := r.FormValue("body")
-	p := &Page{Title: title, Body: []byte(body)}
+	filename = r.FormValue("filename") + ".md"
+	p := &Page{Filename: filename, Title: title, Body: []byte(body)}
 	err := p.save()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, "/"+title, http.StatusFound)
+	http.Redirect(w, r, "/"+filename, http.StatusFound)
 }
 
 func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
@@ -103,6 +106,8 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 }
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	go func() {
 		http.HandleFunc("/", makeHandler(viewHandler))
 		runtime.Gosched()
