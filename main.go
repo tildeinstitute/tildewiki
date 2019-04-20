@@ -1,11 +1,16 @@
 package main // import "github.com/gbmor/tildewiki"
 
 import (
+	"bufio"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"regexp"
+	"strings"
+
+	"github.com/russross/blackfriday"
 )
 
 var templates = template.Must(template.ParseFiles("edit.html", "view.html"))
@@ -19,22 +24,35 @@ type Page struct {
 }
 
 func (p *Page) save() error {
-	filename := p.Title + ".md"
-	return ioutil.WriteFile(filename, p.Body, 0600)
+	return ioutil.WriteFile(p.Filename, p.Body, 0600)
 }
 
-func loadPage(title string) (*Page, error) {
-	var filename string
-	if title == "" {
+func loadPage(filename string) (*Page, error) {
+	if filename == "" {
 		filename = "wiki.md"
 	} else {
-		filename = title + ".md"
+		filename += ".md"
 	}
 	body, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-	return &Page{Title: title, Body: body}, nil
+	mdfile, err := os.Open(filename)
+	var title string
+	if err == nil {
+		titlefinder := bufio.NewScanner(mdfile)
+		for titlefinder.Scan() {
+			splitter := strings.Split(titlefinder.Text(), ":")
+			if splitter[0] == "title" {
+				title = strings.TrimSpace(splitter[1])
+				break
+			}
+		}
+	} else {
+		title = filename
+	}
+	parsed := blackfriday.Run(body)
+	return &Page{Filename: filename, Title: title, Body: parsed}, nil
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
@@ -84,7 +102,7 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 }
 
 func main() {
-	http.HandleFunc("/view/", makeHandler(viewHandler))
+	http.HandleFunc("/", makeHandler(viewHandler))
 	http.HandleFunc("/edit/", makeHandler(editHandler))
 	http.HandleFunc("/save/", makeHandler(saveHandler))
 	log.Fatal(http.ListenAndServe(":8080", nil))
