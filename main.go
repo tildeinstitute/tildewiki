@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"runtime"
 	"strings"
 
 	"github.com/russross/blackfriday"
@@ -102,8 +103,17 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 }
 
 func main() {
-	http.HandleFunc("/", makeHandler(viewHandler))
-	http.HandleFunc("/edit/", makeHandler(editHandler))
-	http.HandleFunc("/save/", makeHandler(saveHandler))
+	go func() {
+		http.HandleFunc("/", makeHandler(viewHandler))
+		runtime.Gosched()
+	}()
+	go func() {
+		http.HandleFunc("/edit/", makeHandler(editHandler))
+		runtime.Gosched()
+	}()
+	go func() {
+		http.HandleFunc("/save/", makeHandler(saveHandler))
+		runtime.Gosched()
+	}()
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
