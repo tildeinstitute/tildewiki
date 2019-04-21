@@ -13,7 +13,7 @@ import (
 )
 
 var templates = template.Must(template.ParseFiles("edit.html", "view.html"))
-var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
+var validPath = regexp.MustCompile("^/(edit|save|w)/([a-zA-Z0-9]+)$")
 
 // Page holds wiki page title and body
 type Page struct {

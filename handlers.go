@@ -4,8 +4,16 @@ import "net/http"
 
 func viewHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	p, err := loadPage(filename)
-	if err != nil {
+	if err != nil && p.Filename != "wiki.md" {
 		http.Redirect(w, r, "/edit/"+filename, http.StatusFound)
+		return
+	}
+	if err != nil && p.Filename == "wiki.md" {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
+	if p.Filename == "wiki.md" {
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 	renderTemplate(w, "view", p)
@@ -20,7 +28,12 @@ func editHandler(w http.ResponseWriter, r *http.Request, filename string) {
 		}
 		p.Filename = filename
 	}
-	renderTemplate(w, "edit", p)
+	if filename != "wiki.md" {
+		renderTemplate(w, "edit", p)
+	} else {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
 }
 
 func saveHandler(w http.ResponseWriter, r *http.Request, filename string) {
