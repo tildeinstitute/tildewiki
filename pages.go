@@ -2,6 +2,7 @@ package main // import "github.com/gbmor/tildewiki"
 
 import (
 	"bufio"
+	"bytes"
 	"html/template"
 	"io/ioutil"
 	"net/http"
@@ -27,11 +28,7 @@ func (p *Page) save() error {
 }
 
 func loadPage(filename string) (*Page, error) {
-	if filename == "" {
-		filename = "wiki.md"
-	} else {
-		filename += ".md"
-	}
+	filename = "./pages/" + filename + ".md"
 	body, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -53,6 +50,45 @@ func getTitle(filename string) string {
 		}
 	}
 	return filename
+}
+
+func genIndex() []byte {
+	body := make([]byte, 0, 1)
+	buf := bytes.NewBuffer(body)
+	index, err := os.Open("wiki.md")
+	if err != nil {
+		builder := bufio.NewScanner(index)
+		builder.Split(bufio.ScanLines)
+		for builder.Scan() {
+			if builder.Text() != "<!--#pagelist-->" {
+				buf.WriteString(builder.Text())
+			}
+			if builder.Text() == "<!--#pagelist-->" {
+				tmp := string(tallyPages())
+				buf.WriteString(tmp)
+			}
+		}
+	}
+	return []byte(buf.String())
+}
+
+func tallyPages() []byte {
+	pagelist := make([]byte, 0, 1)
+	buf := bytes.NewBuffer(pagelist)
+	files, err := ioutil.ReadDir("./pages/")
+	if err != nil {
+		return []byte("<strong>Pages either don't exist or can't be read.</strong>")
+	}
+	var title string
+	var tmp string
+	var shortname []byte
+	for _, f := range files {
+		title = getTitle(f.Name())
+		shortname = []byte(f.Name())
+		tmp = "<a href=\"/w/" + string(shortname[:len(shortname)-3]) + "\">" + title + "</a><br />\n"
+		buf.WriteString(tmp)
+	}
+	return []byte(buf.String())
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {

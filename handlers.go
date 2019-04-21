@@ -19,6 +19,10 @@ func viewHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	renderTemplate(w, "view", p)
 }
 
+func welcomeHandler(w http.ResponseWriter, r *http.Request) {
+	return //placeholder
+}
+
 func editHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	p, err := loadPage(filename)
 	if err != nil {
