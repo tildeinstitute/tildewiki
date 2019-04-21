@@ -60,35 +60,40 @@ func genIndex() []byte {
 		builder := bufio.NewScanner(index)
 		builder.Split(bufio.ScanLines)
 		for builder.Scan() {
-			if builder.Text() != "<!--#pagelist-->" {
+			if builder.Text() == "<!--#pagelist-->" {
+				tmp := tallyPages()
+				buf.WriteString(tmp)
+			} else if builder.Text() != "<!--#pagelist-->" {
+				buf.WriteString(builder.Text())
+			} else {
+				// schrodinger's HTML
 				buf.WriteString(builder.Text())
 			}
-			if builder.Text() == "<!--#pagelist-->" {
-				tmp := string(tallyPages())
-				buf.WriteString(tmp)
-			}
 		}
+		return []byte(buf.String())
 	}
-	return []byte(buf.String())
+	return nil
 }
 
-func tallyPages() []byte {
+func tallyPages() string {
 	pagelist := make([]byte, 0, 1)
 	buf := bytes.NewBuffer(pagelist)
 	files, err := ioutil.ReadDir("./pages/")
 	if err != nil {
-		return []byte("<strong>Pages either don't exist or can't be read.</strong>")
+		return "*Pages either don't exist or can't be read.</strong>*"
 	}
 	var title string
 	var tmp string
-	var shortname []byte
+	var name string
+	var shortname string
 	for _, f := range files {
 		title = getTitle(f.Name())
-		shortname = []byte(f.Name())
-		tmp = "<a href=\"/w/" + string(shortname[:len(shortname)-3]) + "\">" + title + "</a><br />\n"
+		name = string(f.Name())
+		shortname = string(name[:len(name)-3])
+		tmp = "* [" + title + "](/w/" + shortname + ")\n"
 		buf.WriteString(tmp)
 	}
-	return []byte(buf.String())
+	return buf.String()
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {

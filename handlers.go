@@ -1,6 +1,10 @@
 package main // import "github.com/gbmor/tildewiki"
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/russross/blackfriday"
+)
 
 func viewHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	p, err := loadPage(filename)
@@ -20,7 +24,12 @@ func viewHandler(w http.ResponseWriter, r *http.Request, filename string) {
 }
 
 func welcomeHandler(w http.ResponseWriter, r *http.Request) {
-	return //placeholder
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	parsed := blackfriday.Run(genIndex())
+	_, err := w.Write(parsed)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func editHandler(w http.ResponseWriter, r *http.Request, filename string) {
