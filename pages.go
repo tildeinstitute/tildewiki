@@ -53,7 +53,7 @@ func getTitle(filename string) string {
 }
 
 func genIndex() []byte {
-	body := make([]byte, 0, 1)
+	body := make([]byte, 0)
 	buf := bytes.NewBuffer(body)
 	index, err := os.Open("wiki.md")
 	if err != nil {
@@ -70,7 +70,7 @@ func genIndex() []byte {
 				buf.WriteString(builder.Text())
 			}
 		}
-		return []byte(buf.String())
+		return body
 	}
 	return nil
 }
