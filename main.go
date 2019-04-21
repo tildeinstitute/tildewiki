@@ -6,6 +6,7 @@ import (
 )
 
 func main() {
+	//mux := http.NewServeMux()
 	http.HandleFunc("/", welcomeHandler)
 	http.HandleFunc("/w/", makeHandler(viewHandler))
 	http.HandleFunc("/edit/", makeHandler(editHandler))

@@ -13,7 +13,7 @@ import (
 	"github.com/russross/blackfriday"
 )
 
-var templates = template.Must(template.ParseFiles("edit.html", "view.html"))
+var templates = template.Must(template.ParseFiles("templates/edit.html", "templates/view.html"))
 var validPath = regexp.MustCompile("^/(edit|save|w)/([a-zA-Z0-9]+)$")
 
 // Page holds wiki page title and body
@@ -28,7 +28,7 @@ func (p *Page) save() error {
 }
 
 func loadPage(filename string) (*Page, error) {
-	filename = "./pages/" + filename + ".md"
+	filename = "pages/" + filename + ".md"
 	body, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func tallyPages() string {
 	buf := bytes.NewBuffer(pagelist)
 	files, err := ioutil.ReadDir("./pages/")
 	if err != nil {
-		return "*Pages either don't exist or can't be read.</strong>*"
+		return "*Pages either don't exist or can't be read.*"
 	}
 	var title string
 	var tmp string
@@ -97,7 +97,7 @@ func tallyPages() string {
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
-	err := templates.ExecuteTemplate(w, tmpl+".html", p)
+	err := templates.ExecuteTemplate(w, "templates/"+tmpl+".html", p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

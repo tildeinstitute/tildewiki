@@ -24,12 +24,11 @@ func viewHandler(w http.ResponseWriter, r *http.Request, filename string) {
 }
 
 func welcomeHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	parsed := blackfriday.Run(genIndex())
-	_, err := w.Write(parsed)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	//reader := bytes.NewReader(parsed)
+	//http.ServeContent(w, r, "index.html", time.Now(), reader)
+	w.Header().Set("Content-Type", "text/html")
+	w.Write(parsed)
 }
 
 func editHandler(w http.ResponseWriter, r *http.Request, filename string) {
