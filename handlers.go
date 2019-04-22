@@ -2,29 +2,19 @@ package main // import "github.com/gbmor/tildewiki"
 
 import (
 	"net/http"
-
-	"github.com/russross/blackfriday"
 )
 
 func viewHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	p, err := loadPage(filename)
-	if err != nil && p.Filename != "wiki.md" {
+	if err != nil {
 		http.Redirect(w, r, "/edit/"+filename, http.StatusFound)
-		return
-	}
-	if err != nil && p.Filename == "wiki.md" {
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
-	if p.Filename == "wiki.md" {
-		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 	renderTemplate(w, "view", p)
 }
 
 func welcomeHandler(w http.ResponseWriter, r *http.Request) {
-	parsed := blackfriday.Run(genIndex())
+	parsed := render(genIndex(), "https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/dark.css", "Tildewiki :: Wiki for the Tildeverse")
 	//reader := bytes.NewReader(parsed)
 	//http.ServeContent(w, r, "index.html", time.Now(), reader)
 	w.Header().Set("Content-Type", "text/html")

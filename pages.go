@@ -57,22 +57,22 @@ func genIndex() []byte {
 	buf := bytes.NewBuffer(body)
 	index, err := os.Open("wiki.md")
 	if err != nil {
-		builder := bufio.NewScanner(index)
-		builder.Split(bufio.ScanLines)
-		for builder.Scan() {
-			if builder.Text() == "<!--#pagelist-->" {
-				tmp := tallyPages()
-				buf.WriteString(tmp)
-			} else if builder.Text() != "<!--#pagelist-->" {
-				buf.WriteString(builder.Text())
-			} else {
-				// schrodinger's HTML
-				buf.WriteString(builder.Text())
-			}
-		}
-		return body
+		return []byte("Could not open \"wiki.md\"")
 	}
-	return nil
+	builder := bufio.NewScanner(index)
+	builder.Split(bufio.ScanLines)
+	for builder.Scan() {
+		if builder.Text() == "<!--pagelist-->" {
+			tmp := tallyPages()
+			buf.WriteString(tmp + "\n")
+		} else if builder.Text() != "<!--pagelist-->" {
+			buf.WriteString(builder.Text() + "\n")
+		} else {
+			// schrodinger's HTML
+			buf.WriteString(builder.Text() + "\n")
+		}
+	}
+	return []byte(buf.String())
 }
 
 func tallyPages() string {
@@ -97,7 +97,7 @@ func tallyPages() string {
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
-	err := templates.ExecuteTemplate(w, "templates/"+tmpl+".html", p)
+	err := templates.ExecuteTemplate(w, tmpl+".html", p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
