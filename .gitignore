@@ -2,4 +2,4 @@ GTAGS
 GRTAGS
 GPATH
 tildewiki
-./pages
+pages/test*

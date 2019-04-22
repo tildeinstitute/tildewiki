@@ -55,9 +55,9 @@ func getTitle(filename string) string {
 func genIndex() []byte {
 	body := make([]byte, 0)
 	buf := bytes.NewBuffer(body)
-	index, err := os.Open("wiki.md")
+	index, err := os.Open("index/wiki.md")
 	if err != nil {
-		return []byte("Could not open \"wiki.md\"")
+		return []byte("Could not open \"index/wiki.md\"")
 	}
 	builder := bufio.NewScanner(index)
 	builder.Split(bufio.ScanLines)
@@ -86,6 +86,9 @@ func tallyPages() string {
 	var tmp string
 	var name string
 	var shortname string
+	if len(files) == 0 {
+		return "*No wiki pages! Add some content.*"
+	}
 	for _, f := range files {
 		title = getTitle(f.Name())
 		name = string(f.Name())

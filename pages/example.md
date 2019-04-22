@@ -1,10 +1,10 @@
 ---
 author: gbmor
-title: test page 1
-description: first test page of the wiki
+title: Example Page
+description: Example page for the wiki
 ---
 
-# test page 1
+# template heading
 
 this is a test page. it is the first test page of the wiki
 
