@@ -1,4 +1,4 @@
-package main // import "github.com/gbmor/tildewiki"
+package main
 
 import (
 	"bufio"

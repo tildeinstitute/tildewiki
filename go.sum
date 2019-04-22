@@ -1,4 +1,4 @@
-github.com/russross/blackfriday v2.0.0+incompatible h1:cBXrhZNUf9C+La9/YpS+UHpUT8YD6Td9ZMSU9APFcsk=
-github.com/russross/blackfriday v2.0.0+incompatible/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
+github.com/gbmor-forks/blackfriday.v2-patched v0.0.0-20190422230759-91071f2561f1 h1:O1zej9wdZX4GP26nEWlabIYF8tBzxLwdGWNTo/XgOg0=
+github.com/gbmor-forks/blackfriday.v2-patched v0.0.0-20190422230759-91071f2561f1/go.mod h1:aklyD3jeUevHhApmpQeRMGPD10BF9l3bD/s1vNeBHyI=
 github.com/shurcooL/sanitized_anchor_name v1.0.0 h1:PdmoCO6wvbs+7yrJyMORt4/BmY5IYyJwS/kOiWx8mHo=
 github.com/shurcooL/sanitized_anchor_name v1.0.0/go.mod h1:1NzhyTcUVG4SuEtjjoZeVRXNmyL/1OwPU0+IJeTBvfc=
