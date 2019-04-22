@@ -1,8 +1,8 @@
----
+<!--
 author: gbmor
 title: test page 1
 description: first test page of the wiki
----
+-->
 
 # test page 1
 

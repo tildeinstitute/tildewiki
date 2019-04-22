@@ -9,8 +9,6 @@ import (
 	"os"
 	"regexp"
 	"strings"
-
-	"github.com/russross/blackfriday"
 )
 
 var templates = template.Must(template.ParseFiles("templates/edit.html", "templates/view.html"))
@@ -34,7 +32,7 @@ func loadPage(filename string) (*Page, error) {
 		return nil, err
 	}
 	title := getTitle(filename)
-	parsed := blackfriday.Run(body)
+	parsed := render(body, "https://tilde.team/css/hacker.css", title)
 	return &Page{Filename: filename, Title: title, Body: parsed}, nil
 }
 

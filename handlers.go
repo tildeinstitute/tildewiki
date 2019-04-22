@@ -7,10 +7,12 @@ import (
 func viewHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	p, err := loadPage(filename)
 	if err != nil {
-		http.Redirect(w, r, "/edit/"+filename, http.StatusFound)
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	renderTemplate(w, "view", p)
+	//renderTemplate(w, "view", p)
+	w.Header().Set("Content-Type", "text/html")
+	w.Write(p.Body)
 }
 
 func welcomeHandler(w http.ResponseWriter, r *http.Request) {
