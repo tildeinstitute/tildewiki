@@ -16,7 +16,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request, filename string) {
 }
 
 func welcomeHandler(w http.ResponseWriter, r *http.Request) {
-	parsed := render(genIndex(), "https://tilde.team/css/hacker.css", "Tildewiki :: Wiki for the Tildeverse")
+	parsed := render(genIndex(), "https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/dark.css", "Tildewiki :: Wiki for the Tildeverse")
 	//reader := bytes.NewReader(parsed)
 	//http.ServeContent(w, r, "index.html", time.Now(), reader)
 	w.Header().Set("Content-Type", "text/html")

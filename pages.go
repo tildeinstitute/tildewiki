@@ -32,7 +32,7 @@ func loadPage(filename string) (*Page, error) {
 		return nil, err
 	}
 	title := getTitle(filename)
-	parsed := render(body, "https://tilde.team/css/hacker.css", title)
+	parsed := render(body, "https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/dark.css", title)
 	return &Page{Filename: filename, Title: title, Body: parsed}, nil
 }
 
