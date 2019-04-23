@@ -8,6 +8,8 @@ The patch allows injection of arbitrary `<meta .../>` tags into the document hea
 
 I'll be submitting a PR of my change once I patch the development codebase.
 
+The patched repository lives at: [gbmor-forks/blackfriday.v2-patched](https://github.com/gbmor-forks/blackfriday.v2-patched)
+
 ## About
 
 * Markdown rendering of all files
