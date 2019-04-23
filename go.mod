@@ -7,4 +7,4 @@ require (
 	github.com/spf13/viper v1.3.2
 )
 
-go 1.12
+go 1.11
