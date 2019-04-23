@@ -1,14 +1,19 @@
+Port: 8080
+
 Name: "Tildewiki"
 Separator: "::"
 ShortDesc: "Wiki for the Tildeverse"
-Icon: "index/icon.png"
-Port: 8080
 #CSS: "index/wiki.css"
 CSS: "https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/dark.css"
+
 IndexDir: "index"
-Index: "index/wiki.md"
+Index: "wiki.md"
+Icon: "icon.png"
+
 PageDir: "pages"
 PageTmpl: "template.md"
+
 TmplDir: "templates"
+
 ValidPath: "^/(edit|save|w)/([a-zA-Z0-9]+)$"
 ViewPath: "w"

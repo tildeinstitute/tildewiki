@@ -2,6 +2,7 @@ package main
 
 import (
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"regexp"
@@ -37,20 +38,20 @@ func initConfigParams() (*template.Template, *regexp.Regexp) {
 
 func error500(w http.ResponseWriter, r *http.Request) {
 	e500 := viper.GetString("IndexDir") + "/500.md"
-	page, err := loadPage(e500)
+	file, err := ioutil.ReadFile(e500)
 	if err != nil {
 		http.NotFound(w, r)
 	}
 	w.Header().Set("Content-Type", "text/html")
-	w.Write(render(page.Body, viper.GetString("CSS"), "500 Error"))
+	w.Write(render(file, viper.GetString("CSS"), "500 Error"))
 }
 
 func error404(w http.ResponseWriter, r *http.Request) {
 	e404 := viper.GetString("IndexDir") + "/404.md"
-	page, err := loadPage(e404)
+	file, err := ioutil.ReadFile(e404)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	w.Header().Set("Content-Type", "text/html")
-	w.Write(render(page.Body, viper.GetString("CSS"), "404 Error"))
+	w.Write(render(file, viper.GetString("CSS"), "404 Error"))
 }
