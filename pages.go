@@ -35,16 +35,17 @@ func loadPage(filename string) (*Page, error) {
 
 func getTitle(filename string) string {
 	mdfile, err := os.Open(filename)
-	if err == nil {
-		titlefinder := bufio.NewScanner(mdfile)
-		for titlefinder.Scan() {
-			splitter := strings.Split(titlefinder.Text(), ":")
-			if splitter[0] == "title" {
-				return strings.TrimSpace(splitter[1])
-			}
+	if err != nil {
+		return filename
+	}
+	titlefinder := bufio.NewScanner(mdfile)
+	for titlefinder.Scan() {
+		splitter := strings.Split(titlefinder.Text(), ":")
+		if splitter[0] == "title" {
+			return strings.TrimSpace(splitter[1])
 		}
 	}
-	return filename
+	return ""
 }
 
 func genIndex() []byte {
