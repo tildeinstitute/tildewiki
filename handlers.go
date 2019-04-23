@@ -7,7 +7,7 @@ import (
 )
 
 func viewHandler(w http.ResponseWriter, r *http.Request, filename string) {
-	p, err := loadPage(viper.GetString("PageDir") + filename)
+	p, err := loadPage(viper.GetString("PageDir") + "/" + filename)
 	if err != nil {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return

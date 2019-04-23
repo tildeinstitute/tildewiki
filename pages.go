@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -41,7 +40,6 @@ func getTitle(filename string) string {
 		for titlefinder.Scan() {
 			splitter := strings.Split(titlefinder.Text(), ":")
 			if splitter[0] == "title" {
-				fmt.Println(splitter[1])
 				return strings.TrimSpace(splitter[1])
 			}
 		}
@@ -52,11 +50,9 @@ func getTitle(filename string) string {
 func genIndex() []byte {
 	body := make([]byte, 0)
 	buf := bytes.NewBuffer(body)
-	indexdir := viper.GetString("IndexDir")
-	indexpage := viper.GetString("Index")
-	index, err := os.Open(indexdir + indexpage)
+	index, err := os.Open(viper.GetString("Index"))
 	if err != nil {
-		return []byte("Could not open \"" + indexdir + indexpage + "\"")
+		return []byte("Could not open \"" + viper.GetString("Index") + "\"")
 	}
 	builder := bufio.NewScanner(index)
 	builder.Split(bufio.ScanLines)
@@ -91,7 +87,7 @@ func tallyPages() string {
 		return "*No wiki pages! Add some content.*"
 	}
 	for _, f := range files {
-		title = getTitle(pagedir + f.Name())
+		title = getTitle(pagedir + "/" + f.Name())
 		name = f.Name()
 		shortname = string(name[:len(name)-3])
 		tmp = "* [" + title + "](/" + viewpath + "/" + shortname + ")\n"
