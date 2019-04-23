@@ -2,7 +2,7 @@
 
 A wiki engine designed for the needs of the [tildeverse](https://tildeverse.org)
 
-Uses a patched copy of [russross/blackfriday](https://github.com/russross/blackfriday) ([gopkg](https://gopkg.in/russross/blackfriday.v2)) as the markdown parser. The patch allows injection of arbitrary `<meta .../>` tags into the document header during the markdown-&gt;html translation.  I'll be submitting a PR of my change once I patch the development codebase.
+Uses a patched copy of [russross/blackfriday](https://github.com/russross/blackfriday) ([gopkg](https://gopkg.in/russross/blackfriday.v2)) as the markdown parser. The patch allows injection of arbitrary `<meta.../>` tags into the document header during the `markdown->html` translation.  I'll be submitting a PR of my change once I patch the development codebase.
 
 The patched repository lives at: [gbmor-forks/blackfriday.v2-patched](https://github.com/gbmor-forks/blackfriday.v2-patched)
 
