@@ -1,0 +1,11 @@
+Name: "Tildewiki"
+Separator: "::"
+ShortDesc: "Wiki for the Tildeverse"
+Icon: "index/icon.png"
+Port: 8080
+CSS: "index/wiki.css"
+Index: "index/wiki.md"
+PageDir: "pages/"
+TmplDir: "templates/"
+IndexDir: "index/"
+ValidPath: "^/(edit|save|w)/([a-zA-Z0-9]+)$"
