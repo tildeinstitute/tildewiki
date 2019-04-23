@@ -11,7 +11,7 @@ func setupMarkdown(css string, title string) *bf.HTMLRenderer {
 		Meta: map[string]string{
 			"name=\"viewport\"": "width=device-width, initial-scale=1",
 		},
-		Flags: bf.CompletePage, //| bf.UseXHTML | bf.Safelink,
+		Flags: bf.CompletePage | bf.Safelink,
 	}
 	return bf.NewHTMLRenderer(params)
 }
