@@ -5,6 +5,9 @@ import (
 	"net/http"
 )
 
+// TildeWiki version
+const twvers = "development version"
+
 // initialize the basic configuration and
 // assign the parsed templates and compiled regex
 // to these two globals
