@@ -2,17 +2,18 @@
 
 A wiki engine designed for the needs of the [tildeverse](https://tildeverse.org)
 
-Uses a patched copy of [russross/blackfriday](https://github.com/russross/blackfriday) ([gopkg](https://gopkg.in/russross/blackfriday.v2)) as the markdown parser. The patch allows injection of arbitrary `<meta.../>` tags into the document header during the `markdown->html` translation.  I'll be submitting a PR of my change once I patch the development codebase.
+Uses a patched copy of [russross/blackfriday](https://github.com/russross/blackfriday) ([gopkg](https://gopkg.in/russross/blackfriday.v2)) as the markdown parser. The patch allows injection of various `<meta.../>` tags into the document header during the `markdown->html` translation.
 
-The patched repository lives at: [gbmor-forks/blackfriday.v2-patched](https://github.com/gbmor-forks/blackfriday.v2-patched)
+* The patched `v2` repository lives at: [gbmor-forks/blackfriday.v2-patched](https://github.com/gbmor-forks/blackfriday.v2-patched)
+* The patched `master` repo lives at: [gbmor-forks/blackfriday](https://github.com/gbmor-forks/blackfriday). 
+* The PR can be found here: [allow writing of user-specified &lt;meta.../&gt;...](https://github.com/russross/blackfriday/pull/541)
 
 ## About
 
-* Markdown rendering of all files
-* YAML for configuration
-* Watches config file for changes and automatically reloads
-* Specify a file or a URL for the CSS file
-* Dynamically generates index of pages and places at anchor-point in `wiki.md`
+* Markdown rendering
+* Watches (YAML) config file for changes and automatically reloads
+* Dynamically generates index of pages and places at anchor-point in front/index page
+* Basically everything is configurable: URL path for viewing pages, directory for page data, file to use for index page, etc.
 * Runs as a multithreaded service, rather than via CGI
 * Easily use Nginx to proxy requests to it. This allows you to use your existing SSL certificates.
 * Speed is a priority
