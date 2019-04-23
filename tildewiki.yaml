@@ -2,10 +2,10 @@
 # order. The first one found wins, the next locations are ignored 
 # even if the file exists there too.
 #
-#/usr/local/etc/
-# /etc/
-# $HOME/.tildewiki/
-# ./
+#   /usr/local/etc/
+#   /etc/
+#   $HOME/.tildewiki/
+#   ./
 #
 # The config file must be called `tildewiki.yaml`
 # I'll make this configurable by a command line flag later
