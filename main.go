@@ -5,6 +5,9 @@ import (
 	"net/http"
 )
 
+// initialize the basic configuration and
+// assign the parsed templates and compiled regex
+// to these two globals
 var templates, validPath = initConfigParams()
 
 func main() {

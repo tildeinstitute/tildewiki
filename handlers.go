@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// handler for viewing content pages (not the index page)
 func viewHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	p, err := loadPage(viper.GetString("PageDir") + "/" + filename)
 	if err != nil {
@@ -17,6 +18,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	w.Write(p.Body)
 }
 
+// handler for viewing the index page
 func welcomeHandler(w http.ResponseWriter, r *http.Request) {
 	parsed := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("Separator")+" "+viper.GetString("ShortDesc"))
 	//reader := bytes.NewReader(parsed)
@@ -25,6 +27,7 @@ func welcomeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(parsed)
 }
 
+// handler for requests to edit a page
 func editHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	p, err := loadPage(viper.GetString("PageDir") + "/" + filename)
 	if err != nil {
@@ -43,6 +46,7 @@ func editHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	}
 }
 
+// saves a page after editing
 func saveHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	body := r.FormValue("body")
 	filename = r.FormValue("filename") + ".md"
@@ -55,6 +59,8 @@ func saveHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	http.Redirect(w, r, "/"+filename, http.StatusFound)
 }
 
+// closure to validate the request paths (using the regex in main.go / tildewiki.yaml)
+// then pass everything on to the appropriate handler function if it all checks out
 func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		m := validPath.FindStringSubmatch(r.URL.Path)

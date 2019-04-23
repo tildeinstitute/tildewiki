@@ -18,10 +18,12 @@ type Page struct {
 	Body     []byte
 }
 
+// method to save a page after editing
 func (p *Page) save() error {
 	return ioutil.WriteFile(p.Filename, p.Body, 0600)
 }
 
+// loads a given wiki page and returns a page struct pointer
 func loadPage(filename string) (*Page, error) {
 	filename = filename + ".md"
 	body, err := ioutil.ReadFile(filename)
@@ -33,6 +35,8 @@ func loadPage(filename string) (*Page, error) {
 	return &Page{Filename: filename, Title: title, Body: parsed}, nil
 }
 
+// scan the page for the `title: ` field
+// in the header comment
 func getTitle(filename string) string {
 	mdfile, err := os.Open(filename)
 	if err != nil {
@@ -48,6 +52,7 @@ func getTitle(filename string) string {
 	return ""
 }
 
+// generate the front page of the wiki
 func genIndex() []byte {
 	body := make([]byte, 0)
 	buf := bytes.NewBuffer(body)
@@ -71,6 +76,7 @@ func genIndex() []byte {
 	return []byte(buf.String())
 }
 
+// generate a list of pages for the front page
 func tallyPages() string {
 	pagelist := make([]byte, 0, 1)
 	buf := bytes.NewBuffer(pagelist)
@@ -97,6 +103,7 @@ func tallyPages() string {
 	return buf.String()
 }
 
+// pass a page to the parsed HTML template
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page, r *http.Request) {
 	err := templates.ExecuteTemplate(w, tmpl+".html", p)
 	if err != nil {
