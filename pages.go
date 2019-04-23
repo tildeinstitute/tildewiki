@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"net/http"
@@ -43,6 +44,7 @@ func getTitle(filename string) string {
 		for titlefinder.Scan() {
 			splitter := strings.Split(titlefinder.Text(), ":")
 			if splitter[0] == "title" {
+				fmt.Println(splitter[1])
 				return strings.TrimSpace(splitter[1])
 			}
 		}
@@ -88,8 +90,8 @@ func tallyPages() string {
 		return "*No wiki pages! Add some content.*"
 	}
 	for _, f := range files {
-		title = getTitle(f.Name())
-		name = string(f.Name())
+		title = getTitle("pages/" + f.Name())
+		name = f.Name()
 		shortname = string(name[:len(name)-3])
 		tmp = "* [" + title + "](/w/" + shortname + ")\n"
 		buf.WriteString(tmp)
