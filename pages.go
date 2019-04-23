@@ -51,9 +51,9 @@ func getTitle(filename string) string {
 func genIndex() []byte {
 	body := make([]byte, 0)
 	buf := bytes.NewBuffer(body)
-	index, err := os.Open(viper.GetString("Index"))
+	index, err := os.Open(viper.GetString("IndexDir") + "/" + viper.GetString("Index"))
 	if err != nil {
-		return []byte("Could not open \"" + viper.GetString("Index") + "\"")
+		return []byte("Could not open \"" + viper.GetString("IndexDir") + "/" + viper.GetString("Index") + "\"")
 	}
 	builder := bufio.NewScanner(index)
 	builder.Split(bufio.ScanLines)
