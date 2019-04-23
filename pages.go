@@ -4,16 +4,13 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"html/template"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"regexp"
 	"strings"
-)
 
-var templates = template.Must(template.ParseFiles("templates/edit.html", "templates/view.html"))
-var validPath = regexp.MustCompile("^/(edit|save|w)/([a-zA-Z0-9]+)$")
+	"github.com/spf13/viper"
+)
 
 // Page holds wiki page title and body
 type Page struct {
@@ -27,13 +24,13 @@ func (p *Page) save() error {
 }
 
 func loadPage(filename string) (*Page, error) {
-	filename = "pages/" + filename + ".md"
+	filename = filename + ".md"
 	body, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
 	title := getTitle(filename)
-	parsed := render(body, "https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/dark.css", title)
+	parsed := render(body, viper.GetString("CSS"), title)
 	return &Page{Filename: filename, Title: title, Body: parsed}, nil
 }
 
@@ -55,9 +52,11 @@ func getTitle(filename string) string {
 func genIndex() []byte {
 	body := make([]byte, 0)
 	buf := bytes.NewBuffer(body)
-	index, err := os.Open("index/wiki.md")
+	indexdir := viper.GetString("IndexDir")
+	indexpage := viper.GetString("Index")
+	index, err := os.Open(indexdir + indexpage)
 	if err != nil {
-		return []byte("Could not open \"index/wiki.md\"")
+		return []byte("Could not open \"" + indexdir + indexpage + "\"")
 	}
 	builder := bufio.NewScanner(index)
 	builder.Split(bufio.ScanLines)
@@ -78,7 +77,9 @@ func genIndex() []byte {
 func tallyPages() string {
 	pagelist := make([]byte, 0, 1)
 	buf := bytes.NewBuffer(pagelist)
-	files, err := ioutil.ReadDir("./pages/")
+	pagedir := viper.GetString("PageDir")
+	viewpath := viper.GetString("ViewPath")
+	files, err := ioutil.ReadDir(pagedir)
 	if err != nil {
 		return "*Pages either don't exist or can't be read.*"
 	}
@@ -90,10 +91,10 @@ func tallyPages() string {
 		return "*No wiki pages! Add some content.*"
 	}
 	for _, f := range files {
-		title = getTitle("pages/" + f.Name())
+		title = getTitle(pagedir + f.Name())
 		name = f.Name()
 		shortname = string(name[:len(name)-3])
-		tmp = "* [" + title + "](/w/" + shortname + ")\n"
+		tmp = "* [" + title + "](/" + viewpath + "/" + shortname + ")\n"
 		buf.WriteString(tmp)
 	}
 	return buf.String()

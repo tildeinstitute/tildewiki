@@ -2,10 +2,12 @@ package main
 
 import (
 	"net/http"
+
+	"github.com/spf13/viper"
 )
 
 func viewHandler(w http.ResponseWriter, r *http.Request, filename string) {
-	p, err := loadPage(filename)
+	p, err := loadPage(viper.GetString("PageDir") + filename)
 	if err != nil {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
@@ -16,7 +18,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request, filename string) {
 }
 
 func welcomeHandler(w http.ResponseWriter, r *http.Request) {
-	parsed := render(genIndex(), "https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/dark.css", "Tildewiki :: Wiki for the Tildeverse")
+	parsed := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("Separator")+" "+viper.GetString("ShortDesc"))
 	//reader := bytes.NewReader(parsed)
 	//http.ServeContent(w, r, "index.html", time.Now(), reader)
 	w.Header().Set("Content-Type", "text/html")
@@ -24,15 +26,15 @@ func welcomeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func editHandler(w http.ResponseWriter, r *http.Request, filename string) {
-	p, err := loadPage(filename)
+	p, err := loadPage(viper.GetString("PageDir") + "/" + filename)
 	if err != nil {
-		p, err := loadPage("template")
+		p, err := loadPage(viper.GetString("IndexDir") + viper.GetString("PageTmpl"))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		p.Filename = filename
 	}
-	if filename != "wiki.md" {
+	if filename != viper.GetString("Index") {
 		renderTemplate(w, "edit", p)
 	} else {
 		http.Redirect(w, r, "/", http.StatusFound)

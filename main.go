@@ -5,6 +5,8 @@ import (
 	"net/http"
 )
 
+var templates, validPath = initConfigParams()
+
 func main() {
 	http.HandleFunc("/", welcomeHandler)
 	http.HandleFunc("/w/", makeHandler(viewHandler))
