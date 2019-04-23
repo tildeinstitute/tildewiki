@@ -11,6 +11,8 @@ I'll be submitting a PR of my change once I patch the development codebase.
 ## About
 
 * Markdown rendering of all files
+* YAML for configuration
+* Watches config file for changes and automatically reloads
 * Specify a file or a URL for the CSS file
 * Dynamically generates index of pages and places at anchor-point in `wiki.md`
 * Runs as a multithreaded service, rather than via CGI
