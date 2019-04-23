@@ -97,9 +97,10 @@ func tallyPages() string {
 	return buf.String()
 }
 
-func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
+func renderTemplate(w http.ResponseWriter, tmpl string, p *Page, r *http.Request) {
 	err := templates.ExecuteTemplate(w, tmpl+".html", p)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		error500(w, r)
+		return
 	}
 }

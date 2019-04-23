@@ -30,12 +30,13 @@ func editHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	if err != nil {
 		p, err := loadPage(viper.GetString("IndexDir") + viper.GetString("PageTmpl"))
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			error500(w, r)
+			return
 		}
 		p.Filename = filename
 	}
 	if filename != viper.GetString("Index") {
-		renderTemplate(w, "edit", p)
+		renderTemplate(w, "edit", p, r)
 	} else {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
@@ -48,7 +49,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	p := &Page{Filename: filename, Body: []byte(body)}
 	err := p.save()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		error500(w, r)
 		return
 	}
 	http.Redirect(w, r, "/"+filename, http.StatusFound)
@@ -58,7 +59,7 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 	return func(w http.ResponseWriter, r *http.Request) {
 		m := validPath.FindStringSubmatch(r.URL.Path)
 		if m == nil {
-			http.NotFound(w, r)
+			error404(w, r)
 			return
 		}
 		fn(w, r, m[2])

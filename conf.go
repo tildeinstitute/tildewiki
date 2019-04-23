@@ -3,6 +3,7 @@ package main
 import (
 	"html/template"
 	"log"
+	"net/http"
 	"regexp"
 
 	"github.com/fsnotify/fsnotify"
@@ -32,4 +33,24 @@ func initConfigParams() (*template.Template, *regexp.Regexp) {
 	var ValidPath = regexp.MustCompile(viper.GetString("ValidPath"))
 
 	return Templates, ValidPath
+}
+
+func error500(w http.ResponseWriter, r *http.Request) {
+	e500 := viper.GetString("IndexDir") + "/500.md"
+	page, err := loadPage(e500)
+	if err != nil {
+		http.NotFound(w, r)
+	}
+	w.Header().Set("Content-Type", "text/html")
+	w.Write(render(page.Body, viper.GetString("CSS"), "500 Error"))
+}
+
+func error404(w http.ResponseWriter, r *http.Request) {
+	e404 := viper.GetString("IndexDir") + "/404.md"
+	page, err := loadPage(e404)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	w.Header().Set("Content-Type", "text/html")
+	w.Write(render(page.Body, viper.GetString("CSS"), "404 Error"))
 }
