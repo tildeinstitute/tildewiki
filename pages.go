@@ -49,7 +49,7 @@ func getTitle(filename string) string {
 			return strings.TrimSpace(splitter[1])
 		}
 	}
-	return ""
+	return filename
 }
 
 // generate the front page of the wiki
@@ -66,10 +66,7 @@ func genIndex() []byte {
 		if builder.Text() == "<!--pagelist-->" {
 			tmp := tallyPages()
 			buf.WriteString(tmp + "\n")
-		} else if builder.Text() != "<!--pagelist-->" {
-			buf.WriteString(builder.Text() + "\n")
 		} else {
-			// schrodinger's HTML
 			buf.WriteString(builder.Text() + "\n")
 		}
 	}
@@ -113,6 +110,7 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page, r *http.Request
 }
 
 // Pull a page into memory
+// the mutex is locked before this function is called
 func cachePage(filename string) {
 	var longname string
 	if filename != viper.GetString("IndexDir")+"/"+viper.GetString("Index") {
@@ -138,23 +136,35 @@ func checkPageCache(filename string) []byte {
 		longname = viper.GetString("IndexDir") + "/" + filename
 		filename = longname
 	}
-	//oldPageSize := int64(len(cachedPages[filename]))
 	newpage, err := os.Stat(longname)
 	if err != nil {
 		log.Println("checkPageCache() :: Can't stat " + filename)
-		return cachedPages[filename]
+		mutex.RLock()
+		oldpage := cachedPages[filename]
+		mutex.RUnlock()
+		return oldpage
 	}
 
-	if newpage.ModTime() != pageModTime[filename] {
+	mutex.RLock()
+	oldModTime := pageModTime[filename]
+	mutex.RUnlock()
+
+	if newpage.ModTime() != oldModTime {
 		mutex.Lock()
 		cachePage(filename)
 		pageModTime[filename] = newpage.ModTime()
 		mutex.Unlock()
 		log.Println("checkPageCache() :: Re-caching page " + longname)
 	}
-	return cachedPages[filename]
+	mutex.RLock()
+	pageData := cachedPages[filename]
+	mutex.RUnlock()
+	return pageData
 }
 
+// when tildewiki first starts, pull all available pages
+// into cache, saving their modification time as well to
+// determine when to re-load the page.
 func genPageCache() {
 	indexpage, err := os.Stat(viper.GetString("IndexDir") + "/" + viper.GetString("Index"))
 	if err != nil {

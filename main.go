@@ -22,7 +22,7 @@ var cachedPages = map[string][]byte{}
 var pageModTime = map[string]time.Time{}
 
 // prevent concurrent writes to the cache
-var mutex = &sync.Mutex{}
+var mutex = &sync.RWMutex{}
 
 func main() {
 	// fill the page cache
