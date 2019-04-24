@@ -15,5 +15,6 @@ Uses a patched copy of [russross/blackfriday](https://github.com/russross/blackf
 * Dynamically generates index of pages and places at anchor-point in front/index page
 * Basically everything is configurable: URL path for viewing pages, directory for page data, file to use for index page, etc.
 * Runs as a multithreaded service, rather than via CGI
+* Caches pages to memory and only re-renders when the modification time changes
 * Easily use Nginx to proxy requests to it. This allows you to use your existing SSL certificates.
 * Speed is a priority
