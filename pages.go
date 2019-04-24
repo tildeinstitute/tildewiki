@@ -138,15 +138,18 @@ func checkPageCache(filename string) []byte {
 		longname = viper.GetString("IndexDir") + "/" + filename
 		filename = longname
 	}
-	oldPageSize := int64(len(cachedPages[filename]))
+	//oldPageSize := int64(len(cachedPages[filename]))
 	newpage, err := os.Stat(longname)
 	if err != nil {
 		log.Println("checkPageCache() :: Can't stat " + filename)
 		return cachedPages[filename]
 	}
 
-	if oldPageSize != newpage.Size() {
+	if newpage.ModTime() != pageModTime[filename] {
+		mutex.Lock()
 		cachePage(filename)
+		pageModTime[filename] = newpage.ModTime()
+		mutex.Unlock()
 		log.Println("checkPageCache() :: Re-caching page " + longname)
 	}
 	return cachedPages[filename]
@@ -168,7 +171,10 @@ func genPageCache() {
 		if tmp == viper.GetString("Index") {
 			tmp = viper.GetString("IndexDir") + "/" + viper.GetString("Index")
 		}
+		mutex.Lock()
 		cachePage(tmp)
+		pageModTime[tmp] = f.ModTime()
+		mutex.Unlock()
 		log.Println("genPageCache() :: Cached page " + tmp)
 	}
 }
