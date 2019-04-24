@@ -1,6 +1,6 @@
 <!--
 author: gbmor
-title: test page 1
+title: Test Page 1
 description: first test page of the wiki
 -->
 
@@ -12,4 +12,4 @@ this is a test page. it is the first test page of the wiki
 
 sub header text
 
-[link test](https://github.com/gbmor/tildewiki)
+[back](/)

@@ -8,21 +8,21 @@ import (
 
 // handler for viewing content pages (not the index page)
 func viewHandler(w http.ResponseWriter, r *http.Request, filename string) {
-	p, err := loadPage(viper.GetString("PageDir") + "/" + filename)
-	if err != nil {
+	filename = filename + ".md"
+	page := checkPageCache(filename)
+
+	if page == nil {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	//renderTemplate(w, "view", p)
+
 	w.Header().Set("Content-Type", "text/html")
-	w.Write(p.Body)
+	w.Write(page)
 }
 
 // handler for viewing the index page
 func welcomeHandler(w http.ResponseWriter, r *http.Request) {
 	parsed := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("Separator")+" "+viper.GetString("ShortDesc"))
-	//reader := bytes.NewReader(parsed)
-	//http.ServeContent(w, r, "index.html", time.Now(), reader)
 	w.Header().Set("Content-Type", "text/html")
 	w.Write(parsed)
 }

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -25,7 +26,6 @@ func (p *Page) save() error {
 
 // loads a given wiki page and returns a page struct pointer
 func loadPage(filename string) (*Page, error) {
-	filename = filename + ".md"
 	body, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -109,5 +109,66 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page, r *http.Request
 	if err != nil {
 		error500(w, r)
 		return
+	}
+}
+
+// Pull a page into memory
+func cachePage(filename string) {
+	var longname string
+	if filename != viper.GetString("IndexDir")+"/"+viper.GetString("Index") {
+		longname = viper.GetString("PageDir") + "/" + filename
+	} else {
+		longname = filename
+	}
+
+	page, err := loadPage(longname)
+	if err != nil {
+		log.Println("cachePage() :: Can't cache " + filename)
+		return
+	}
+	cachedPages[filename] = page.Body
+}
+
+// compare the size and timestamp of a cached page.
+// if the size is different or the cached version is
+// old, then reload the page into memory
+func checkPageCache(filename string) []byte {
+	longname := viper.GetString("PageDir") + "/" + filename
+	if filename == viper.GetString("Index") {
+		longname = viper.GetString("IndexDir") + "/" + filename
+		filename = longname
+	}
+	oldPageSize := int64(len(cachedPages[filename]))
+	newpage, err := os.Stat(longname)
+	if err != nil {
+		log.Println("checkPageCache() :: Can't stat " + filename)
+		return cachedPages[filename]
+	}
+
+	if oldPageSize != newpage.Size() {
+		cachePage(filename)
+		log.Println("checkPageCache() :: Re-caching page " + longname)
+	}
+	return cachedPages[filename]
+}
+
+func genPageCache() {
+	indexpage, err := os.Stat(viper.GetString("IndexDir") + "/" + viper.GetString("Index"))
+	if err != nil {
+		log.Println("genPageCache() :: Can't stat index page")
+	}
+	wikipages, err := ioutil.ReadDir(viper.GetString("PageDir"))
+	if err != nil {
+		log.Println("genPageCache() :: Can't read directory " + viper.GetString("PageDir"))
+	}
+	wikipages = append(wikipages, indexpage)
+	var tmp string
+	for _, f := range wikipages {
+		tmp = f.Name()
+		if tmp == viper.GetString("Index") {
+			tmp = viper.GetString("IndexDir") + "/" + viper.GetString("Index")
+		}
+		cachePage(tmp)
+		log.Println("genPageCache() :: Cached page " + tmp)
 	}
 }
