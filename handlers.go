@@ -63,7 +63,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request, filename string) {
 		return
 	}
 	http.Redirect(w, r, "/"+filename, http.StatusFound)
-}
+}*/
 
 // closure to validate the request paths (using the regex in main.go / tildewiki.yaml)
 // then pass everything on to the appropriate handler function if it all checks out
@@ -76,4 +76,4 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 		}
 		fn(w, r, m[2])
 	}
-}*/
+}
