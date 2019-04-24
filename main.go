@@ -10,17 +10,23 @@ import (
 // TildeWiki version
 const twvers = "development version"
 
+// Page struct for caching
+type Page struct {
+	Filename string
+	Title    string
+	Desc     string
+	Modtime  time.Time
+	Body     []byte
+}
+
+// the in-memory page cache
+var cachedPages = make(map[string]Page)
+
 // initialize the basic configuration and
 // assign the parsed templates and compiled regex
 // to these two globals
 //var templates, validPath = initConfigParams()
 var validPath = initConfigParams()
-
-// the in-memory page cache
-var cachedPages = map[string][]byte{}
-
-// holds info on page modification times
-var pageModTime = map[string]time.Time{}
 
 // prevent concurrent writes to the cache
 var mutex = &sync.RWMutex{}

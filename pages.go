@@ -11,27 +11,20 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Page holds wiki page title and body
-type Page struct {
-	Filename string
-	Title    string
-	Body     []byte
-}
-
-// method to save a page after editing
-//func (p *Page) save() error {
-//	return ioutil.WriteFile(p.Filename, p.Body, 0600)
-//}
-
 // loads a given wiki page and returns a page struct pointer
 func loadPage(filename string) (*Page, error) {
 	body, err := ioutil.ReadFile(filename)
 	if err != nil {
+		log.Println("loadPage() :: Couldn't read " + filename)
 		return nil, err
+	}
+	filestat, err := os.Stat(filename)
+	if err != nil {
+		log.Println("loadPage() :: Couldn't stat " + filename)
 	}
 	title := getTitle(filename)
 	parsed := render(body, viper.GetString("CSS"), title)
-	return &Page{Filename: filename, Title: title, Body: parsed}, nil
+	return &Page{Filename: filename, Title: title, Modtime: filestat.ModTime(), Body: parsed}, nil
 }
 
 // scan the page for the `title: ` field
@@ -99,17 +92,7 @@ func tallyPages() string {
 	return buf.String()
 }
 
-// pass a page to the parsed HTML template
-/*func renderTemplate(w http.ResponseWriter, tmpl string, p *Page, r *http.Request) {
-	err := templates.ExecuteTemplate(w, tmpl+".html", p)
-	if err != nil {
-		error500(w, r)
-		return
-	}
-}*/
-
 // Pull a page into memory
-// the mutex is locked before this function is called
 func cachePage(filename string) {
 	var longname string
 	if filename != viper.GetString("IndexDir")+"/"+viper.GetString("Index") {
@@ -123,42 +106,43 @@ func cachePage(filename string) {
 		log.Println("cachePage() :: Can't cache " + filename)
 		return
 	}
-	cachedPages[filename] = page.Body
+	if page == nil {
+		panic("cachePage() :: Call to loadPage() returned nil")
+	}
+	var pagestruct Page
+	pagestruct.Body = page.Body
+	pagestruct.Title = page.Title
+	pagestruct.Modtime = page.Modtime
+	mutex.Lock()
+	cachedPages[filename] = pagestruct
+	mutex.Unlock()
 }
 
 // compare the size and timestamp of a cached page.
 // if the size is different or the cached version is
 // old, then reload the page into memory
-func checkPageCache(filename string) []byte {
+func checkPageCache(filename string) Page {
 	longname := viper.GetString("PageDir") + "/" + filename
 	if filename == viper.GetString("Index") {
 		longname = viper.GetString("IndexDir") + "/" + filename
 		filename = longname
 	}
+
+	mutex.RLock()
+	pages := cachedPages[filename]
+	mutex.RUnlock()
+
 	newpage, err := os.Stat(longname)
 	if err != nil {
-		log.Println("checkPageCache() :: Can't stat " + filename)
-		mutex.RLock()
-		oldpage := cachedPages[filename]
-		mutex.RUnlock()
-		return oldpage
+		log.Println("checkPageCache() :: Can't stat " + filename + ". Using cached copy...")
+		return pages
 	}
 
-	mutex.RLock()
-	oldModTime := pageModTime[filename]
-	mutex.RUnlock()
-
-	if newpage.ModTime() != oldModTime {
-		mutex.Lock()
+	if newpage.ModTime() != pages.Modtime {
 		cachePage(filename)
-		pageModTime[filename] = newpage.ModTime()
-		mutex.Unlock()
 		log.Println("checkPageCache() :: Re-caching page " + longname)
 	}
-	mutex.RLock()
-	pageData := cachedPages[filename]
-	mutex.RUnlock()
-	return pageData
+	return cachedPages[filename]
 }
 
 // when tildewiki first starts, pull all available pages
@@ -180,10 +164,7 @@ func genPageCache() {
 		if tmp == viper.GetString("Index") {
 			tmp = viper.GetString("IndexDir") + "/" + viper.GetString("Index")
 		}
-		mutex.Lock()
 		cachePage(tmp)
-		pageModTime[tmp] = f.ModTime()
-		mutex.Unlock()
 		log.Println("genPageCache() :: Cached page " + tmp)
 	}
 }

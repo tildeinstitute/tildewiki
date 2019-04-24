@@ -11,13 +11,13 @@ func viewHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	filename = filename + ".md"
 	page := checkPageCache(filename)
 
-	if page == nil {
+	if page.Body == nil {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 
 	w.Header().Set("Content-Type", "text/html")
-	_, err := w.Write(page)
+	_, err := w.Write(page.Body)
 	if err != nil {
 		error500(w, r)
 	}
@@ -32,38 +32,6 @@ func welcomeHandler(w http.ResponseWriter, r *http.Request) {
 		error500(w, r)
 	}
 }
-
-// handler for requests to edit a page
-/* func editHandler(w http.ResponseWriter, r *http.Request, filename string) {
-	p, err := loadPage(viper.GetString("PageDir") + "/" + filename)
-	if err != nil {
-		p, err := loadPage(viper.GetString("IndexDir") + viper.GetString("PageTmpl"))
-		if err != nil {
-			error500(w, r)
-			return
-		}
-		p.Filename = filename
-	}
-	if filename != viper.GetString("Index") {
-		renderTemplate(w, "edit", p, r)
-	} else {
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
-}
-
-// saves a page after editing
-func saveHandler(w http.ResponseWriter, r *http.Request, filename string) {
-	body := r.FormValue("body")
-	filename = r.FormValue("filename") + ".md"
-	p := &Page{Filename: filename, Body: []byte(body)}
-	err := p.save()
-	if err != nil {
-		error500(w, r)
-		return
-	}
-	http.Redirect(w, r, "/"+filename, http.StatusFound)
-}*/
 
 // closure to validate the request paths (using the regex in main.go / tildewiki.yaml)
 // then pass everything on to the appropriate handler function if it all checks out
