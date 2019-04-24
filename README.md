@@ -1,4 +1,4 @@
-# Tildewiki [![gpl-v3](https://img.shields.io/badge/license-GPLv3-brightgreen.svg "GPL v3")](https://github.com/gbmor/tildewiki/blob/master/LICENSE) [![Go Report Card](https://goreportcard.com/badge/github.com/gbmor/tildewiki)](https://goreportcard.com/report/github.com/gbmor/tildewiki) <!-- [![GolangCI](https://img.shields.io/badge/golang%20ci-success-blue.svg)](https://golangci.com/r/github.com/gbmor/tildewiki) -->
+# Tildewiki [![gpl-v3](https://img.shields.io/badge/license-GPLv3-brightgreen.svg "GPL v3")](https://github.com/gbmor/tildewiki/blob/master/LICENSE) [![Go Report Card](https://goreportcard.com/badge/github.com/gbmor/tildewiki)](https://goreportcard.com/report/github.com/gbmor/tildewiki) [![GolangCI](https://img.shields.io/badge/golang%20ci-success-blue.svg)](https://golangci.com/r/github.com/gbmor/tildewiki)
 
 A wiki engine designed for the needs of the [tildeverse](https://tildeverse.org)
 
