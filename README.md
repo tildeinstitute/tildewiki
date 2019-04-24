@@ -11,6 +11,7 @@ Uses a patched copy of [russross/blackfriday](https://github.com/russross/blackf
 ## About
 
 * Markdown rendering
+* Uses [kognise/water.css](/kognise/water.css) dark theme by default
 * Watches (YAML) config file for changes and automatically reloads
 * Dynamically generates index of pages and places at anchor-point in front/index page
 * Basically everything is configurable: URL path for viewing pages, directory for page data, file to use for index page, etc.
