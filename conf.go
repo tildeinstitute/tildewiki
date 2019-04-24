@@ -1,7 +1,6 @@
 package main
 
 import (
-	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -12,7 +11,8 @@ import (
 )
 
 // Sets the basic parameters for the default viper (config library) instance
-func initConfigParams() (*template.Template, *regexp.Regexp) {
+//func initConfigParams() (*template.Template, *regexp.Regexp) {
+func initConfigParams() *regexp.Regexp {
 	conf := viper.GetViper()
 
 	// type of config file to look for
@@ -38,10 +38,11 @@ func initConfigParams() (*template.Template, *regexp.Regexp) {
 	})
 
 	// Parse the HTML template file(s) and compile the regex path validation)
-	var Templates = template.Must(template.ParseFiles(viper.GetString("TmplDir")+"/edit.html", viper.GetString("TmplDir")+"/view.html"))
+	//var Templates = template.Must(template.ParseFiles(viper.GetString("TmplDir")+"/edit.html", viper.GetString("TmplDir")+"/view.html"))
 	var ValidPath = regexp.MustCompile(viper.GetString("ValidPath"))
 
-	return Templates, ValidPath
+	//return Templates, ValidPath
+	return ValidPath
 }
 
 // this is just a custom 500 page using a markdown doc
@@ -55,7 +56,10 @@ func error500(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 	}
 	w.Header().Set("Content-Type", "text/html")
-	w.Write(render(file, viper.GetString("CSS"), "500 Error"))
+	_, err = w.Write(render(file, viper.GetString("CSS"), "500 Error"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 // same as the 500 page
@@ -63,8 +67,11 @@ func error404(w http.ResponseWriter, r *http.Request) {
 	e404 := viper.GetString("IndexDir") + "/404.md"
 	file, err := ioutil.ReadFile(e404)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		error500(w, r)
 	}
 	w.Header().Set("Content-Type", "text/html")
-	w.Write(render(file, viper.GetString("CSS"), "404 Error"))
+	_, err = w.Write(render(file, viper.GetString("CSS"), "404 Error"))
+	if err != nil {
+		error500(w, r)
+	}
 }

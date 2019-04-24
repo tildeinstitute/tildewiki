@@ -13,7 +13,8 @@ const twvers = "development version"
 // initialize the basic configuration and
 // assign the parsed templates and compiled regex
 // to these two globals
-var templates, validPath = initConfigParams()
+//var templates, validPath = initConfigParams()
+var validPath = initConfigParams()
 
 // the in-memory page cache
 var cachedPages = map[string][]byte{}

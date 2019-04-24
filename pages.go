@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 	"strings"
 
@@ -20,9 +19,9 @@ type Page struct {
 }
 
 // method to save a page after editing
-func (p *Page) save() error {
-	return ioutil.WriteFile(p.Filename, p.Body, 0600)
-}
+//func (p *Page) save() error {
+//	return ioutil.WriteFile(p.Filename, p.Body, 0600)
+//}
 
 // loads a given wiki page and returns a page struct pointer
 func loadPage(filename string) (*Page, error) {
@@ -70,7 +69,7 @@ func genIndex() []byte {
 			buf.WriteString(builder.Text() + "\n")
 		}
 	}
-	return []byte(buf.String())
+	return buf.Bytes()
 }
 
 // generate a list of pages for the front page
@@ -101,13 +100,13 @@ func tallyPages() string {
 }
 
 // pass a page to the parsed HTML template
-func renderTemplate(w http.ResponseWriter, tmpl string, p *Page, r *http.Request) {
+/*func renderTemplate(w http.ResponseWriter, tmpl string, p *Page, r *http.Request) {
 	err := templates.ExecuteTemplate(w, tmpl+".html", p)
 	if err != nil {
 		error500(w, r)
 		return
 	}
-}
+}*/
 
 // Pull a page into memory
 // the mutex is locked before this function is called

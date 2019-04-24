@@ -17,18 +17,24 @@ func viewHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	}
 
 	w.Header().Set("Content-Type", "text/html")
-	w.Write(page)
+	_, err := w.Write(page)
+	if err != nil {
+		error500(w, r)
+	}
 }
 
 // handler for viewing the index page
 func welcomeHandler(w http.ResponseWriter, r *http.Request) {
 	parsed := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("Separator")+" "+viper.GetString("ShortDesc"))
 	w.Header().Set("Content-Type", "text/html")
-	w.Write(parsed)
+	_, err := w.Write(parsed)
+	if err != nil {
+		error500(w, r)
+	}
 }
 
 // handler for requests to edit a page
-func editHandler(w http.ResponseWriter, r *http.Request, filename string) {
+/* func editHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	p, err := loadPage(viper.GetString("PageDir") + "/" + filename)
 	if err != nil {
 		p, err := loadPage(viper.GetString("IndexDir") + viper.GetString("PageTmpl"))
@@ -70,4 +76,4 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 		}
 		fn(w, r, m[2])
 	}
-}
+}*/
