@@ -9,6 +9,7 @@ func setupMarkdown(css string, title string) *bf.HTMLRenderer {
 	var params = bf.HTMLRendererParameters{
 		CSS:   css,
 		Title: title,
+		Icon:  "/icon",
 		Meta: map[string]string{
 			"name=\"application-name\"": "TildeWiki " + twvers + " :: https://github.com/gbmor/tildewiki",
 			"name=\"viewport\"":         "width=device-width, initial-scale=1.0",

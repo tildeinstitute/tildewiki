@@ -30,8 +30,9 @@ CSS: "https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/dark.css"
 # Like the `index` markdown document (front page), the error pages,
 # the icon / favicon, etc.
 IndexDir: "index"
-# Use the file name, not the full path for these two
+# Use the file name, not the full path
 Index: "wiki.md"
+# Again, just the file name. Currently, must be PNG.
 Icon: "icon.png"
 # PageDir holds the actual content pages for the wiki
 PageDir: "pages"

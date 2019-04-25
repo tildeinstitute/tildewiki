@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"net/http"
 
 	"github.com/spf13/viper"
@@ -28,6 +29,19 @@ func welcomeHandler(w http.ResponseWriter, r *http.Request) {
 	parsed := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("Separator")+" "+viper.GetString("ShortDesc"))
 	w.Header().Set("Content-Type", "text/html")
 	_, err := w.Write(parsed)
+	if err != nil {
+		error500(w, r)
+	}
+}
+
+// serves the icon as a URL
+func iconHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "image/png")
+	icon, err := ioutil.ReadFile(viper.GetString("IndexDir") + "/" + viper.GetString("Icon"))
+	if err != nil {
+		w.Write(nil)
+	}
+	_, err = w.Write(icon)
 	if err != nil {
 		error500(w, r)
 	}
