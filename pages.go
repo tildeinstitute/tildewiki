@@ -24,24 +24,61 @@ func loadPage(filename string) (*Page, error) {
 	}
 	title := getTitle(filename)
 	parsed := render(body, viper.GetString("CSS"), title)
-	return &Page{Filename: filename, Title: title, Modtime: filestat.ModTime(), Body: parsed}, nil
+	return &Page{Filename: filename, Title: title, Modtime: filestat.ModTime(), Body: parsed, Raw: body}, nil
 }
 
 // scan the page for the `title: ` field
 // in the header comment
 func getTitle(filename string) string {
 	mdfile, err := os.Open(filename)
+	defer mdfile.Close()
 	if err != nil {
 		return filename
 	}
 	titlefinder := bufio.NewScanner(mdfile)
 	for titlefinder.Scan() {
 		splitter := strings.Split(titlefinder.Text(), ":")
-		if splitter[0] == "title" {
+		if strings.ToLower(splitter[0]) == "title" {
 			return strings.TrimSpace(splitter[1])
 		}
 	}
 	return filename
+}
+
+// scan the page for the `description: ` field
+// in the header comment
+func getDesc(filename string) string {
+	mdfile, err := os.Open(filename)
+	defer mdfile.Close()
+	if err != nil {
+		return ""
+	}
+	descfinder := bufio.NewScanner(mdfile)
+	for descfinder.Scan() {
+		splitter := strings.Split(descfinder.Text(), ":")
+		if strings.ToLower(splitter[0]) == "description" {
+			return strings.TrimSpace(splitter[1])
+		}
+	}
+	return ""
+}
+
+// scan the page for the `author: ` field
+// in the header comment
+func getAuthor(filename string) string {
+	mdfile, err := os.Open(filename)
+	defer mdfile.Close()
+	if err != nil {
+		return ""
+	}
+	authfinder := bufio.NewScanner(mdfile)
+	for authfinder.Scan() {
+		splitter := strings.Split(authfinder.Text(), ":")
+		if strings.ToLower(splitter[0]) == "author" {
+			return "`" + strings.TrimSpace(splitter[1]) + "`"
+		}
+	}
+	return ""
 }
 
 // generate the front page of the wiki
@@ -49,6 +86,7 @@ func genIndex() []byte {
 	body := make([]byte, 0)
 	buf := bytes.NewBuffer(body)
 	index, err := os.Open(viper.GetString("IndexDir") + "/" + viper.GetString("Index"))
+	defer index.Close()
 	if err != nil {
 		return []byte("Could not open \"" + viper.GetString("IndexDir") + "/" + viper.GetString("Index") + "\"")
 	}
@@ -76,6 +114,8 @@ func tallyPages() string {
 		return "*Pages either don't exist or can't be read.*"
 	}
 	var title string
+	var desc string
+	var auth string
 	var tmp string
 	var name string
 	var shortname string
@@ -83,10 +123,12 @@ func tallyPages() string {
 		return "*No wiki pages! Add some content.*"
 	}
 	for _, f := range files {
-		title = getTitle(pagedir + "/" + f.Name())
 		name = f.Name()
+		title = getTitle(pagedir + "/" + name)
+		desc = getDesc(pagedir + "/" + name)
+		auth = getAuthor(pagedir + "/" + name)
 		shortname = string(name[:len(name)-3])
-		tmp = "* [" + title + "](/" + viewpath + "/" + shortname + ")\n"
+		tmp = "* [" + title + "](/" + viewpath + "/" + shortname + ") :: " + desc + " " + auth + "\n"
 		buf.WriteString(tmp)
 	}
 	return buf.String()
@@ -111,6 +153,7 @@ func cachePage(filename string) {
 	}
 	var pagestruct Page
 	pagestruct.Body = page.Body
+	pagestruct.Raw = page.Raw
 	pagestruct.Title = page.Title
 	pagestruct.Modtime = page.Modtime
 	mutex.Lock()

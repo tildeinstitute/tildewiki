@@ -17,6 +17,7 @@ type Page struct {
 	Desc     string
 	Modtime  time.Time
 	Body     []byte
+	Raw      []byte
 }
 
 // the in-memory page cache
