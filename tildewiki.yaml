@@ -13,7 +13,7 @@
 
 # The port for the service to bind to.
 # Tildewiki will bind to localhost.
-Port: 8080
+Port: "8080"
 
 # The name of the wiki
 Name: "Tildewiki"
@@ -22,8 +22,8 @@ Separator: "::"
 # Little blurb for the <title> tag
 ShortDesc: "Wiki for the Tildeverse"
 #Location of the CSS file. Can be relative or remote
-CSS: "index/wiki.css"
-#CSS: "https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/dark.css"
+#CSS: "index/wiki.css"
+CSS: "https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/dark.css"
 
 # IndexDir holds some of the configuration files
 # Like the `index` markdown document (front page), the error pages,
@@ -39,10 +39,11 @@ PageDir: "pages"
 
 
 # Regex to validate the URLs. You probably don't want to change this.
-ValidPath: "^/(edit|save|w)/([a-zA-Z0-9]+)$"
+ValidPath: "^/(w)/([a-zA-Z0-9]+)$"
 # URL path used to delineate the wiki pages.
 # The default is "w", which would appear publicly as:
-# example.com/w/wikipagename
+# example.com/w/page
+# If you change this, change the (w) in ValidPath above to match.
 ViewPath: "w"
 
 
