@@ -75,7 +75,7 @@ func getAuthor(filename string) string {
 	for authfinder.Scan() {
 		splitter := strings.Split(authfinder.Text(), ":")
 		if strings.ToLower(splitter[0]) == "author" {
-			return "`" + strings.TrimSpace(splitter[1]) + "`"
+			return "`by " + strings.TrimSpace(splitter[1]) + "`"
 		}
 	}
 	return ""
