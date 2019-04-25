@@ -44,5 +44,6 @@ func main() {
 	http.HandleFunc("/icon", iconHandler)
 
 	port := ":" + viper.GetString("Port")
+	log.Println("main() :: Binding to " + port)
 	log.Fatal(http.ListenAndServe(port, nil))
 }
