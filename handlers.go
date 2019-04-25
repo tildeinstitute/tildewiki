@@ -36,11 +36,13 @@ func welcomeHandler(w http.ResponseWriter, r *http.Request) {
 
 // serves the icon as a URL
 func iconHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "image/png")
-	icon, err := ioutil.ReadFile(viper.GetString("IndexDir") + "/" + viper.GetString("Icon"))
+	longname := viper.GetString("IndexDir") + "/" + viper.GetString("Icon")
+	icon, err := ioutil.ReadFile(longname)
 	if err != nil {
 		w.Write(nil)
 	}
+	mime := iconType(longname)
+	w.Header().Set("Content-Type", mime)
 	_, err = w.Write(icon)
 	if err != nil {
 		error500(w, r)
