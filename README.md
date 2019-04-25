@@ -8,7 +8,7 @@ Currently powering the [tilde.institute](https://tilde.institute) wiki: [https:/
 
 * Mobile-friendly pages
 * Markdown rendering
-* Uses [kognise/water.css](https://github.com/kognise/water.css) dark theme by default
+* Uses [kognise/water.css](https://github.com/kognise/water.css) dark theme by default (and includes as an example, a simple but nice local CSS file)
 * Watches (YAML) config file for changes and automatically reloads
 * Dynamically generates index of pages and places at anchor-point in front/index page
 * Basically everything is configurable: URL path for viewing pages, directory for page data, file to use for index page, etc.
