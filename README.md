@@ -2,6 +2,8 @@
 
 A wiki engine designed for the needs of the [tildeverse](https://tildeverse.org)
 
+Currently powering the [tilde.institute](https://tilde.institute) wiki: [https://wiki.tilde.institute](https://wiki.tilde.institute)
+
 ## Features
 
 * Mobile-friendly pages
