@@ -31,10 +31,10 @@ func loadPage(filename string) (*Page, error) {
 // in the header comment
 func getTitle(filename string) string {
 	mdfile, err := os.Open(filename)
-	defer mdfile.Close()
 	if err != nil {
 		return filename
 	}
+	defer mdfile.Close()
 	titlefinder := bufio.NewScanner(mdfile)
 	for titlefinder.Scan() {
 		splitter := strings.Split(titlefinder.Text(), ":")
@@ -49,10 +49,10 @@ func getTitle(filename string) string {
 // in the header comment
 func getDesc(filename string) string {
 	mdfile, err := os.Open(filename)
-	defer mdfile.Close()
 	if err != nil {
 		return ""
 	}
+	defer mdfile.Close()
 	descfinder := bufio.NewScanner(mdfile)
 	for descfinder.Scan() {
 		splitter := strings.Split(descfinder.Text(), ":")
@@ -67,10 +67,10 @@ func getDesc(filename string) string {
 // in the header comment
 func getAuthor(filename string) string {
 	mdfile, err := os.Open(filename)
-	defer mdfile.Close()
 	if err != nil {
 		return ""
 	}
+	defer mdfile.Close()
 	authfinder := bufio.NewScanner(mdfile)
 	for authfinder.Scan() {
 		splitter := strings.Split(authfinder.Text(), ":")
@@ -86,10 +86,10 @@ func genIndex() []byte {
 	body := make([]byte, 0)
 	buf := bytes.NewBuffer(body)
 	index, err := os.Open(viper.GetString("IndexDir") + "/" + viper.GetString("Index"))
-	defer index.Close()
 	if err != nil {
 		return []byte("Could not open \"" + viper.GetString("IndexDir") + "/" + viper.GetString("Index") + "\"")
 	}
+	defer index.Close()
 	builder := bufio.NewScanner(index)
 	builder.Split(bufio.ScanLines)
 	for builder.Scan() {

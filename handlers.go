@@ -40,7 +40,12 @@ func iconHandler(w http.ResponseWriter, r *http.Request) {
 	longname := viper.GetString("IndexDir") + "/" + viper.GetString("Icon")
 	icon, err := ioutil.ReadFile(longname)
 	if err != nil {
-		w.Write(nil)
+		log.Println("iconHandler() :: Couldn't read icon file")
+		_, err = w.Write(nil)
+		if err != nil {
+			log.Println("iconHandler() :: 500 :: Couldn't write to http stream")
+			error500(w, r)
+		}
 	}
 	mime := iconType(longname)
 	w.Header().Set("Content-Type", mime)
