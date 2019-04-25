@@ -9,6 +9,8 @@ import (
 	"log"
 	"mime"
 	"os"
+
+	"github.com/spf13/viper"
 )
 
 // Guess image format from gif/jpeg/png/webp
@@ -37,4 +39,14 @@ func iconType(filename string) string {
 	mime := guessImageMimeTypes(r)
 	log.Println("iconType() :: " + mime)
 	return mime
+}
+
+// determine if using local or remote css
+func cssLocal() bool {
+	css := viper.GetString("CSS")
+	cssbyte := []byte(css)
+	if string(cssbyte[:7]) == "http://" || string(cssbyte[:8]) == "https://" {
+		return false
+	}
+	return true
 }

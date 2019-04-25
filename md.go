@@ -6,6 +6,9 @@ import (
 
 // sets parameters for the markdown->html renderer
 func setupMarkdown(css string, title string) *bf.HTMLRenderer {
+	if cssLocal() {
+		css = "/css"
+	}
 	var params = bf.HTMLRendererParameters{
 		CSS:   css,
 		Title: title,

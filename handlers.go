@@ -2,6 +2,7 @@ package main
 
 import (
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/spf13/viper"
@@ -44,6 +45,25 @@ func iconHandler(w http.ResponseWriter, r *http.Request) {
 	mime := iconType(longname)
 	w.Header().Set("Content-Type", mime)
 	_, err = w.Write(icon)
+	if err != nil {
+		error500(w, r)
+	}
+}
+
+// serves local css file as a url
+func cssHandler(w http.ResponseWriter, r *http.Request) {
+	if !cssLocal() {
+		log.Println("cssHandler() :: Using remote CSS, nothing to serve...")
+		http.Redirect(w, r, "/", 302)
+		return
+	}
+	css, err := ioutil.ReadFile(viper.GetString("CSS"))
+	if err != nil {
+		log.Println("cssHandler() :: Can't read CSS file")
+		http.Redirect(w, r, "/", 302)
+	}
+	w.Header().Set("Content-Type", "text/css")
+	_, err = w.Write(css)
 	if err != nil {
 		error500(w, r)
 	}

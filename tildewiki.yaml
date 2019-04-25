@@ -1,5 +1,5 @@
 # This config file can live at the following places, in descending
-# order. The first one found wins, the next locations are ignored 
+# order. The first one found wins, the next locations are ignored
 # even if the file exists there too.
 #
 #   /usr/local/etc/
@@ -21,9 +21,9 @@ Name: "Tildewiki"
 Separator: "::"
 # Little blurb for the <title> tag
 ShortDesc: "Wiki for the Tildeverse"
-#Location of the CSS file. Can be a relative, absolute, or remote path
-CSS: "https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/dark.css"
-
+#Location of the CSS file. Can be relative or remote
+CSS: "index/wiki.css"
+#CSS: "https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/dark.css"
 
 # IndexDir holds some of the configuration files
 # Like the `index` markdown document (front page), the error pages,
