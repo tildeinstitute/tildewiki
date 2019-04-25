@@ -2,6 +2,8 @@
 
 A wiki engine designed for the needs of the [tildeverse](https://tildeverse.org)
 
+This project is still in a pre-release stage and is not yet feature complete.
+
 Currently powering the [tilde.institute](https://tilde.institute) wiki: [https://wiki.tilde.institute](https://wiki.tilde.institute)
 
 ## Features
