@@ -10,6 +10,7 @@ Uses a patched copy of [russross/blackfriday](https://github.com/russross/blackf
 
 ## About
 
+* Mobile-friendly pages
 * Markdown rendering
 * Uses [kognise/water.css](https://github.com/kognise/water.css) dark theme by default
 * Watches (YAML) config file for changes and automatically reloads
