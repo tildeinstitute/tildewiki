@@ -33,16 +33,8 @@ IndexDir: "index"
 # Use the file name, not the full path for these two
 Index: "wiki.md"
 Icon: "icon.png"
-
-
 # PageDir holds the actual content pages for the wiki
 PageDir: "pages"
-# PageTmpl is provided to the user when creating a new wiki page
-PageTmpl: "template.md"
-
-
-# Directory for the `edit page` template/form
-TmplDir: "templates"
 
 
 # Regex to validate the URLs. You probably don't want to change this.
