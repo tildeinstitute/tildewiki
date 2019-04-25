@@ -2,13 +2,7 @@
 
 A wiki engine designed for the needs of the [tildeverse](https://tildeverse.org)
 
-Uses a patched copy of [russross/blackfriday](https://github.com/russross/blackfriday) ([gopkg](https://gopkg.in/russross/blackfriday.v2)) as the markdown parser. The patch allows injection of various `<meta.../>` tags into the document header during the `markdown->html` translation.
-
-* The patched `v2` repository lives at: [gbmor-forks/blackfriday.v2-patched](https://github.com/gbmor-forks/blackfriday.v2-patched)
-* The patched `master` repo lives at: [gbmor-forks/blackfriday](https://github.com/gbmor-forks/blackfriday). 
-* The PR can be found here: [allow writing of user-specified &lt;meta.../&gt;...](https://github.com/russross/blackfriday/pull/541)
-
-## About
+## Features
 
 * Mobile-friendly pages
 * Markdown rendering
@@ -20,3 +14,12 @@ Uses a patched copy of [russross/blackfriday](https://github.com/russross/blackf
 * Caches pages to memory and only re-renders when the modification time changes
 * Easily use Nginx to proxy requests to it. This allows you to use your existing SSL certificates.
 * Speed is a priority
+
+## Notes
+
+Uses a patched copy of [russross/blackfriday](https://github.com/russross/blackfriday) ([gopkg](https://gopkg.in/russross/blackfriday.v2)) as the markdown parser. The patch allows injection of various `<meta.../>` tags into the document header during the `markdown->html` translation.
+
+* The patched `v2` repository lives at: [gbmor-forks/blackfriday.v2-patched](https://github.com/gbmor-forks/blackfriday.v2-patched)
+* The patched `master` repo lives at: [gbmor-forks/blackfriday](https://github.com/gbmor-forks/blackfriday). 
+* The PR can be found here: [allow writing of user-specified &lt;meta.../&gt;...](https://github.com/russross/blackfriday/pull/541)
+
