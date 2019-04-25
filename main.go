@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 // TildeWiki version
@@ -40,5 +42,7 @@ func main() {
 	http.HandleFunc("/w/", makeHandler(viewHandler))
 	http.HandleFunc("/css", cssHandler)
 	http.HandleFunc("/icon", iconHandler)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+
+	port := ":" + viper.GetString("Port")
+	log.Fatal(http.ListenAndServe(port, nil))
 }
