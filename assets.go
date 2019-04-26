@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"image"
 	_ "image/gif"
 	_ "image/jpeg"
@@ -31,9 +32,8 @@ func iconType(filename string) string {
 
 // determine if using local or remote css
 func cssLocal() bool {
-	css := viper.GetString("CSS")
-	cssbyte := []byte(css)
-	if string(cssbyte[:7]) == "http://" || string(cssbyte[:8]) == "https://" {
+	css := []byte(viper.GetString("CSS"))
+	if bytes.HasPrefix(css, []byte("http://")) || bytes.HasPrefix(css, []byte("https://")) {
 		return false
 	}
 	return true
