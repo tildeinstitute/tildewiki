@@ -146,8 +146,8 @@ func tallyPages() string {
 			page.Longname = pagedir + "/" + f.Name()
 			page.cache()
 		}
-		linkname := []byte(page.Shortname)
-		entry = "* [" + page.Title + "](/" + viewpath + "/" + string(linkname[:len(linkname)-3]) + ") :: " + page.Desc + " " + page.Author + "\n"
+		linkname := bytes.TrimSuffix([]byte(page.Shortname), []byte(".md"))
+		entry = "* [" + page.Title + "](/" + viewpath + "/" + string(linkname) + ") :: " + page.Desc + " " + page.Author + "\n"
 		buf.WriteString(entry)
 	}
 	return buf.String()
