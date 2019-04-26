@@ -25,7 +25,7 @@ func loadPage(filename string) (*Page, error) {
 	var shortname string
 	filebyte := []byte(filename)
 	for i := len(filebyte) - 1; i > 0; i-- {
-		if string(filebyte[i]) == "/" {
+		if filebyte[i] == byte('/') {
 			shortname = string(filebyte[i+1:])
 		}
 	}
