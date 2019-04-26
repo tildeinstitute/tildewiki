@@ -40,8 +40,8 @@ func main() {
 	// fill the page cache
 	genPageCache()
 
-	http.HandleFunc("/", welcomeHandler)
-	http.HandleFunc("/w/", validatePath(viewHandler))
+	http.HandleFunc("/", indexHandler)
+	http.HandleFunc("/w/", validatePath(pageHandler))
 	http.HandleFunc("/css", cssHandler)
 	http.HandleFunc("/icon", iconHandler)
 

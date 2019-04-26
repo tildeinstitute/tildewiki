@@ -11,7 +11,6 @@ import (
 )
 
 // Sets the basic parameters for the default viper (config library) instance
-//func initConfigParams() (*template.Template, *regexp.Regexp) {
 func initConfigParams() *regexp.Regexp {
 	conf := viper.GetViper()
 
@@ -46,7 +45,7 @@ func initConfigParams() *regexp.Regexp {
 }
 
 // this is just a custom 500 page using a markdown doc
-// in the primary data/config directory.
+// in the assets directory.
 // if the markdown doc can't be read, default to
 // net/http's error handling
 func error500(w http.ResponseWriter, r *http.Request) {
