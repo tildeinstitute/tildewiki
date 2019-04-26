@@ -2,7 +2,7 @@
 
 A wiki engine designed around the needs of the [tildeverse](https://tildeverse.org)
 
-This project is still in a pre-release stage and is not yet feature complete. Code in the repo builds and works but is subject to refactoring at any time. It will stabilize soon.
+This project is still in an early development stage and is not yet feature complete. Code in the repo builds and works but is subject to refactoring at any time. It will stabilize soon.
 
 Currently powering the [tilde.institute](https://tilde.institute) wiki: 
 * [https://wiki.tilde.institute](https://wiki.tilde.institute)
@@ -23,7 +23,7 @@ Currently powering the [tilde.institute](https://tilde.institute) wiki:
 
 ## Notes
 
-For [tildeverse](https://tildeverse.org) projects, we tend to use a PR workflow. For example, wiki pages are submitted to the repo via pull request. That's what I'm initially designing this around. I will likely add authentication and in-place page editing last, after everything else is done.
+For [tildeverse](https://tildeverse.org) projects, we tend to use a PR workflow. For example, wiki pages are submitted to the repo via pull request. That's what I'm initially designing this around. I will likely add authentication and in-place page editing last, after everything else is done, including unit tests.
 
 Uses a patched copy of [russross/blackfriday](https://github.com/russross/blackfriday) ([gopkg](https://gopkg.in/russross/blackfriday.v2)) as the markdown parser. The patch allows injection of various `<meta.../>` tags into the document header during the `markdown->html` translation.
 
