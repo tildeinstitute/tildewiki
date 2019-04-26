@@ -39,7 +39,7 @@ func main() {
 	genPageCache()
 
 	http.HandleFunc("/", welcomeHandler)
-	http.HandleFunc("/w/", makeHandler(viewHandler))
+	http.HandleFunc("/w/", validatePath(viewHandler))
 	http.HandleFunc("/css", cssHandler)
 	http.HandleFunc("/icon", iconHandler)
 

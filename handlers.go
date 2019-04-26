@@ -76,7 +76,7 @@ func cssHandler(w http.ResponseWriter, r *http.Request) {
 
 // closure to validate the request paths (using the regex in main.go / tildewiki.yaml)
 // then pass everything on to the appropriate handler function if it all checks out
-func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
+func validatePath(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		m := validPath.FindStringSubmatch(r.URL.Path)
 		if m == nil {

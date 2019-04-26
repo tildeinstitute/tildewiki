@@ -20,21 +20,21 @@ func initConfigParams() *regexp.Regexp {
 	// name of config file to look for
 	conf.SetConfigName("tildewiki")
 	// location of said config file
-	conf.AddConfigPath("/usr/local/etc/")
 	conf.AddConfigPath("/etc/")
-	conf.AddConfigPath("$HOME/.tildewiki")
+	conf.AddConfigPath("/usr/local/etc/")
+	conf.AddConfigPath("$HOME/.config/")
 	conf.AddConfigPath(".")
 
 	err := conf.ReadInConfig()
 	if err != nil {
-		log.Fatalln("Config file error: ", err)
+		log.Fatalln("initConfigParams() :: Config file error: ", err)
 	}
 
 	// WatchConfig() is a function provided by blackfriday that watches the config
 	// file for any changes and automatically reloads it if needed
 	conf.WatchConfig()
 	conf.OnConfigChange(func(e fsnotify.Event) {
-		log.Println("Config file change detected: ", e.Name)
+		log.Println("NOTICE :: Config file change detected: ", e.Name)
 	})
 
 	// Parse the HTML template file(s) and compile the regex path validation)
