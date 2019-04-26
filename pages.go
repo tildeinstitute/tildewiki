@@ -33,11 +33,20 @@ func loadPage(filename string) (*Page, error) {
 	author := getAuthor(filename)
 	desc := getDesc(filename)
 	parsed := render(body, viper.GetString("CSS"), title)
-	return &Page{Longname: filename, Shortname: shortname, Title: title, Author: author, Desc: desc, Modtime: filestat.ModTime(), Body: parsed, Raw: body}, nil
+	return &Page{
+		Longname:  filename,
+		Shortname: shortname,
+		Title:     title,
+		Author:    author,
+		Desc:      desc,
+		Modtime:   filestat.ModTime(),
+		Body:      parsed,
+		Raw:       body}, nil
 }
 
 // scan the page for the `title: ` field
-// in the header comment
+// in the header comment. used in the construction
+// of the page cache on startup
 func getTitle(filename string) string {
 	mdfile, err := os.Open(filename)
 	if err != nil {
@@ -55,7 +64,8 @@ func getTitle(filename string) string {
 }
 
 // scan the page for the `description: ` field
-// in the header comment
+// in the header comment. used in the construction
+// of the page cache on startup
 func getDesc(filename string) string {
 	mdfile, err := os.Open(filename)
 	if err != nil {
@@ -73,7 +83,8 @@ func getDesc(filename string) string {
 }
 
 // scan the page for the `author: ` field
-// in the header comment
+// in the header comment. used in the construction
+// of the page cache on startup
 func getAuthor(filename string) string {
 	mdfile, err := os.Open(filename)
 	if err != nil {
@@ -122,28 +133,28 @@ func tallyPages() string {
 	if err != nil {
 		return "*Pages either don't exist or can't be read.*"
 	}
-	var title string
-	var desc string
-	var auth string
 	var tmp string
-	var name string
-	var shortname string
 	if len(files) == 0 {
 		return "*No wiki pages! Add some content.*"
 	}
 	for _, f := range files {
-		name = f.Name()
-		title = getTitle(pagedir + "/" + name)
-		desc = getDesc(pagedir + "/" + name)
-		auth = getAuthor(pagedir + "/" + name)
-		shortname = string(name[:len(name)-3])
-		tmp = "* [" + title + "](/" + viewpath + "/" + shortname + ") :: " + desc + " " + auth + "\n"
+		mutex.RLock()
+		page := cachedPages[f.Name()]
+		mutex.RUnlock()
+		if page.Body == nil {
+			cachePage(f.Name())
+		}
+		mutex.RLock()
+		page = cachedPages[f.Name()]
+		mutex.RUnlock()
+		linkname := []byte(page.Shortname)
+		tmp = "* [" + page.Title + "](/" + viewpath + "/" + string(linkname[:len(linkname)-3]) + ") :: " + page.Desc + " " + page.Author + "\n"
 		buf.WriteString(tmp)
 	}
 	return buf.String()
 }
 
-// Pull a page into memory
+// Pull a page into memory for the first time
 func cachePage(filename string) {
 	var longname string
 	if filename != viper.GetString("IndexDir")+"/"+viper.GetString("Index") {
@@ -157,19 +168,20 @@ func cachePage(filename string) {
 		log.Println("cachePage() :: Can't cache " + filename)
 		return
 	}
-	if page == nil {
-		panic("cachePage() :: Call to loadPage() returned nil")
-	}
-	var pagestruct Page
-	pagestruct.Body = page.Body
-	pagestruct.Raw = page.Raw
-	pagestruct.Title = page.Title
-	pagestruct.Desc = page.Desc
-	pagestruct.Author = page.Author
-	pagestruct.Modtime = page.Modtime
-	pagestruct.Longname = page.Longname
 	mutex.Lock()
-	cachedPages[filename] = pagestruct
+	cachedPages[filename] = *page
+	mutex.Unlock()
+}
+
+// used when refreshing the cached copy
+// of a single page
+func (page *Page) reCache() {
+	page, err := loadPage(page.Longname)
+	if err != nil {
+		log.Println("Page.reCache() :: Couldn't reload " + page.Longname)
+	}
+	mutex.Lock()
+	cachedPages[page.Shortname] = *page
 	mutex.Unlock()
 }
 
@@ -183,7 +195,7 @@ func (page *Page) checkCache() {
 		return
 	}
 	if newpage.ModTime() != page.Modtime {
-		cachePage(page.Shortname)
+		page.reCache()
 		log.Println("Page.checkCache() :: Re-caching page " + page.Longname)
 	}
 }
@@ -201,13 +213,20 @@ func genPageCache() {
 		log.Println("genPageCache() :: Can't read directory " + viper.GetString("PageDir"))
 	}
 	wikipages = append(wikipages, indexpage)
-	var tmp string
+	var shortname string
+	var longname string
+	var page Page
 	for _, f := range wikipages {
-		tmp = f.Name()
-		if tmp == viper.GetString("Index") {
-			tmp = viper.GetString("IndexDir") + "/" + viper.GetString("Index")
+		shortname = f.Name()
+		if shortname == viper.GetString("Index") {
+			shortname = viper.GetString("IndexDir") + "/" + viper.GetString("Index")
+			longname = shortname
+		} else {
+			longname = viper.GetString("PageDir") + "/" + f.Name()
 		}
-		cachePage(tmp)
-		log.Println("genPageCache() :: Cached page " + tmp)
+		page.Longname = longname
+		page.Shortname = shortname
+		page.reCache()
+		log.Println("genPageCache() :: Cached page " + page.Shortname)
 	}
 }
