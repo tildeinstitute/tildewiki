@@ -22,7 +22,7 @@ func setupMarkdown(css string, title string) *bf.HTMLRenderer {
 	return bf.NewHTMLRenderer(params)
 }
 
-// render the markdown into html
+// render markdown into html
 func render(data []byte, css string, title string) []byte {
 	return bf.Run(data, bf.WithRenderer(setupMarkdown(css, title)))
 }
