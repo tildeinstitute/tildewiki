@@ -1,15 +1,15 @@
-###################################################################
-# This config file can live at the following places, in descending#
-# order. The first one found wins, the next locations are ignored #
-# even if the file exists there too.                              #
-#                                                                 #
-#   /etc/                                                         #
-#   /usr/local/etc/                                               #
-#   $HOME/.tildewiki/                                             #
-#   ./                                                            #
-#                                                                 #
-# The config file must be called `tildewiki.yaml`                 #
-###################################################################
+####################################################################
+# This config file can live at the following places, in descending #
+# order. The first one found wins, the next locations are ignored  #
+# even if the file exists there too.                               #
+#                                                                  #
+#   /etc/                                                          #
+#   /usr/local/etc/                                                #
+#   $HOME/.config/                                                 #
+#   ./                                                             #
+#                                                                  #
+# The config file must be called `tildewiki.yaml`                  #
+####################################################################
 
 # The port for the service to bind to.
 # Tildewiki will bind to localhost.
