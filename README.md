@@ -6,6 +6,7 @@ This project is still in a pre-release stage and is not yet feature complete. Co
 
 Currently powering the [tilde.institute](https://tilde.institute) wiki: 
 * [https://wiki.tilde.institute](https://wiki.tilde.institute)
+* [gtmetrix report](https://gtmetrix.com/reports/wiki.tilde.institute/15byZymY)
 
 ## Features
 
