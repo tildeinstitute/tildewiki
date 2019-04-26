@@ -23,8 +23,10 @@ func loadPage(filename string) (*Page, error) {
 		log.Println("loadPage() :: Couldn't stat " + filename)
 	}
 	title := getTitle(filename)
+	author := getAuthor(filename)
+	desc := getDesc(filename)
 	parsed := render(body, viper.GetString("CSS"), title)
-	return &Page{Filename: filename, Title: title, Modtime: filestat.ModTime(), Body: parsed, Raw: body}, nil
+	return &Page{Longname: filename, Title: title, Author: author, Desc: desc, Modtime: filestat.ModTime(), Body: parsed, Raw: body}, nil
 }
 
 // scan the page for the `title: ` field
@@ -155,35 +157,32 @@ func cachePage(filename string) {
 	pagestruct.Body = page.Body
 	pagestruct.Raw = page.Raw
 	pagestruct.Title = page.Title
+	pagestruct.Desc = page.Desc
+	pagestruct.Author = page.Author
 	pagestruct.Modtime = page.Modtime
+	pagestruct.Longname = page.Longname
 	mutex.Lock()
 	cachedPages[filename] = pagestruct
 	mutex.Unlock()
 }
 
-// compare the size and timestamp of a cached page.
-// if the size is different or the cached version is
-// old, then reload the page into memory
+// compare the recorded modtime of a cached page to the
+// modtime of the file. if they're different,
+// re-cache the page.
 func checkPageCache(filename string) Page {
-	longname := viper.GetString("PageDir") + "/" + filename
-	if filename == viper.GetString("Index") {
-		longname = viper.GetString("IndexDir") + "/" + filename
-		filename = longname
-	}
-
 	mutex.RLock()
 	pages := cachedPages[filename]
 	mutex.RUnlock()
 
-	newpage, err := os.Stat(longname)
+	newpage, err := os.Stat(pages.Longname)
 	if err != nil {
-		log.Println("checkPageCache() :: Can't stat " + filename + ". Using cached copy...")
+		log.Println("checkPageCache() :: Can't stat " + pages.Longname + ". Using cached copy...")
 		return pages
 	}
 
 	if newpage.ModTime() != pages.Modtime {
 		cachePage(filename)
-		log.Println("checkPageCache() :: Re-caching page " + longname)
+		log.Println("checkPageCache() :: Re-caching page " + pages.Longname)
 	}
 	return cachedPages[filename]
 }

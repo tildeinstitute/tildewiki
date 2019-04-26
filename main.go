@@ -14,9 +14,10 @@ const twvers = "development version"
 
 // Page struct for caching
 type Page struct {
-	Filename string
+	Longname string
 	Title    string
 	Desc     string
+	Author   string
 	Modtime  time.Time
 	Body     []byte
 	Raw      []byte
