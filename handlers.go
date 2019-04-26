@@ -11,7 +11,12 @@ import (
 // handler for viewing content pages (not the index page)
 func viewHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	filename = filename + ".md"
-	page := checkPageCache(filename)
+	//page := checkPageCache(filename)
+	mutex.RLock()
+	page := cachedPages[filename]
+	mutex.RUnlock()
+
+	page.checkCache()
 
 	if page.Body == nil {
 		http.Redirect(w, r, "/", http.StatusFound)

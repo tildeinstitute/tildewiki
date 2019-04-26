@@ -22,11 +22,18 @@ func loadPage(filename string) (*Page, error) {
 	if err != nil {
 		log.Println("loadPage() :: Couldn't stat " + filename)
 	}
+	var shortname string
+	filebyte := []byte(filename)
+	for i := len(filebyte) - 1; i > 0; i-- {
+		if string(filebyte[i]) == "/" {
+			shortname = string(filebyte[i+1:])
+		}
+	}
 	title := getTitle(filename)
 	author := getAuthor(filename)
 	desc := getDesc(filename)
 	parsed := render(body, viper.GetString("CSS"), title)
-	return &Page{Longname: filename, Title: title, Author: author, Desc: desc, Modtime: filestat.ModTime(), Body: parsed, Raw: body}, nil
+	return &Page{Longname: filename, Shortname: shortname, Title: title, Author: author, Desc: desc, Modtime: filestat.ModTime(), Body: parsed, Raw: body}, nil
 }
 
 // scan the page for the `title: ` field
@@ -169,22 +176,16 @@ func cachePage(filename string) {
 // compare the recorded modtime of a cached page to the
 // modtime of the file. if they're different,
 // re-cache the page.
-func checkPageCache(filename string) Page {
-	mutex.RLock()
-	pages := cachedPages[filename]
-	mutex.RUnlock()
-
-	newpage, err := os.Stat(pages.Longname)
+func (page *Page) checkCache() {
+	newpage, err := os.Stat(page.Longname)
 	if err != nil {
-		log.Println("checkPageCache() :: Can't stat " + pages.Longname + ". Using cached copy...")
-		return pages
+		log.Println("Page.checkCache() :: Can't stat " + page.Longname + ". Using cached copy...")
+		return
 	}
-
-	if newpage.ModTime() != pages.Modtime {
-		cachePage(filename)
-		log.Println("checkPageCache() :: Re-caching page " + pages.Longname)
+	if newpage.ModTime() != page.Modtime {
+		cachePage(page.Shortname)
+		log.Println("Page.checkCache() :: Re-caching page " + page.Longname)
 	}
-	return cachedPages[filename]
 }
 
 // when tildewiki first starts, pull all available pages

@@ -26,7 +26,6 @@ func iconType(filename string) string {
 		return "image/unknown"
 	}
 	mime := mime.TypeByExtension("." + format)
-	log.Println("iconType() :: " + mime)
 	return mime
 }
 

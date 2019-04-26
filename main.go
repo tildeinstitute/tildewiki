@@ -14,13 +14,14 @@ const twvers = "development version"
 
 // Page struct for caching
 type Page struct {
-	Longname string
-	Title    string
-	Desc     string
-	Author   string
-	Modtime  time.Time
-	Body     []byte
-	Raw      []byte
+	Longname  string
+	Shortname string
+	Title     string
+	Desc      string
+	Author    string
+	Modtime   time.Time
+	Body      []byte
+	Raw       []byte
 }
 
 // the in-memory page cache
