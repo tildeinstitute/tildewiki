@@ -105,9 +105,9 @@ func getAuthor(filename string) string {
 func genIndex() []byte {
 	body := make([]byte, 0)
 	buf := bytes.NewBuffer(body)
-	index, err := os.Open(viper.GetString("IndexDir") + "/" + viper.GetString("Index"))
+	index, err := os.Open(viper.GetString("AssetsDir") + "/" + viper.GetString("Index"))
 	if err != nil {
-		return []byte("Could not open \"" + viper.GetString("IndexDir") + "/" + viper.GetString("Index") + "\"")
+		return []byte("Could not open \"" + viper.GetString("AssetsDir") + "/" + viper.GetString("Index") + "\"")
 	}
 	defer index.Close()
 	builder := bufio.NewScanner(index)
@@ -158,7 +158,7 @@ func tallyPages() string {
 func (page *Page) cache() {
 	page, err := loadPage(page.Longname)
 	if err != nil {
-		log.Println("Page.reCache() :: Couldn't reload " + page.Longname)
+		log.Println("Page.cache() :: Couldn't reload " + page.Longname)
 	}
 	mutex.Lock()
 	cachedPages[page.Shortname] = *page
@@ -184,7 +184,7 @@ func (page *Page) checkCache() {
 // into cache, saving their modification time as well to
 // determine when to re-load the page.
 func genPageCache() {
-	indexpage, err := os.Stat(viper.GetString("IndexDir") + "/" + viper.GetString("Index"))
+	indexpage, err := os.Stat(viper.GetString("AssetsDir") + "/" + viper.GetString("Index"))
 	if err != nil {
 		log.Println("genPageCache() :: Can't stat index page")
 	}
@@ -199,7 +199,7 @@ func genPageCache() {
 	for _, f := range wikipages {
 		shortname = f.Name()
 		if shortname == viper.GetString("Index") {
-			shortname = viper.GetString("IndexDir") + "/" + viper.GetString("Index")
+			shortname = viper.GetString("AssetsDir") + "/" + viper.GetString("Index")
 			longname = shortname
 		} else {
 			longname = viper.GetString("PageDir") + "/" + f.Name()

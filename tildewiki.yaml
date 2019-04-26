@@ -28,7 +28,7 @@ CSS: "https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/dark.css"
 # IndexDir holds some of the configuration files
 # Like the `index` markdown document (front page), the error pages,
 # the icon / favicon, etc.
-IndexDir: "assets"
+AssetsDir: "assets"
 # Use the file name, not the full path
 Index: "wiki.md"
 # Again, just the file name. Currently, must be PNG, JPEG, or GIF.

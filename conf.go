@@ -49,7 +49,7 @@ func initConfigParams() *regexp.Regexp {
 // if the markdown doc can't be read, default to
 // net/http's error handling
 func error500(w http.ResponseWriter, r *http.Request) {
-	e500 := viper.GetString("IndexDir") + "/500.md"
+	e500 := viper.GetString("AssetsDir") + "/500.md"
 	file, err := ioutil.ReadFile(e500)
 	if err != nil {
 		http.NotFound(w, r)
@@ -63,7 +63,7 @@ func error500(w http.ResponseWriter, r *http.Request) {
 
 // same as the 500 page
 func error404(w http.ResponseWriter, r *http.Request) {
-	e404 := viper.GetString("IndexDir") + "/404.md"
+	e404 := viper.GetString("AssetsDir") + "/404.md"
 	file, err := ioutil.ReadFile(e404)
 	if err != nil {
 		error500(w, r)

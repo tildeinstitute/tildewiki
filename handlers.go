@@ -42,7 +42,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 // serves the icon as a URL
 func iconHandler(w http.ResponseWriter, r *http.Request) {
-	longname := viper.GetString("IndexDir") + "/" + viper.GetString("Icon")
+	longname := viper.GetString("AssetsDir") + "/" + viper.GetString("Icon")
 	icon, err := ioutil.ReadFile(longname)
 	if err != nil {
 		log.Println("iconHandler() :: Couldn't read icon file")
