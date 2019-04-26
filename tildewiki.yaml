@@ -1,18 +1,19 @@
-# This config file can live at the following places, in descending
-# order. The first one found wins, the next locations are ignored
-# even if the file exists there too.
-#
-#   /usr/local/etc/
-#   /etc/
-#   $HOME/.tildewiki/
-#   ./
-#
-# The config file must be called `tildewiki.yaml`
-# I'll make this configurable by a command line flag later
-
+###################################################################
+# This config file can live at the following places, in descending#
+# order. The first one found wins, the next locations are ignored #
+# even if the file exists there too.                              #
+#                                                                 #
+#   /etc/                                                         #
+#   /usr/local/etc/                                               #
+#   $HOME/.tildewiki/                                             #
+#   ./                                                            #
+#                                                                 #
+# The config file must be called `tildewiki.yaml`                 #
+###################################################################
 
 # The port for the service to bind to.
 # Tildewiki will bind to localhost.
+# Changing this requires a restart.
 Port: "8080"
 
 # The name of the wiki
@@ -22,10 +23,10 @@ Separator: "::"
 # Little blurb for the <title> tag
 ShortDesc: "Wiki for the Tildeverse"
 #Location of the CSS file. Can be relative or remote
-#CSS: "index/wiki.css"
+#CSS: "assets/wiki.css"
 CSS: "https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/dark.css"
 
-# IndexDir holds some of the configuration files
+# AssetsDir holds some of the configuration files
 # Like the `index` markdown document (front page), the error pages,
 # the icon / favicon, etc.
 AssetsDir: "assets"
@@ -37,7 +38,6 @@ Icon: "icon.png"
 # PageDir holds the actual content pages for the wiki
 PageDir: "pages"
 
-
 # Regex to validate the URLs. You probably don't want to change this.
 ValidPath: "^/(w)/([a-zA-Z0-9]+)$"
 # URL path used to delineate the wiki pages.
@@ -45,5 +45,4 @@ ValidPath: "^/(w)/([a-zA-Z0-9]+)$"
 # example.com/w/page
 # If you change this, change the (w) in ValidPath above to match.
 ViewPath: "w"
-
 
