@@ -39,10 +39,10 @@ func initConfigParams() *regexp.Regexp {
 
 	// Parse the HTML template file(s) and compile the regex path validation)
 	//var Templates = template.Must(template.ParseFiles(viper.GetString("TmplDir")+"/edit.html", viper.GetString("TmplDir")+"/view.html"))
-	var ValidPath = regexp.MustCompile(viper.GetString("ValidPath"))
+	var validPath = regexp.MustCompile(viper.GetString("ValidPath"))
 
 	//return Templates, ValidPath
-	return ValidPath
+	return validPath
 }
 
 // this is just a custom 500 page using a markdown doc
