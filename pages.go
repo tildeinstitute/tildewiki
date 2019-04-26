@@ -133,7 +133,7 @@ func tallyPages() string {
 	if err != nil {
 		return "*Pages either don't exist or can't be read.*"
 	}
-	var tmp string
+	var entry string
 	if len(files) == 0 {
 		return "*No wiki pages! Add some content.*"
 	}
@@ -142,40 +142,20 @@ func tallyPages() string {
 		page := cachedPages[f.Name()]
 		mutex.RUnlock()
 		if page.Body == nil {
-			cachePage(f.Name())
+			page.Shortname = f.Name()
+			page.Longname = pagedir + "/" + f.Name()
+			page.cache()
 		}
-		mutex.RLock()
-		page = cachedPages[f.Name()]
-		mutex.RUnlock()
 		linkname := []byte(page.Shortname)
-		tmp = "* [" + page.Title + "](/" + viewpath + "/" + string(linkname[:len(linkname)-3]) + ") :: " + page.Desc + " " + page.Author + "\n"
-		buf.WriteString(tmp)
+		entry = "* [" + page.Title + "](/" + viewpath + "/" + string(linkname[:len(linkname)-3]) + ") :: " + page.Desc + " " + page.Author + "\n"
+		buf.WriteString(entry)
 	}
 	return buf.String()
 }
 
-// Pull a page into memory for the first time
-func cachePage(filename string) {
-	var longname string
-	if filename != viper.GetString("IndexDir")+"/"+viper.GetString("Index") {
-		longname = viper.GetString("PageDir") + "/" + filename
-	} else {
-		longname = filename
-	}
-
-	page, err := loadPage(longname)
-	if err != nil {
-		log.Println("cachePage() :: Can't cache " + filename)
-		return
-	}
-	mutex.Lock()
-	cachedPages[filename] = *page
-	mutex.Unlock()
-}
-
 // used when refreshing the cached copy
 // of a single page
-func (page *Page) reCache() {
+func (page *Page) cache() {
 	page, err := loadPage(page.Longname)
 	if err != nil {
 		log.Println("Page.reCache() :: Couldn't reload " + page.Longname)
@@ -195,7 +175,7 @@ func (page *Page) checkCache() {
 		return
 	}
 	if newpage.ModTime() != page.Modtime {
-		page.reCache()
+		page.cache()
 		log.Println("Page.checkCache() :: Re-caching page " + page.Longname)
 	}
 }
@@ -226,7 +206,7 @@ func genPageCache() {
 		}
 		page.Longname = longname
 		page.Shortname = shortname
-		page.reCache()
+		page.cache()
 		log.Println("genPageCache() :: Cached page " + page.Shortname)
 	}
 }
