@@ -4,7 +4,8 @@ A wiki engine designed around the needs of the [tildeverse](https://tildeverse.o
 
 This project is still in a pre-release stage and is not yet feature complete. Code in the repo builds and works but is subject to refactoring at any time. It will stabilize soon.
 
-Currently powering the [tilde.institute](https://tilde.institute) wiki: [https://wiki.tilde.institute](https://wiki.tilde.institute)
+Currently powering the [tilde.institute](https://tilde.institute) wiki: 
+* [https://wiki.tilde.institute](https://wiki.tilde.institute)
 
 ## Features
 
