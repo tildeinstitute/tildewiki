@@ -27,6 +27,7 @@ func loadPage(filename string) (*Page, error) {
 	for i := len(filebyte) - 1; i > 0; i-- {
 		if filebyte[i] == byte('/') {
 			shortname = string(filebyte[i+1:])
+			break
 		}
 	}
 	title := getTitle(filename)
@@ -131,7 +132,7 @@ func tallyPages() string {
 	viewpath := viper.GetString("ViewPath")
 	files, err := ioutil.ReadDir(pagedir)
 	if err != nil {
-		return "*Pages either don't exist or can't be read.*"
+		return "*PageDir can't be read.*"
 	}
 	var entry string
 	if len(files) == 0 {
