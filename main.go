@@ -10,7 +10,7 @@ import (
 )
 
 // TildeWiki version
-const twvers = "development version"
+const twvers = "0.3"
 
 // Page struct for caching
 type Page struct {
@@ -37,6 +37,8 @@ var validPath = initConfigParams()
 var mutex = &sync.RWMutex{}
 
 func main() {
+	log.Printf("\n\n\t:: TildeWiki %s ::\n\n", twvers)
+	log.Println("Building initial cache ...")
 	// fill the page cache
 	genPageCache()
 

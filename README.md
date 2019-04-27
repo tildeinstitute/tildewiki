@@ -2,7 +2,8 @@
 
 A wiki engine designed around the needs of the [tildeverse](https://tildeverse.org)
 
-This project is still in an early development stage and is not yet feature complete. Code in the repo builds and works but is subject to refactoring at any time. It will stabilize soon.
+## [v0.3](https://github.com/gbmor/tildewiki/releases/tag/v0.3)
+A binary is provided for linux-amd64, so you won't need a Go build environment to try it out.
 
 Currently powering the [tilde.institute](https://tilde.institute) wiki: 
 * [https://wiki.tilde.institute](https://wiki.tilde.institute)
