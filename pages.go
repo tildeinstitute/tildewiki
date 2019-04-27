@@ -53,7 +53,12 @@ func getTitle(filename string) string {
 	if err != nil {
 		return filename
 	}
-	defer mdfile.Close()
+	defer func() {
+		err := mdfile.Close()
+		if err != nil {
+			log.Printf("getTitle() :: Deferred closing of file resulted in error: %v\n", err)
+		}
+	}()
 	titlefinder := bufio.NewScanner(mdfile)
 	for titlefinder.Scan() {
 		splitter := strings.Split(titlefinder.Text(), ":")
@@ -72,7 +77,12 @@ func getDesc(filename string) string {
 	if err != nil {
 		return ""
 	}
-	defer mdfile.Close()
+	defer func() {
+		err := mdfile.Close()
+		if err != nil {
+			log.Printf("getDesc() :: Deferred closing of file resulted in error: %v\n", err)
+		}
+	}()
 	descfinder := bufio.NewScanner(mdfile)
 	for descfinder.Scan() {
 		splitter := strings.Split(descfinder.Text(), ":")
@@ -91,7 +101,12 @@ func getAuthor(filename string) string {
 	if err != nil {
 		return ""
 	}
-	defer mdfile.Close()
+	defer func() {
+		err := mdfile.Close()
+		if err != nil {
+			log.Printf("getAuthor() :: Deferred closing of file resulted in error: %v\n", err)
+		}
+	}()
 	authfinder := bufio.NewScanner(mdfile)
 	for authfinder.Scan() {
 		splitter := strings.Split(authfinder.Text(), ":")
@@ -110,7 +125,12 @@ func genIndex() []byte {
 	if err != nil {
 		return []byte("Could not open \"" + viper.GetString("AssetsDir") + "/" + viper.GetString("Index") + "\"")
 	}
-	defer index.Close()
+	defer func() {
+		err := index.Close()
+		if err != nil {
+			log.Printf("genIndex() :: Deferred closing of file resulted in error: %v\n", err)
+		}
+	}()
 	builder := bufio.NewScanner(index)
 	builder.Split(bufio.ScanLines)
 	for builder.Scan() {

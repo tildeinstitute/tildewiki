@@ -20,7 +20,12 @@ func iconType(filename string) string {
 		log.Println("iconType() :: Couldn't open icon, sending mime type image/unknown")
 		return "image/unknown"
 	}
-	defer file.Close()
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			log.Printf("iconType() :: Deferred closing of image resulted in error: %v\n", err)
+		}
+	}()
 	_, format, err := image.DecodeConfig(file)
 	if err != nil {
 		log.Println("iconType() :: Can't decode icon, sending mime type image/unknown")
