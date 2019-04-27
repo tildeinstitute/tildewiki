@@ -54,7 +54,7 @@ func error500(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.NotFound(w, r)
 	}
-	w.Header().Set("Content-Type", "text/html")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	_, err = w.Write(render(file, viper.GetString("CSS"), "500 Error"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -68,7 +68,7 @@ func error404(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		error500(w, r)
 	}
-	w.Header().Set("Content-Type", "text/html")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	_, err = w.Write(render(file, viper.GetString("CSS"), "404 Error"))
 	if err != nil {
 		error500(w, r)

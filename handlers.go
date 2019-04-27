@@ -23,7 +23,7 @@ func pageHandler(w http.ResponseWriter, r *http.Request, filename string) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/html")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	_, err := w.Write(page.Body)
 	if err != nil {
 		error500(w, r)
@@ -33,7 +33,7 @@ func pageHandler(w http.ResponseWriter, r *http.Request, filename string) {
 // handler for viewing the index page
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	parsed := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("Separator")+" "+viper.GetString("ShortDesc"))
-	w.Header().Set("Content-Type", "text/html")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	_, err := w.Write(parsed)
 	if err != nil {
 		error500(w, r)
@@ -72,7 +72,7 @@ func cssHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println("cssHandler() :: Can't read CSS file")
 		http.Redirect(w, r, "/", 302)
 	}
-	w.Header().Set("Content-Type", "text/css")
+	w.Header().Set("Content-Type", "text/css; charset=utf-8")
 	_, err = w.Write(css)
 	if err != nil {
 		error500(w, r)
