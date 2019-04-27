@@ -25,7 +25,7 @@ func setUpUsTheWiki() {
 
          :: TildeWiki 0.3 ::
     (c)2019 Ben Morrison (gbmor)
-              GPL v3
+               GPL v3
   https://github.com/gbmor/tildewiki
     All Contributions Appreciated!
 		`)
