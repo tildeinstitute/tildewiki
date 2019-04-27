@@ -64,13 +64,13 @@ func iconHandler(w http.ResponseWriter, r *http.Request) {
 func cssHandler(w http.ResponseWriter, r *http.Request) {
 	if !cssLocal() {
 		log.Println("cssHandler() :: Using remote CSS, nothing to serve...")
-		http.Redirect(w, r, "/", 302)
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 	css, err := ioutil.ReadFile(viper.GetString("CSS"))
 	if err != nil {
 		log.Println("cssHandler() :: Can't read CSS file")
-		http.Redirect(w, r, "/", 302)
+		http.Redirect(w, r, "/", http.StatusFound)
 	}
 	w.Header().Set("Content-Type", "text/css; charset=utf-8")
 	_, err = w.Write(css)
