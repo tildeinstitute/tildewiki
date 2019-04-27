@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	_ "image/gif"
 	_ "image/jpeg"
@@ -13,22 +14,40 @@ import (
 	"github.com/spf13/viper"
 )
 
+// displays on startup
+func setUpUsTheWiki() {
+	fmt.Printf(`
+   __  _ __    __             _ __   _
+  / /_(_) /___/ /__ _      __(_) /__(_)
+ / __/ / / __  / _ \ | /| / / / //_/ /
+/ /_/ / / /_/ /  __/ |/ |/ / / ,< / /
+\__/_/_/\__,_/\___/|__/|__/_/_/|_/_/ 
+
+         :: TildeWiki 0.3 ::
+    (c)2019 Ben Morrison (gbmor)
+              GPL v3
+  https://github.com/gbmor/tildewiki
+    All Contributions Appreciated!
+		`)
+	fmt.Printf("\n")
+}
+
 // open the icon file and process it
 func iconType(filename string) string {
 	file, err := os.Open(filename)
 	if err != nil {
-		log.Println("iconType() :: Couldn't open icon, sending mime type image/unknown")
+		log.Println("Couldn't open icon, sending mime type image/unknown")
 		return "image/unknown"
 	}
 	defer func() {
 		err := file.Close()
 		if err != nil {
-			log.Printf("iconType() :: Deferred closing of image resulted in error: %v\n", err)
+			log.Printf("Deferred closing of favicon resulted in error: %v\n", err)
 		}
 	}()
 	_, format, err := image.DecodeConfig(file)
 	if err != nil {
-		log.Println("iconType() :: Can't decode icon, sending mime type image/unknown")
+		log.Println("Can't decode icon, sending mime type image/unknown")
 		return "image/unknown"
 	}
 	mime := mime.TypeByExtension("." + format)

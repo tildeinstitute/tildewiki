@@ -37,7 +37,7 @@ var validPath = initConfigParams()
 var mutex = &sync.RWMutex{}
 
 func main() {
-	log.Printf("\n\n\t:: TildeWiki %s ::\n\n", twvers)
+	setUpUsTheWiki()
 	log.Println("Building initial cache ...")
 	// fill the page cache
 	genPageCache()
@@ -48,6 +48,6 @@ func main() {
 	http.HandleFunc("/icon", iconHandler)
 
 	port := ":" + viper.GetString("Port")
-	log.Println("main() :: Binding to " + port)
+	log.Println("Binding to " + port)
 	log.Fatal(http.ListenAndServe(port, nil))
 }
