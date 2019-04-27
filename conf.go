@@ -26,7 +26,7 @@ func initConfigParams() *regexp.Regexp {
 
 	err := conf.ReadInConfig()
 	if err != nil {
-		log.Fatalln("initConfigParams() :: Config file error: ", err)
+		log.Fatalln("Config file error: ", err)
 	}
 
 	// WatchConfig() is a function provided by blackfriday that watches the config

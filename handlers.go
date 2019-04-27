@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/spf13/viper"
 )
@@ -26,6 +27,7 @@ func pageHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	_, err := w.Write(page.Body)
 	if err != nil {
+		log.Printf("Error writing %s to HTTP stream: %v\n", filename, err)
 		error500(w, r)
 	}
 }
@@ -36,6 +38,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	_, err := w.Write(parsed)
 	if err != nil {
+		log.Printf("Error writing %s to HTTP stream: %v\n", viper.GetString("CSS"), err)
 		error500(w, r)
 	}
 }
@@ -45,17 +48,17 @@ func iconHandler(w http.ResponseWriter, r *http.Request) {
 	longname := viper.GetString("AssetsDir") + "/" + viper.GetString("Icon")
 	icon, err := ioutil.ReadFile(longname)
 	if err != nil {
-		log.Println("iconHandler() :: Couldn't read icon file")
-		_, err = w.Write(nil)
-		if err != nil {
-			log.Println("iconHandler() :: 500 :: Couldn't write to http stream")
-			error500(w, r)
+		if os.IsNotExist(err) {
+			log.Println("Favicon file specified in config does not exist: /icon request 404")
+			error404(w, r)
 		}
+		error500(w, r)
 	}
 	mime := iconType(longname)
 	w.Header().Set("Content-Type", mime)
 	_, err = w.Write(icon)
 	if err != nil {
+		log.Printf("Error writing favicon to HTTP stream: %v\n", err)
 		error500(w, r)
 	}
 }
@@ -63,18 +66,22 @@ func iconHandler(w http.ResponseWriter, r *http.Request) {
 // serves local css file as a url
 func cssHandler(w http.ResponseWriter, r *http.Request) {
 	if !cssLocal() {
-		log.Println("cssHandler() :: Using remote CSS, nothing to serve...")
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 	css, err := ioutil.ReadFile(viper.GetString("CSS"))
 	if err != nil {
-		log.Println("cssHandler() :: Can't read CSS file")
-		http.Redirect(w, r, "/", http.StatusFound)
+		if os.IsNotExist(err) {
+			log.Println("CSS file specified in config does not exist: /css request 404")
+			error404(w, r)
+		}
+		log.Println("Can't read CSS file")
+		error500(w, r)
 	}
 	w.Header().Set("Content-Type", "text/css; charset=utf-8")
 	_, err = w.Write(css)
 	if err != nil {
+		log.Printf("Error writing CSS file to HTTP stream: %v\n", err)
 		error500(w, r)
 	}
 }
@@ -85,6 +92,7 @@ func validatePath(fn func(http.ResponseWriter, *http.Request, string)) http.Hand
 	return func(w http.ResponseWriter, r *http.Request) {
 		m := validPath.FindStringSubmatch(r.URL.Path)
 		if m == nil {
+			log.Println("Invalid path requested :: " + r.URL.Path)
 			error404(w, r)
 			return
 		}

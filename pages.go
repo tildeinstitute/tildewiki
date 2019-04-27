@@ -15,12 +15,12 @@ import (
 func loadPage(filename string) (*Page, error) {
 	body, err := ioutil.ReadFile(filename)
 	if err != nil {
-		log.Println("loadPage() :: Couldn't read " + filename)
+		log.Println("Couldn't read " + filename)
 		return nil, err
 	}
 	filestat, err := os.Stat(filename)
 	if err != nil {
-		log.Println("loadPage() :: Couldn't stat " + filename)
+		log.Println("Couldn't stat " + filename)
 	}
 	var shortname string
 	filebyte := []byte(filename)
@@ -56,7 +56,7 @@ func getTitle(filename string) string {
 	defer func() {
 		err := mdfile.Close()
 		if err != nil {
-			log.Printf("getTitle() :: Deferred closing of file resulted in error: %v\n", err)
+			log.Printf("Deferred closing of %s resulted in error: %v\n", filename, err)
 		}
 	}()
 	titlefinder := bufio.NewScanner(mdfile)
@@ -80,7 +80,7 @@ func getDesc(filename string) string {
 	defer func() {
 		err := mdfile.Close()
 		if err != nil {
-			log.Printf("getDesc() :: Deferred closing of file resulted in error: %v\n", err)
+			log.Printf("Deferred closing of %s resulted in error: %v\n", filename, err)
 		}
 	}()
 	descfinder := bufio.NewScanner(mdfile)
@@ -104,7 +104,7 @@ func getAuthor(filename string) string {
 	defer func() {
 		err := mdfile.Close()
 		if err != nil {
-			log.Printf("getAuthor() :: Deferred closing of file resulted in error: %v\n", err)
+			log.Printf("Deferred closing of %s resulted in error: %v\n", filename, err)
 		}
 	}()
 	authfinder := bufio.NewScanner(mdfile)
@@ -128,7 +128,7 @@ func genIndex() []byte {
 	defer func() {
 		err := index.Close()
 		if err != nil {
-			log.Printf("genIndex() :: Deferred closing of file resulted in error: %v\n", err)
+			log.Printf("Deferred closing of %s resulted in error: %v\n", viper.GetString("Index"), err)
 		}
 	}()
 	builder := bufio.NewScanner(index)
@@ -179,7 +179,7 @@ func tallyPages() string {
 func (page *Page) cache() {
 	page, err := loadPage(page.Longname)
 	if err != nil {
-		log.Println("Page.cache() :: Couldn't reload " + page.Longname)
+		log.Println("Couldn't cache " + page.Longname)
 	}
 	mutex.Lock()
 	cachedPages[page.Shortname] = *page
@@ -192,12 +192,12 @@ func (page *Page) cache() {
 func (page *Page) checkCache() {
 	newpage, err := os.Stat(page.Longname)
 	if err != nil {
-		log.Println("Page.checkCache() :: Can't stat " + page.Longname + ". Using cached copy...")
+		log.Println("Can't stat " + page.Longname + ". Using cached copy...")
 		return
 	}
 	if newpage.ModTime() != page.Modtime {
 		page.cache()
-		log.Println("Page.checkCache() :: Re-caching page " + page.Longname)
+		log.Println("Re-caching page " + page.Longname)
 	}
 }
 
@@ -207,11 +207,11 @@ func (page *Page) checkCache() {
 func genPageCache() {
 	indexpage, err := os.Stat(viper.GetString("AssetsDir") + "/" + viper.GetString("Index"))
 	if err != nil {
-		log.Println("genPageCache() :: Can't stat index page")
+		log.Println("Initial Cache Build :: Can't stat index page")
 	}
 	wikipages, err := ioutil.ReadDir(viper.GetString("PageDir"))
 	if err != nil {
-		log.Println("genPageCache() :: Can't read directory " + viper.GetString("PageDir"))
+		log.Println("Initial Cache Build :: Can't read directory " + viper.GetString("PageDir"))
 	}
 	wikipages = append(wikipages, indexpage)
 	var shortname string
@@ -228,6 +228,6 @@ func genPageCache() {
 		page.Longname = longname
 		page.Shortname = shortname
 		page.cache()
-		log.Println("genPageCache() :: Cached page " + page.Shortname)
+		log.Println("Cached page " + page.Shortname)
 	}
 }
