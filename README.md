@@ -7,7 +7,7 @@ A binary is provided for linux-amd64, so you won't need a Go build environment t
 
 Currently powering the [tilde.institute](https://tilde.institute) wiki: 
 * [https://wiki.tilde.institute](https://wiki.tilde.institute)
-* [gtmetrix report](https://gtmetrix.com/reports/wiki.tilde.institute/15byZymY)
+* [gtmetrix report](https://gtmetrix.com/reports/wiki.tilde.institute/fvuXZEf1)
 
 ## Features
 
