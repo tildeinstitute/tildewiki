@@ -12,12 +12,16 @@ import (
 // handler for viewing content pages (not the index page)
 func pageHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	filename = filename + ".md"
-	//page := checkPageCache(filename)
 	mutex.RLock()
 	page := cachedPages[filename]
 	mutex.RUnlock()
 
-	page.checkCache()
+	if page.checkCache() {
+		err := page.cache()
+		if err != nil {
+			log.Printf("Client requested %s, but couldn't update cache: %v", page.Shortname, err)
+		}
+	}
 
 	if page.Body == nil {
 		http.Redirect(w, r, "/", http.StatusFound)

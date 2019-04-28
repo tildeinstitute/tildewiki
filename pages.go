@@ -165,7 +165,10 @@ func tallyPages() string {
 		if page.Body == nil {
 			page.Shortname = f.Name()
 			page.Longname = pagedir + "/" + f.Name()
-			page.cache()
+			err := page.cache()
+			if err != nil {
+				log.Printf("Couldn't pull new page %s into cache: %v", page.Shortname, err)
+			}
 		}
 		linkname := bytes.TrimSuffix([]byte(page.Shortname), []byte(".md"))
 		entry = "* [" + page.Title + "](/" + viewpath + "/" + string(linkname) + ") :: " + page.Desc + " " + page.Author + "\n"
@@ -176,29 +179,31 @@ func tallyPages() string {
 
 // used when refreshing the cached copy
 // of a single page
-func (page *Page) cache() {
+func (page *Page) cache() error {
 	page, err := loadPage(page.Longname)
 	if err != nil {
-		log.Println("Couldn't cache " + page.Longname)
+		return err
 	}
 	mutex.Lock()
 	cachedPages[page.Shortname] = *page
 	mutex.Unlock()
+	return nil
 }
 
 // compare the recorded modtime of a cached page to the
 // modtime of the file. if they're different,
-// re-cache the page.
-func (page *Page) checkCache() {
+// return `true`, indicating the cache needs
+// to be refreshed.
+func (page *Page) checkCache() bool {
 	newpage, err := os.Stat(page.Longname)
 	if err != nil {
 		log.Println("Can't stat " + page.Longname + ". Using cached copy...")
-		return
+		return false
 	}
 	if newpage.ModTime() != page.Modtime {
-		page.cache()
-		log.Println("Re-caching page " + page.Longname)
+		return true
 	}
+	return false
 }
 
 // when tildewiki first starts, pull all available pages
@@ -227,7 +232,10 @@ func genPageCache() {
 		}
 		page.Longname = longname
 		page.Shortname = shortname
-		page.cache()
+		err = page.cache()
+		if err != nil {
+			log.Println("Couldn't cache " + page.Shortname)
+		}
 		log.Println("Cached page " + page.Shortname)
 	}
 }
