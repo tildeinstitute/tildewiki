@@ -10,7 +10,7 @@ import (
 )
 
 // TildeWiki version
-const twvers = "0.3"
+const twvers = "0.4"
 
 // Page struct for caching
 type Page struct {
