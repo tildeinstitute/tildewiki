@@ -170,6 +170,7 @@ func tallyPages() string {
 				log.Printf("Couldn't pull new page %s into cache: %v", page.Shortname, err)
 			}
 		}
+
 		linkname := bytes.TrimSuffix([]byte(page.Shortname), []byte(".md"))
 		entry = "* [" + page.Title + "](/" + viewpath + "/" + string(linkname) + ") :: " + page.Desc + " " + page.Author + "\n"
 		buf.WriteString(entry)
@@ -219,23 +220,24 @@ func genPageCache() {
 		log.Println("Initial Cache Build :: Can't read directory " + viper.GetString("PageDir"))
 	}
 	wikipages = append(wikipages, indexpage)
-	var shortname string
-	var longname string
-	var page Page
 	for _, f := range wikipages {
-		shortname = f.Name()
-		if shortname == viper.GetString("Index") {
-			shortname = viper.GetString("AssetsDir") + "/" + viper.GetString("Index")
-			longname = shortname
-		} else {
-			longname = viper.GetString("PageDir") + "/" + f.Name()
-		}
-		page.Longname = longname
-		page.Shortname = shortname
-		err = page.cache()
-		if err != nil {
-			log.Println("Couldn't cache " + page.Shortname)
-		}
-		log.Println("Cached page " + page.Shortname)
+		go func(f os.FileInfo) {
+			var page Page
+			shortname := f.Name()
+			var longname string
+			if shortname == viper.GetString("Index") {
+				shortname = viper.GetString("AssetsDir") + "/" + viper.GetString("Index")
+				longname = shortname
+			} else {
+				longname = viper.GetString("PageDir") + "/" + f.Name()
+			}
+			page.Longname = longname
+			page.Shortname = shortname
+			err = page.cache()
+			if err != nil {
+				log.Println("Couldn't cache " + page.Shortname)
+			}
+			log.Println("Cached page " + page.Shortname)
+		}(f)
 	}
 }
