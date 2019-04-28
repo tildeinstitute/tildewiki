@@ -52,11 +52,13 @@ func error500(w http.ResponseWriter, r *http.Request) {
 	e500 := viper.GetString("AssetsDir") + "/500.md"
 	file, err := ioutil.ReadFile(e500)
 	if err != nil {
-		http.NotFound(w, r)
+		log.Printf("Tried to read 500.md: %v\n", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, err = w.Write(render(file, viper.GetString("CSS"), "500 Error"))
+	_, err = w.Write(render(file, viper.GetString("CSS"), "500: Internal Server Error"))
 	if err != nil {
+		log.Printf("Failed to write to HTTP stream: %v\n", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -66,11 +68,13 @@ func error404(w http.ResponseWriter, r *http.Request) {
 	e404 := viper.GetString("AssetsDir") + "/404.md"
 	file, err := ioutil.ReadFile(e404)
 	if err != nil {
+		log.Printf("Tried to read 404.md: %v\n", err)
 		error500(w, r)
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, err = w.Write(render(file, viper.GetString("CSS"), "404 Error"))
+	_, err = w.Write(render(file, viper.GetString("CSS"), "404: File Not Found"))
 	if err != nil {
+		log.Printf("Failed to write to HTTP stream: %v\n", err)
 		error500(w, r)
 	}
 }
