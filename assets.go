@@ -39,12 +39,17 @@ func iconType(filename string) string {
 		log.Println("Couldn't open icon, sending mime type image/unknown")
 		return "image/unknown"
 	}
+
+	// defer closing and checking of the error returned from (*os.File).Close()
 	defer func() {
 		err := file.Close()
 		if err != nil {
 			log.Printf("Deferred closing of favicon resulted in error: %v\n", err)
 		}
 	}()
+
+	// pull the metadata from the image so we know
+	// what mime type to send in the http header later
 	_, format, err := image.DecodeConfig(file)
 	if err != nil {
 		log.Println("Can't decode icon, sending mime type image/unknown")
@@ -55,6 +60,7 @@ func iconType(filename string) string {
 }
 
 // determine if using local or remote css
+// by checking if it's a URL or not
 func cssLocal() bool {
 	css := []byte(viper.GetString("CSS"))
 	if bytes.HasPrefix(css, []byte("http://")) || bytes.HasPrefix(css, []byte("https://")) {

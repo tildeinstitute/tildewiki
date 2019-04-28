@@ -37,9 +37,11 @@ var validPath = initConfigParams()
 var mutex = &sync.RWMutex{}
 
 func main() {
+	// show the logo, repo link, etc
 	setUpUsTheWiki()
-	log.Println("Building initial cache ...")
+
 	// fill the page cache
+	log.Println("Building initial cache ...")
 	genPageCache()
 
 	http.HandleFunc("/", indexHandler)

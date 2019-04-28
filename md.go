@@ -6,9 +6,14 @@ import (
 
 // sets parameters for the markdown->html renderer
 func setupMarkdown(css string, title string) *bf.HTMLRenderer {
+	// if using local CSS file, use the virtually-served css
+	// path rather than the actual file name
 	if cssLocal() {
 		css = "/css"
 	}
+
+	// return the parameters used for the rendering
+	// of markdown to html.
 	var params = bf.HTMLRendererParameters{
 		CSS:   css,
 		Title: title,
@@ -22,7 +27,8 @@ func setupMarkdown(css string, title string) *bf.HTMLRenderer {
 	return bf.NewHTMLRenderer(params)
 }
 
-// render markdown into html
+// wrapper function to generate the parameters above and
+// pass them to the blackfriday library's parsing function
 func render(data []byte, css string, title string) []byte {
 	return bf.Run(data, bf.WithRenderer(setupMarkdown(css, title)))
 }

@@ -11,11 +11,14 @@ import (
 
 // handler for viewing content pages (not the index page)
 func pageHandler(w http.ResponseWriter, r *http.Request, filename string) {
+	// get the file name from the request name
 	filename = filename + ".md"
+	// pull the page from cache
 	mutex.RLock()
 	page := cachedPages[filename]
 	mutex.RUnlock()
 
+	// see if it needs to be cached
 	if page.checkCache() {
 		err := page.cache()
 		if err != nil {
@@ -23,11 +26,13 @@ func pageHandler(w http.ResponseWriter, r *http.Request, filename string) {
 		}
 	}
 
+	// if the page doesn't exist, redirect to the index
 	if page.Body == nil {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 
+	// send the page to the client
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	_, err := w.Write(page.Body)
 	if err != nil {
@@ -36,7 +41,11 @@ func pageHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	}
 }
 
-// handler for viewing the index page
+// Handler for viewing the index page.
+// Renders the index markdown file into HTML
+// and sends it to the client.
+// Calls genIndex() for each request. I need to work
+// on caching the index page.
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	parsed := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("Separator")+" "+viper.GetString("ShortDesc"))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -47,8 +56,12 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// serves the icon as a URL
+// Serves the favicon as a URL.
+// This is due to the default behavior of
+// not serving naked paths but virtual ones.
 func iconHandler(w http.ResponseWriter, r *http.Request) {
+
+	// read the raw bytes of the image
 	longname := viper.GetString("AssetsDir") + "/" + viper.GetString("Icon")
 	icon, err := ioutil.ReadFile(longname)
 	if err != nil {
@@ -58,6 +71,9 @@ func iconHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		error500(w, r)
 	}
+
+	// check the mime type, then send
+	// the bytes to the client
 	mime := iconType(longname)
 	w.Header().Set("Content-Type", mime)
 	_, err = w.Write(icon)
@@ -67,12 +83,20 @@ func iconHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// serves local css file as a url
+// Serves the local css file as a url.
+// This is due to the default behavior of
+// not serving naked paths but virtual ones.
 func cssHandler(w http.ResponseWriter, r *http.Request) {
+
+	// check if using local or remote CSS.
+	// if remote, don't bother doing anything
+	// and redirect requests to /
 	if !cssLocal() {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
+
+	// read the raw bytes of the stylesheet
 	css, err := ioutil.ReadFile(viper.GetString("CSS"))
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -82,6 +106,8 @@ func cssHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println("Can't read CSS file")
 		error500(w, r)
 	}
+
+	// send it to the client
 	w.Header().Set("Content-Type", "text/css; charset=utf-8")
 	_, err = w.Write(css)
 	if err != nil {

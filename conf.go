@@ -44,7 +44,7 @@ func initConfigParams() *regexp.Regexp {
 	return validPath
 }
 
-// this is just a custom 500 page using a markdown doc
+// this is a custom 500 page using a markdown doc
 // in the assets directory.
 // if the markdown doc can't be read, default to
 // net/http's error handling
@@ -63,13 +63,16 @@ func error500(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// same as the 500 page
+// this is a custom 404 page using a markdown doc
+// in the assets directory.
+// if the markdown doc can't be read, default to
+// net/http's error handling
 func error404(w http.ResponseWriter, r *http.Request) {
 	e404 := viper.GetString("AssetsDir") + "/404.md"
 	file, err := ioutil.ReadFile(e404)
 	if err != nil {
 		log.Printf("Tried to read 404.md: %v\n", err)
-		error500(w, r)
+		http.Error(w, err.Error(), http.StatusNotFound)
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	_, err = w.Write(render(file, viper.GetString("CSS"), "404: File Not Found"))
