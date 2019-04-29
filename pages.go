@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -15,66 +16,59 @@ import (
 // Used for building the initial cache and re-caching.
 func loadPage(filename string) (*Page, error) {
 
-	// read the raw bytes
-	body, err := ioutil.ReadFile(filename)
+	// open the page into *os.File
+	file, err := os.Open(filename)
 	if err != nil {
-		log.Println("Couldn't read " + filename)
+		log.Printf("%v\n", err)
 		return nil, err
+	}
+	// the cleanup crew
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			log.Printf("%v\n", err)
+		}
+	}()
+
+	// body holds the raw bytes from the file
+	body := make([]byte, 0)
+	_, err = file.Read(body)
+	if err != nil {
+		log.Printf("%v\n", err)
 	}
 
 	// stat the file to get mod time later
-	filestat, err := os.Stat(filename)
+	stat, err := file.Stat()
 	if err != nil {
-		log.Println("Couldn't stat " + filename)
+		log.Printf("Couldn't stat %s: %v\n", filename, err)
 	}
 
 	// extract the file name from the path
-	var shortname string
-	filebyte := []byte(filename)
-	for i := len(filebyte) - 1; i > 0; i-- {
-		if filebyte[i] == byte('/') {
-			shortname = string(filebyte[i+1:])
-			break
-		}
-	}
+	_, shortname := filepath.Split(filename)
 
 	// get meta info on file from the header comment
-	title := getTitle(filename)
-	author := getAuthor(filename)
-	desc := getDesc(filename)
+	title := getTitle(file)
+	author := getAuthor(file)
+	desc := getDesc(file)
 
 	// store the raw bytes of the document after parsing
 	// from markdown to HTML.
 	// keep the unparsed markdown for future use (maybe gopher?)
-	parsed := render(body, viper.GetString("CSS"), title)
 	return &Page{
 		Longname:  filename,
 		Shortname: shortname,
 		Title:     title,
 		Author:    author,
 		Desc:      desc,
-		Modtime:   filestat.ModTime(),
-		Body:      parsed,
+		Modtime:   stat.ModTime(),
+		Body:      render(body, viper.GetString("CSS"), title),
 		Raw:       body}, nil
 }
 
 // scan the page for the `title: ` field
 // in the header comment. used in the construction
 // of the page cache on startup
-func getTitle(filename string) string {
-
-	mdfile, err := os.Open(filename)
-	if err != nil {
-		return filename
-	}
-
-	// defer closing and checking of the error returned from (*os.File).Close()
-	defer func() {
-		err := mdfile.Close()
-		if err != nil {
-			log.Printf("Deferred closing of %s resulted in error: %v\n", filename, err)
-		}
-	}()
+func getTitle(mdfile *os.File) string {
 
 	// scan the file line by line until it finds
 	// the title: comment, return the value.
@@ -86,26 +80,13 @@ func getTitle(filename string) string {
 		}
 	}
 
-	return filename
+	return mdfile.Name()
 }
 
 // scan the page for the `description: ` field
 // in the header comment. used in the construction
 // of the page cache on startup
-func getDesc(filename string) string {
-
-	mdfile, err := os.Open(filename)
-	if err != nil {
-		return ""
-	}
-
-	// defer closing and checking of the error returned from (*os.File).Close()
-	defer func() {
-		err := mdfile.Close()
-		if err != nil {
-			log.Printf("Deferred closing of %s resulted in error: %v\n", filename, err)
-		}
-	}()
+func getDesc(mdfile *os.File) string {
 
 	// scan the file line by line until it finds
 	// the description: comment, return the value.
@@ -123,20 +104,7 @@ func getDesc(filename string) string {
 // scan the page for the `author: ` field
 // in the header comment. used in the construction
 // of the page cache on startup
-func getAuthor(filename string) string {
-
-	mdfile, err := os.Open(filename)
-	if err != nil {
-		return ""
-	}
-
-	// defer closing and checking of the error returned from (*os.File).Close()
-	defer func() {
-		err := mdfile.Close()
-		if err != nil {
-			log.Printf("Deferred closing of %s resulted in error: %v\n", filename, err)
-		}
-	}()
+func getAuthor(mdfile *os.File) string {
 
 	// scan the file line by line until it finds
 	// the author: comment, return the value.
