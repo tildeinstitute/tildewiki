@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/spf13/viper"
 )
@@ -16,73 +15,33 @@ import (
 // Used for building the initial cache and re-caching.
 func loadPage(filename string) (*Page, error) {
 
-	var body []byte
-	var readerr error
-	var filestat os.FileInfo
-	var staterr error
+	// read the raw bytes
+	body, err := ioutil.ReadFile(filename)
+	if err != nil {
+		log.Println("Couldn't read " + filename)
+		return nil, err
+	}
+
+	// stat the file to get mod time later
+	filestat, err := os.Stat(filename)
+	if err != nil {
+		log.Println("Couldn't stat " + filename)
+	}
+
+	// extract the file name from the path
 	var shortname string
 	filebyte := []byte(filename)
-
-	// Read the file's bytes, get file meta info, and separate
-	// the full path from the file name concurrently.
-	worker := make(chan int, 3)
-	go func() {
-		// read the raw bytes
-		body, readerr = ioutil.ReadFile(filename)
-		worker <- 1
-	}()
-	go func() {
-		// stat the file to get mod time later
-		filestat, staterr = os.Stat(filename)
-		worker <- 1
-	}()
-	// extract the file name from the path
-	go func() {
-		for i := len(filebyte) - 1; i > 0; i-- {
-			if filebyte[i] == byte('/') {
-				shortname = string(filebyte[i+1:])
-				break
-			}
+	for i := len(filebyte) - 1; i > 0; i-- {
+		if filebyte[i] == byte('/') {
+			shortname = string(filebyte[i+1:])
+			break
 		}
-		worker <- 1
-	}()
-	// make sure all three threads have finished
-	// before continuing execution
-	for len(worker) < 3 {
-		time.Sleep(1 * time.Nanosecond)
-	}
-	close(worker)
-
-	if readerr != nil {
-		log.Println("Couldn't read " + filename)
-		return nil, readerr
-	}
-	if staterr != nil {
-		log.Println("Couldn't stat " + filename)
-		return nil, staterr
 	}
 
 	// get meta info on file from the header comment
-	var title string
-	var author string
-	var desc string
-	worker = make(chan int, 3)
-	go func() {
-		title = getTitle(filename)
-		worker <- 1
-	}()
-	go func() {
-		author = getAuthor(filename)
-		worker <- 1
-	}()
-	go func() {
-		desc = getDesc(filename)
-		worker <- 1
-	}()
-	for len(worker) < 3 {
-		time.Sleep(1 * time.Nanosecond)
-	}
-	close(worker)
+	title := getTitle(filename)
+	author := getAuthor(filename)
+	desc := getDesc(filename)
 
 	// store the raw bytes of the document after parsing
 	// from markdown to HTML.
