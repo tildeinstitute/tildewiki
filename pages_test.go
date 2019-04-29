@@ -42,7 +42,10 @@ func Test_loadPage(t *testing.T) {
 func Benchmark_loadPage(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for _, c := range loadPageCases {
-			loadPage(c.filename)
+			_, err := loadPage(c.filename)
+			if err != nil {
+				continue
+			}
 		}
 	}
 }
