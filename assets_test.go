@@ -40,25 +40,33 @@ func Test_iconType(t *testing.T) {
 	}
 }
 
+var cssLocalTests = []struct {
+	name []byte
+	want bool
+}{
+	{
+		name: []byte("https://google.com/test.css"),
+		want: false,
+	},
+	{
+		name: []byte("style.css"),
+		want: true,
+	},
+}
+
 func Test_cssLocal(t *testing.T) {
-	tests := []struct {
-		name []byte
-		want bool
-	}{
-		{
-			name: []byte("https://google.com/test.css"),
-			want: false,
-		},
-		{
-			name: []byte("style.css"),
-			want: true,
-		},
-	}
-	for _, tt := range tests {
+	for _, tt := range cssLocalTests {
 		t.Run(string(tt.name), func(t *testing.T) {
 			if got := cssLocal(tt.name); got != tt.want {
 				t.Errorf("cssLocal() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+func Benchmark_cssLocal(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		for _, c := range cssLocalTests {
+			cssLocal(c.name)
+		}
 	}
 }
