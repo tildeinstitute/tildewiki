@@ -42,14 +42,21 @@ func Test_iconType(t *testing.T) {
 
 func Test_cssLocal(t *testing.T) {
 	tests := []struct {
-		name string
+		name []byte
 		want bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: []byte("https://google.com/test.css"),
+			want: false,
+		},
+		{
+			name: []byte("style.css"),
+			want: true,
+		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := cssLocal(); got != tt.want {
+		t.Run(string(tt.name), func(t *testing.T) {
+			if got := cssLocal(tt.name); got != tt.want {
 				t.Errorf("cssLocal() = %v, want %v", got, tt.want)
 			}
 		})

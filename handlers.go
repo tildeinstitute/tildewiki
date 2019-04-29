@@ -91,7 +91,7 @@ func cssHandler(w http.ResponseWriter, r *http.Request) {
 	// check if using local or remote CSS.
 	// if remote, don't bother doing anything
 	// and redirect requests to /
-	if !cssLocal() {
+	if !cssLocal([]byte(viper.GetString("CSS"))) {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}

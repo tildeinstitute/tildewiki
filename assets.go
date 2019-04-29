@@ -10,8 +10,6 @@ import (
 	"log"
 	"mime"
 	"os"
-
-	"github.com/spf13/viper"
 )
 
 // displays on startup
@@ -61,8 +59,7 @@ func iconType(filename string) string {
 
 // determine if using local or remote css
 // by checking if it's a URL or not
-func cssLocal() bool {
-	css := []byte(viper.GetString("CSS"))
+func cssLocal(css []byte) bool {
 	if bytes.HasPrefix(css, []byte("http://")) || bytes.HasPrefix(css, []byte("https://")) {
 		return false
 	}

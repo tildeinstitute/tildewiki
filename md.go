@@ -2,13 +2,14 @@ package main
 
 import (
 	bf "github.com/gbmor-forks/blackfriday.v2-patched"
+	"github.com/spf13/viper"
 )
 
 // sets parameters for the markdown->html renderer
 func setupMarkdown(css string, title string) *bf.HTMLRenderer {
 	// if using local CSS file, use the virtually-served css
 	// path rather than the actual file name
-	if cssLocal() {
+	if cssLocal([]byte(viper.GetString("CSS"))) {
 		css = "/css"
 	}
 
