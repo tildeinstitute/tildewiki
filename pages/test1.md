@@ -1,7 +1,6 @@
 <!--
 author: gbmor
-title: Test Page 1
-description: first test page of the wiki
+title: No Description
 -->
 
 # test page 1

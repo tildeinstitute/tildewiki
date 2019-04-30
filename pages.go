@@ -50,6 +50,13 @@ func loadPage(filename string) (*Page, error) {
 	author := getAuthor(body)
 	desc := getDesc(body)
 
+	if title == "" {
+		title = shortname
+	}
+	if desc != "" {
+		desc = ":: " + desc
+	}
+
 	// store the raw bytes of the document after parsing
 	// from markdown to HTML.
 	// keep the unparsed markdown for future use (maybe gopher?)
@@ -68,9 +75,10 @@ func loadPage(filename string) (*Page, error) {
 // in the header comment. used in the construction
 // of the page cache on startup
 func getTitle(data []byte) string {
-	mdfile := bytes.NewReader(data)
+
 	// scan the file line by line until it finds
 	// the title: comment, return the value.
+	mdfile := bytes.NewReader(data)
 	titlefinder := bufio.NewScanner(mdfile)
 	for titlefinder.Scan() {
 		splitter := strings.Split(titlefinder.Text(), ":")
@@ -86,9 +94,10 @@ func getTitle(data []byte) string {
 // in the header comment. used in the construction
 // of the page cache on startup
 func getDesc(data []byte) string {
-	mdfile := bytes.NewReader(data)
+
 	// scan the file line by line until it finds
 	// the description: comment, return the value.
+	mdfile := bytes.NewReader(data)
 	descfinder := bufio.NewScanner(mdfile)
 	for descfinder.Scan() {
 		splitter := strings.Split(descfinder.Text(), ":")
@@ -104,10 +113,10 @@ func getDesc(data []byte) string {
 // in the header comment. used in the construction
 // of the page cache on startup
 func getAuthor(data []byte) string {
-	mdfile := bytes.NewReader(data)
 
 	// scan the file line by line until it finds
 	// the author: comment, return the value.
+	mdfile := bytes.NewReader(data)
 	authfinder := bufio.NewScanner(mdfile)
 	for authfinder.Scan() {
 		splitter := strings.Split(authfinder.Text(), ":")
@@ -180,7 +189,6 @@ func tallyPages() string {
 		return "*No wiki pages! Add some content.*"
 	}
 
-	var entry string
 	for _, f := range files {
 
 		// pull the page from the cache
@@ -204,8 +212,7 @@ func tallyPages() string {
 		// and write the formatted link to the
 		// bytes.Buffer
 		linkname := bytes.TrimSuffix([]byte(page.Shortname), []byte(".md"))
-		entry = "* [" + page.Title + "](/" + viewpath + "/" + string(linkname) + ") :: " + page.Desc + " " + page.Author + "\n"
-		buf.WriteString(entry)
+		buf.WriteString("* [" + page.Title + "](/" + viewpath + "/" + string(linkname) + ") " + page.Desc + " " + page.Author + "\n")
 	}
 
 	return buf.String()
@@ -259,12 +266,11 @@ func genPageCache() {
 	// needed to build the cache
 	indexpage, err := os.Stat(viper.GetString("AssetsDir") + "/" + viper.GetString("Index"))
 	if err != nil {
-		log.Println("Initial Cache Build :: Can't stat index page")
+		log.Printf("Initial Cache Build :: Can't stat index page: %v\n", err)
 	}
-
 	wikipages, err := ioutil.ReadDir(viper.GetString("PageDir"))
 	if err != nil {
-		log.Println("Initial Cache Build :: Can't read directory " + viper.GetString("PageDir"))
+		log.Printf("Initial Cache Build :: Can't read directory %s: %v\n", viper.GetString("PageDir"), err)
 	}
 
 	wikipages = append(wikipages, indexpage)
