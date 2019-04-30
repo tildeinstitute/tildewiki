@@ -50,20 +50,17 @@ func Benchmark_loadPage(b *testing.B) {
 	}
 }
 
+/*
 func Test_getTitle(t *testing.T) {
-	type args struct {
-		filename string
-	}
 	tests := []struct {
-		name string
-		args args
+		data []byte
 		want string
 	}{
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := getTitle(tt.args.filename); got != tt.want {
+			if got := getTitle(); got != tt.want {
 				t.Errorf("getTitle() = %v, want %v", got, tt.want)
 			}
 		})
@@ -109,7 +106,7 @@ func Test_getAuthor(t *testing.T) {
 		})
 	}
 }
-
+*/
 func Test_genIndex(t *testing.T) {
 	tests := []struct {
 		name string

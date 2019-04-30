@@ -46,9 +46,9 @@ func loadPage(filename string) (*Page, error) {
 	_, shortname := filepath.Split(filename)
 
 	// get meta info on file from the header comment
-	title := getTitle(filename)
-	author := getAuthor(filename)
-	desc := getDesc(filename)
+	title := getTitle(body)
+	author := getAuthor(body)
+	desc := getDesc(body)
 
 	// store the raw bytes of the document after parsing
 	// from markdown to HTML.
@@ -67,11 +67,7 @@ func loadPage(filename string) (*Page, error) {
 // scan the page for the `title: ` field
 // in the header comment. used in the construction
 // of the page cache on startup
-func getTitle(filename string) string {
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return filename
-	}
+func getTitle(data []byte) string {
 	mdfile := bytes.NewReader(data)
 	// scan the file line by line until it finds
 	// the title: comment, return the value.
@@ -83,17 +79,13 @@ func getTitle(filename string) string {
 		}
 	}
 
-	return filename
+	return ""
 }
 
 // scan the page for the `description: ` field
 // in the header comment. used in the construction
 // of the page cache on startup
-func getDesc(filename string) string {
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return ""
-	}
+func getDesc(data []byte) string {
 	mdfile := bytes.NewReader(data)
 	// scan the file line by line until it finds
 	// the description: comment, return the value.
@@ -111,11 +103,7 @@ func getDesc(filename string) string {
 // scan the page for the `author: ` field
 // in the header comment. used in the construction
 // of the page cache on startup
-func getAuthor(filename string) string {
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return ""
-	}
+func getAuthor(data []byte) string {
 	mdfile := bytes.NewReader(data)
 
 	// scan the file line by line until it finds
