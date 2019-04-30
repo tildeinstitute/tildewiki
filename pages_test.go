@@ -260,7 +260,7 @@ func TestPage_checkCache(t *testing.T) {
 			got = page.checkCache()
 			switch got.(type) {
 			case bool:
-				got = !got.(bool)
+				return
 			default:
 				t.Errorf("Page.checkCache() = %v", got)
 			}
