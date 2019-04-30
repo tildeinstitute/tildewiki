@@ -278,7 +278,7 @@ func genPageCache() {
 			// for the key.
 			// this is to try to avoid collisions
 			// by explicitly disallowing pages with
-			// the same filename as the index
+			// the same filename as the index.
 			// later I'll cache the assets separately
 			// but this works for now.
 			if shortname == viper.GetString("Index") {
