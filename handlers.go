@@ -3,10 +3,8 @@ package main
 import (
 	"io/ioutil"
 	"log"
-	"mime"
 	"net/http"
 	"os"
-	"path/filepath"
 
 	"github.com/spf13/viper"
 )
@@ -76,8 +74,7 @@ func iconHandler(w http.ResponseWriter, r *http.Request) {
 
 	// check the mime type, then send
 	// the bytes to the client
-	mime := mime.TypeByExtension(filepath.Ext(viper.GetString("Icon")))
-	w.Header().Set("Content-Type", mime)
+	w.Header().Set("Content-Type", http.DetectContentType(icon))
 	_, err = w.Write(icon)
 	if err != nil {
 		log.Printf("Error writing favicon to HTTP stream: %v\n", err)
