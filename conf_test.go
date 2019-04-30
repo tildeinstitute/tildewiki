@@ -5,16 +5,23 @@ import (
 	"reflect"
 	"regexp"
 	"testing"
+
+	"github.com/spf13/viper"
 )
 
+var initConfigRegexp = regexp.MustCompile(viper.GetString("ValidPath"))
+var initConfigTests = []struct {
+	name string
+	want *regexp.Regexp
+}{
+	{
+		name: "Config Test",
+		want: initConfigRegexp,
+	},
+}
+
 func Test_initConfigParams(t *testing.T) {
-	tests := []struct {
-		name string
-		want *regexp.Regexp
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
+	for _, tt := range initConfigTests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := initConfigParams(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("initConfigParams() = %v, want %v", got, tt.want)
@@ -23,6 +30,15 @@ func Test_initConfigParams(t *testing.T) {
 	}
 }
 
+/*
+func Benchmark_initConfigParams(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		for range initConfigTests {
+			initConfigParams()
+		}
+	}
+}
+*/
 func Test_error500(t *testing.T) {
 	type args struct {
 		w http.ResponseWriter
