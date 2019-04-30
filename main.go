@@ -24,6 +24,10 @@ type Page struct {
 	Raw       []byte
 }
 
+// content-type constants
+const htmlutf8 = "text/html; charset=utf-8"
+const cssutf8 = "text/css; charset=utf-8"
+
 // the in-memory page cache
 var cachedPages = make(map[string]Page)
 

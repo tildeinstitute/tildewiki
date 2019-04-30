@@ -55,7 +55,7 @@ func error500(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Tried to read 500.md: %v\n", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Content-Type", htmlutf8)
 	_, err = w.Write(render(file, viper.GetString("CSS"), "500: Internal Server Error"))
 	if err != nil {
 		log.Printf("Failed to write to HTTP stream: %v\n", err)
@@ -74,7 +74,7 @@ func error404(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Tried to read 404.md: %v\n", err)
 		http.Error(w, err.Error(), http.StatusNotFound)
 	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Content-Type", htmlutf8)
 	_, err = w.Write(render(file, viper.GetString("CSS"), "404: File Not Found"))
 	if err != nil {
 		log.Printf("Failed to write to HTTP stream: %v\n", err)

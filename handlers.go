@@ -33,7 +33,7 @@ func pageHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	}
 
 	// send the page to the client
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Content-Type", htmlutf8)
 	_, err := w.Write(page.Body)
 	if err != nil {
 		log.Printf("Error writing %s to HTTP stream: %v\n", filename, err)
@@ -48,7 +48,7 @@ func pageHandler(w http.ResponseWriter, r *http.Request, filename string) {
 // on caching the index page.
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	parsed := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("Separator")+" "+viper.GetString("ShortDesc"))
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Content-Type", htmlutf8)
 	_, err := w.Write(parsed)
 	if err != nil {
 		log.Printf("Error writing %s to HTTP stream: %v\n", viper.GetString("CSS"), err)
@@ -108,7 +108,7 @@ func cssHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// send it to the client
-	w.Header().Set("Content-Type", "text/css; charset=utf-8")
+	w.Header().Set("Content-Type", cssutf8)
 	_, err = w.Write(css)
 	if err != nil {
 		log.Printf("Error writing CSS file to HTTP stream: %v\n", err)
