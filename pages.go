@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -80,9 +79,9 @@ func getTitle(data []byte) string {
 	// the title: comment, return the value.
 	titlefinder := bufio.NewScanner(bytes.NewReader(data))
 	for titlefinder.Scan() {
-		splitter := strings.Split(titlefinder.Text(), ":")
-		if strings.ToLower(splitter[0]) == "title" {
-			return strings.TrimSpace(splitter[1])
+		splitter := bytes.Split(titlefinder.Bytes(), []byte(":"))
+		if bytes.Equal(bytes.ToLower(splitter[0]), []byte("title")) {
+			return string(bytes.TrimSpace(splitter[1]))
 		}
 	}
 
@@ -98,9 +97,9 @@ func getDesc(data []byte) string {
 	// the description: comment, return the value.
 	descfinder := bufio.NewScanner(bytes.NewReader(data))
 	for descfinder.Scan() {
-		splitter := strings.Split(descfinder.Text(), ":")
-		if strings.ToLower(splitter[0]) == "description" {
-			return strings.TrimSpace(splitter[1])
+		splitter := bytes.Split(descfinder.Bytes(), []byte(":"))
+		if bytes.Equal(bytes.ToLower(splitter[0]), []byte("description")) {
+			return string(bytes.TrimSpace(splitter[1]))
 		}
 	}
 
@@ -116,9 +115,9 @@ func getAuthor(data []byte) string {
 	// the author: comment, return the value.
 	authfinder := bufio.NewScanner(bytes.NewReader(data))
 	for authfinder.Scan() {
-		splitter := strings.Split(authfinder.Text(), ":")
-		if strings.ToLower(splitter[0]) == "author" {
-			return "`by " + strings.TrimSpace(splitter[1]) + "`"
+		splitter := bytes.Split(authfinder.Bytes(), []byte(":"))
+		if bytes.Equal(bytes.ToLower(splitter[0]), []byte("author")) {
+			return "`by " + string(bytes.TrimSpace(splitter[1])) + "`"
 		}
 	}
 
