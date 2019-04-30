@@ -30,26 +30,25 @@ func loadPage(filename string) (*Page, error) {
 		}
 	}()
 
-	// body holds the raw bytes from the file
-	body := make([]byte, 0)
-	_, err = file.Read(body)
-	if err != nil {
-		log.Printf("%v\n", err)
-	}
-
 	// stat the file to get mod time later
 	stat, err := file.Stat()
 	if err != nil {
 		log.Printf("Couldn't stat %s: %v\n", filename, err)
 	}
 
+	// body holds the raw bytes from the file
+	body, err := ioutil.ReadAll(file)
+	if err != nil {
+		log.Printf("%v\n", err)
+	}
+
 	// extract the file name from the path
 	_, shortname := filepath.Split(filename)
 
 	// get meta info on file from the header comment
-	title := getTitle(file)
-	author := getAuthor(file)
-	desc := getDesc(file)
+	title := getTitle(filename)
+	author := getAuthor(filename)
+	desc := getDesc(filename)
 
 	// store the raw bytes of the document after parsing
 	// from markdown to HTML.
@@ -68,8 +67,12 @@ func loadPage(filename string) (*Page, error) {
 // scan the page for the `title: ` field
 // in the header comment. used in the construction
 // of the page cache on startup
-func getTitle(mdfile *os.File) string {
-
+func getTitle(filename string) string {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return filename
+	}
+	mdfile := bytes.NewReader(data)
 	// scan the file line by line until it finds
 	// the title: comment, return the value.
 	titlefinder := bufio.NewScanner(mdfile)
@@ -80,14 +83,18 @@ func getTitle(mdfile *os.File) string {
 		}
 	}
 
-	return mdfile.Name()
+	return filename
 }
 
 // scan the page for the `description: ` field
 // in the header comment. used in the construction
 // of the page cache on startup
-func getDesc(mdfile *os.File) string {
-
+func getDesc(filename string) string {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return ""
+	}
+	mdfile := bytes.NewReader(data)
 	// scan the file line by line until it finds
 	// the description: comment, return the value.
 	descfinder := bufio.NewScanner(mdfile)
@@ -104,7 +111,12 @@ func getDesc(mdfile *os.File) string {
 // scan the page for the `author: ` field
 // in the header comment. used in the construction
 // of the page cache on startup
-func getAuthor(mdfile *os.File) string {
+func getAuthor(filename string) string {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return ""
+	}
+	mdfile := bytes.NewReader(data)
 
 	// scan the file line by line until it finds
 	// the author: comment, return the value.

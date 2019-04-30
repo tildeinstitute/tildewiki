@@ -50,7 +50,7 @@ func Benchmark_loadPage(b *testing.B) {
 	}
 }
 
-/*func Test_getTitle(t *testing.T) {
+func Test_getTitle(t *testing.T) {
 	type args struct {
 		filename string
 	}
@@ -108,7 +108,7 @@ func Test_getAuthor(t *testing.T) {
 			}
 		})
 	}
-}*/
+}
 
 func Test_genIndex(t *testing.T) {
 	tests := []struct {
