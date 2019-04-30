@@ -66,9 +66,10 @@ func iconHandler(w http.ResponseWriter, r *http.Request) {
 	icon, err := ioutil.ReadFile(longname)
 	if err != nil {
 		if os.IsNotExist(err) {
-			log.Println("Favicon file specified in config does not exist: /icon request 404")
+			log.Printf("Favicon file specified in config does not exist: /icon request 404\n")
 			error404(w, r)
 		}
+		log.Printf("%v\n", err)
 		error500(w, r)
 	}
 
@@ -99,10 +100,10 @@ func cssHandler(w http.ResponseWriter, r *http.Request) {
 	css, err := ioutil.ReadFile(viper.GetString("CSS"))
 	if err != nil {
 		if os.IsNotExist(err) {
-			log.Println("CSS file specified in config does not exist: /css request 404")
+			log.Printf("CSS file specified in config does not exist: /css request 404\n")
 			error404(w, r)
 		}
-		log.Println("Can't read CSS file")
+		log.Printf("%v\n", err)
 		error500(w, r)
 	}
 
@@ -121,7 +122,7 @@ func validatePath(fn func(http.ResponseWriter, *http.Request, string)) http.Hand
 	return func(w http.ResponseWriter, r *http.Request) {
 		m := validPath.FindStringSubmatch(r.URL.Path)
 		if m == nil {
-			log.Println("Invalid path requested :: " + r.URL.Path)
+			log.Printf("Invalid path requested :: %v\n", r.URL.Path)
 			error404(w, r)
 			return
 		}
