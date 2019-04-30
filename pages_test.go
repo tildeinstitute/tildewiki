@@ -255,9 +255,11 @@ func TestPage_checkCache(t *testing.T) {
 				Body:      tt.fields.Body,
 				Raw:       tt.fields.Raw,
 			}
-			page.cache()
-			var got interface{}
-			got = page.checkCache()
+			err := page.cache()
+			if err != nil {
+				t.Errorf("Page.checkCache() returned error: %v\n", err)
+			}
+			var got interface{} = page.checkCache()
 			switch got.(type) {
 			case bool:
 				return
@@ -278,8 +280,7 @@ func Benchmark_Page_checkCache(b *testing.B) {
 			if err != nil {
 				continue
 			}
-			var maybe interface{}
-			maybe = page.checkCache()
+			var maybe interface{} = page.checkCache()
 			if maybe.(bool) {
 				continue
 			}
