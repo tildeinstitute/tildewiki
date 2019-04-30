@@ -185,7 +185,7 @@ type fields struct {
 	Raw       []byte
 }
 
-var Page_cacheCases = []struct {
+var PageCacheCases = []struct {
 	name    string
 	fields  fields
 	wantErr bool
@@ -209,7 +209,7 @@ var Page_cacheCases = []struct {
 }
 
 func TestPage_cache(t *testing.T) {
-	for _, tt := range Page_cacheCases {
+	for _, tt := range PageCacheCases {
 		t.Run(tt.name, func(t *testing.T) {
 			page := &Page{
 				Longname:  tt.fields.Longname,
@@ -229,7 +229,7 @@ func TestPage_cache(t *testing.T) {
 }
 func Benchmark_Page_cache(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		for _, tt := range Page_cacheCases {
+		for _, tt := range PageCacheCases {
 			page := &Page{
 				Longname:  tt.fields.Longname,
 				Shortname: tt.fields.Shortname,
@@ -243,7 +243,7 @@ func Benchmark_Page_cache(b *testing.B) {
 }
 
 func TestPage_checkCache(t *testing.T) {
-	for _, tt := range Page_cacheCases {
+	for _, tt := range PageCacheCases {
 		t.Run(tt.name, func(t *testing.T) {
 			page := &Page{
 				Longname:  tt.fields.Longname,
@@ -269,7 +269,7 @@ func TestPage_checkCache(t *testing.T) {
 }
 func Benchmark_Page_checkCache(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		for _, tt := range Page_cacheCases {
+		for _, tt := range PageCacheCases {
 			page := &Page{
 				Longname:  tt.fields.Longname,
 				Shortname: tt.fields.Shortname,
