@@ -78,8 +78,7 @@ func getTitle(data []byte) string {
 
 	// scan the file line by line until it finds
 	// the title: comment, return the value.
-	mdfile := bytes.NewReader(data)
-	titlefinder := bufio.NewScanner(mdfile)
+	titlefinder := bufio.NewScanner(bytes.NewReader(data))
 	for titlefinder.Scan() {
 		splitter := strings.Split(titlefinder.Text(), ":")
 		if strings.ToLower(splitter[0]) == "title" {
@@ -97,8 +96,7 @@ func getDesc(data []byte) string {
 
 	// scan the file line by line until it finds
 	// the description: comment, return the value.
-	mdfile := bytes.NewReader(data)
-	descfinder := bufio.NewScanner(mdfile)
+	descfinder := bufio.NewScanner(bytes.NewReader(data))
 	for descfinder.Scan() {
 		splitter := strings.Split(descfinder.Text(), ":")
 		if strings.ToLower(splitter[0]) == "description" {
@@ -116,8 +114,7 @@ func getAuthor(data []byte) string {
 
 	// scan the file line by line until it finds
 	// the author: comment, return the value.
-	mdfile := bytes.NewReader(data)
-	authfinder := bufio.NewScanner(mdfile)
+	authfinder := bufio.NewScanner(bytes.NewReader(data))
 	for authfinder.Scan() {
 		splitter := strings.Split(authfinder.Text(), ":")
 		if strings.ToLower(splitter[0]) == "author" {
@@ -136,23 +133,15 @@ func genIndex() []byte {
 	body := make([]byte, 0)
 	buf := bytes.NewBuffer(body)
 
-	index, err := os.Open(viper.GetString("AssetsDir") + "/" + viper.GetString("Index"))
+	index, err := ioutil.ReadFile(viper.GetString("AssetsDir") + "/" + viper.GetString("Index"))
 	if err != nil {
 		return []byte("Could not open \"" + viper.GetString("AssetsDir") + "/" + viper.GetString("Index") + "\"")
 	}
 
-	// defer closing and checking of the error returned from (*os.File).Close()
-	defer func() {
-		err := index.Close()
-		if err != nil {
-			log.Printf("Deferred closing of %s resulted in error: %v\n", viper.GetString("Index"), err)
-		}
-	}()
-
 	// scan the file line by line until it finds the anchor
 	// comment. replace the anchor comment with a list of
 	// wiki pages sorted alphabetically by title.
-	builder := bufio.NewScanner(index)
+	builder := bufio.NewScanner(bytes.NewReader(index))
 	builder.Split(bufio.ScanLines)
 	for builder.Scan() {
 		if builder.Text() == "<!--pagelist-->" {
