@@ -144,8 +144,7 @@ func genIndex() []byte {
 	builder.Split(bufio.ScanLines)
 	for builder.Scan() {
 		if builder.Text() == "<!--pagelist-->" {
-			tmp := tallyPages()
-			buf.WriteString(tmp + "\n")
+			buf.WriteString(tallyPages() + "\n")
 		} else {
 			buf.WriteString(builder.Text() + "\n")
 		}
@@ -249,16 +248,19 @@ func (page *Page) checkCache() bool {
 // into cache, saving their modification time as well to
 // determine when to re-load the page.
 func genPageCache() {
+	indexpath := viper.GetString("AssetsDir") + "/" + viper.GetString("Index")
+	indexname := viper.GetString("Index")
+	pagedir := viper.GetString("PageDir")
 
 	// build an array of all the (*os.FileInfo)'s
 	// needed to build the cache
-	indexpage, err := os.Stat(viper.GetString("AssetsDir") + "/" + viper.GetString("Index"))
+	indexpage, err := os.Stat(indexpath)
 	if err != nil {
 		log.Printf("Initial Cache Build :: Can't stat index page: %v\n", err)
 	}
-	wikipages, err := ioutil.ReadDir(viper.GetString("PageDir"))
+	wikipages, err := ioutil.ReadDir(pagedir)
 	if err != nil {
-		log.Printf("Initial Cache Build :: Can't read directory %s: %v\n", viper.GetString("PageDir"), err)
+		log.Printf("Initial Cache Build :: Can't read directory %s: %v\n", pagedir, err)
 	}
 
 	wikipages = append(wikipages, indexpage)
@@ -269,8 +271,7 @@ func genPageCache() {
 		go func(f os.FileInfo) {
 
 			var page Page
-			shortname := f.Name()
-			var longname string
+			page.Shortname = f.Name()
 
 			// store any page with the same name as
 			// the index page as its relative path
@@ -280,14 +281,12 @@ func genPageCache() {
 			// the same filename as the index.
 			// later I'll cache the assets separately
 			// but this works for now.
-			if shortname == viper.GetString("Index") {
-				shortname = viper.GetString("AssetsDir") + "/" + viper.GetString("Index")
-				longname = shortname
+			if page.Shortname == indexname {
+				page.Shortname = indexpath
+				page.Longname = page.Shortname
 			} else {
-				longname = viper.GetString("PageDir") + "/" + f.Name()
+				page.Longname = pagedir + "/" + page.Shortname
 			}
-			page.Longname = longname
-			page.Shortname = shortname
 
 			err = page.cache()
 			if err != nil {
