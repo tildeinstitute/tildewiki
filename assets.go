@@ -3,13 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"image"
-	_ "image/gif"
-	_ "image/jpeg"
-	_ "image/png"
-	"log"
-	"mime"
-	"os"
 )
 
 // displays on startup
@@ -28,33 +21,6 @@ func setUpUsTheWiki() {
     All Contributions Appreciated!
 		`)
 	fmt.Printf("\n")
-}
-
-// open the icon file and process it
-func iconType(filename string) string {
-	file, err := os.Open(filename)
-	if err != nil {
-		log.Println("Couldn't open icon, sending mime type image/unknown")
-		return "image/unknown"
-	}
-
-	// defer closing and checking of the error returned from (*os.File).Close()
-	defer func() {
-		err := file.Close()
-		if err != nil {
-			log.Printf("Deferred closing of favicon resulted in error: %v\n", err)
-		}
-	}()
-
-	// pull the metadata from the image so we know
-	// what mime type to send in the http header later
-	_, format, err := image.DecodeConfig(file)
-	if err != nil {
-		log.Println("Can't decode icon, sending mime type image/unknown")
-		return "image/unknown"
-	}
-	mime := mime.TypeByExtension("." + format)
-	return mime
 }
 
 // determine if using local or remote css

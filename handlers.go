@@ -3,6 +3,7 @@ package main
 import (
 	"io/ioutil"
 	"log"
+	"mime"
 	"net/http"
 	"os"
 
@@ -74,7 +75,7 @@ func iconHandler(w http.ResponseWriter, r *http.Request) {
 
 	// check the mime type, then send
 	// the bytes to the client
-	mime := iconType(longname)
+	mime := mime.TypeByExtension(viper.GetString("CSS"))
 	w.Header().Set("Content-Type", mime)
 	_, err = w.Write(icon)
 	if err != nil {
