@@ -37,6 +37,10 @@ Icon: "icon.png"
 
 # PageDir holds the actual content pages for the wiki
 PageDir: "pages"
+# ReverseTally is false for Alphabetical, true for Reverse Alphabetical.
+# Set to reverse if you want to title your pages with dates and sort
+# the newest first.
+ReverseTally: false
 
 # Regex to validate the URLs. You probably don't want to change this.
 ValidPath: "^/(w)/([a-zA-Z0-9-_]+)$"

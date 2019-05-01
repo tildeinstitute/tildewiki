@@ -163,6 +163,7 @@ func tallyPages() []byte {
 	buf := bytes.NewBuffer(pagelist)
 	pagedir := viper.GetString("PageDir")
 	viewpath := viper.GetString("ViewPath")
+	reverse := viper.GetBool("ReverseTally")
 
 	// get a list of files in the director specified
 	// in the config file parameter "PageDir"
@@ -176,31 +177,53 @@ func tallyPages() []byte {
 	if len(files) == 0 {
 		return []byte("*No wiki pages! Add some content.*")
 	}
+	if reverse {
+		for i := len(files) - 1; i >= 0; i-- {
+			f := files[i]
+			mutex.RLock()
+			page := cachedPages[f.Name()]
+			mutex.RUnlock()
 
-	for _, f := range files {
+			if page.Body == nil {
+				page.Shortname = f.Name()
+				page.Longname = pagedir + "/" + f.Name()
 
-		// pull the page from the cache
-		mutex.RLock()
-		page := cachedPages[f.Name()]
-		mutex.RUnlock()
-
-		// if it hasn't been cached, cache it.
-		// usually means the page is new.
-		if page.Body == nil {
-			page.Shortname = f.Name()
-			page.Longname = pagedir + "/" + f.Name()
-
-			err := page.cache()
-			if err != nil {
-				log.Printf("Couldn't pull new page %s into cache: %v\n", page.Shortname, err)
+				err := page.cache()
+				if err != nil {
+					log.Printf("Couldn't pull new page %s into cache: %v\n", page.Shortname, err)
+				}
 			}
-		}
 
-		// get the URI path from the file name
-		// and write the formatted link to the
-		// bytes.Buffer
-		linkname := bytes.TrimSuffix([]byte(page.Shortname), []byte(".md"))
-		buf.WriteString("* [" + page.Title + "](/" + viewpath + "/" + string(linkname) + ") " + page.Desc + " " + page.Author + "\n")
+			linkname := bytes.TrimSuffix([]byte(page.Shortname), []byte(".md"))
+			buf.WriteString("* [" + page.Title + "](/" + viewpath + "/" + string(linkname) + ") " + page.Desc + " " + page.Author + "\n")
+		}
+	} else {
+
+		for _, f := range files {
+
+			// pull the page from the cache
+			mutex.RLock()
+			page := cachedPages[f.Name()]
+			mutex.RUnlock()
+
+			// if it hasn't been cached, cache it.
+			// usually means the page is new.
+			if page.Body == nil {
+				page.Shortname = f.Name()
+				page.Longname = pagedir + "/" + f.Name()
+
+				err := page.cache()
+				if err != nil {
+					log.Printf("Couldn't pull new page %s into cache: %v\n", page.Shortname, err)
+				}
+			}
+
+			// get the URI path from the file name
+			// and write the formatted link to the
+			// bytes.Buffer
+			linkname := bytes.TrimSuffix([]byte(page.Shortname), []byte(".md"))
+			buf.WriteString("* [" + page.Title + "](/" + viewpath + "/" + string(linkname) + ") " + page.Desc + " " + page.Author + "\n")
+		}
 	}
 	buf.WriteByte(byte('\n'))
 	return buf.Bytes()
