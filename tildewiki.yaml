@@ -19,7 +19,9 @@ Port: "8080"
 # The name of the wiki
 Name: "Tildewiki"
 # Used in the <title> tag between name and description
-Separator: "::"
+TitleSeparator: "::"
+# Used between page names and descriptions
+DescSeparator: "::"
 # Little blurb for the <title> tag
 ShortDesc: "Wiki for the Tildeverse"
 #Location of the CSS file. Can be relative or remote

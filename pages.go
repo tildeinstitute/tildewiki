@@ -45,7 +45,7 @@ func loadPage(filename string) (*Page, error) {
 	_, shortname := filepath.Split(filename)
 
 	// get meta info on file from the header comment
-	title := getTitle(body)
+	title := getTitle(body) + " " + viper.GetString("TitleSeparator") + " " + viper.GetString("Name")
 	author := getAuthor(body)
 	desc := getDesc(body)
 
@@ -53,7 +53,7 @@ func loadPage(filename string) (*Page, error) {
 		title = shortname
 	}
 	if desc != "" {
-		desc = ":: " + desc
+		desc = viper.GetString("DescSeparator") + " " + desc
 	}
 
 	// store the raw bytes of the document after parsing
