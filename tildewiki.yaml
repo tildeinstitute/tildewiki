@@ -16,10 +16,6 @@
 # Changing this requires a restart.
 Port: "8080"
 
-# sha256 hash of a password to use for various api calls, like recache
-# default is `changeme`
-Pass: "41edf6e61ed42a3c6848b0ae91ddc5662377c09a3ed38fcd9f9e82664294bcfd"
-
 # The name of the wiki
 Name: "Tildewiki"
 # Used in the <title> tag between name and description
