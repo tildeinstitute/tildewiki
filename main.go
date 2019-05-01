@@ -45,7 +45,7 @@ func main() {
 	setUpUsTheWiki()
 
 	// fill the page cache
-	log.Println("Building initial cache ...")
+	log.Println("**NOTICE** Building initial cache ...")
 	genPageCache()
 
 	viewpath := "/" + viper.GetString("ViewPath") + "/"
@@ -56,6 +56,12 @@ func main() {
 	http.HandleFunc("/icon", iconHandler)
 
 	port := ":" + viper.GetString("Port")
-	log.Println("Binding to " + port)
+	log.Println("**NOTICE** Binding to " + port)
+
+	// let the user know if using reversed page listings
+	if viper.GetBool("ReverseTally") {
+		log.Printf("**NOTICE** Using reversed page listings on index ... \n")
+	}
+
 	log.Fatal(http.ListenAndServe(port, nil))
 }
