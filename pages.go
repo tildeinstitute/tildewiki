@@ -126,15 +126,16 @@ func getAuthor(data []byte) string {
 
 // generate the front page of the wiki
 func genIndex() []byte {
+	indexpath := viper.GetString("AssetsDir") + "/" + viper.GetString("Index")
 
 	// body holds the bytes of the generated index page being sent to the client.
 	// create the byte array and the buffer used to write to it
 	body := make([]byte, 0)
 	buf := bytes.NewBuffer(body)
 
-	index, err := ioutil.ReadFile(viper.GetString("AssetsDir") + "/" + viper.GetString("Index"))
+	index, err := ioutil.ReadFile(indexpath)
 	if err != nil {
-		return []byte("Could not open \"" + viper.GetString("AssetsDir") + "/" + viper.GetString("Index") + "\"")
+		return []byte("Could not open \"" + indexpath + "\"")
 	}
 
 	// scan the file line by line until it finds the anchor
@@ -143,10 +144,10 @@ func genIndex() []byte {
 	builder := bufio.NewScanner(bytes.NewReader(index))
 	builder.Split(bufio.ScanLines)
 	for builder.Scan() {
-		if builder.Text() == "<!--pagelist-->" {
-			buf.WriteString(tallyPages() + "\n")
+		if bytes.Equal(builder.Bytes(), []byte("<!--pagelist-->")) {
+			buf.Write(tallyPages())
 		} else {
-			buf.WriteString(builder.Text() + "\n")
+			buf.Write(append(builder.Bytes(), byte('\n')))
 		}
 	}
 
@@ -154,7 +155,7 @@ func genIndex() []byte {
 }
 
 // generate a list of pages for the front page
-func tallyPages() string {
+func tallyPages() []byte {
 
 	// pagelist and its associated buffer hold the links
 	// displayed on the index page
@@ -167,13 +168,13 @@ func tallyPages() string {
 	// in the config file parameter "PageDir"
 	files, err := ioutil.ReadDir(pagedir)
 	if err != nil {
-		return "*PageDir can't be read.*"
+		return []byte("*PageDir can't be read.*")
 	}
 
 	// entry is used in the loop to construct the markdown
 	// link to the given page
 	if len(files) == 0 {
-		return "*No wiki pages! Add some content.*"
+		return []byte("*No wiki pages! Add some content.*")
 	}
 
 	for _, f := range files {
@@ -201,8 +202,8 @@ func tallyPages() string {
 		linkname := bytes.TrimSuffix([]byte(page.Shortname), []byte(".md"))
 		buf.WriteString("* [" + page.Title + "](/" + viewpath + "/" + string(linkname) + ") " + page.Desc + " " + page.Author + "\n")
 	}
-
-	return buf.String()
+	buf.WriteByte(byte('\n'))
+	return buf.Bytes()
 }
 
 // used when refreshing the cached copy
