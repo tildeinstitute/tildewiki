@@ -16,6 +16,10 @@
 # Changing this requires a restart.
 Port: "8080"
 
+# sha256 hash of a password to use for various api calls, like recache
+# default is `changeme`
+Pass: "41edf6e61ed42a3c6848b0ae91ddc5662377c09a3ed38fcd9f9e82664294bcfd"
+
 # The name of the wiki
 Name: "Tildewiki"
 # Used in the <title> tag between name and description
@@ -39,7 +43,7 @@ Icon: "icon.png"
 PageDir: "pages"
 
 # Regex to validate the URLs. You probably don't want to change this.
-ValidPath: "^/(w)/([a-zA-Z0-9]+)$"
+ValidPath: "^/(w)/([a-zA-Z\d-_]+)$"
 # URL path used to delineate the wiki pages.
 # The default is "w", which would appear publicly as:
 # example.com/w/page
