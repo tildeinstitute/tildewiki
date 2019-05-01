@@ -43,7 +43,7 @@ Icon: "icon.png"
 PageDir: "pages"
 
 # Regex to validate the URLs. You probably don't want to change this.
-ValidPath: "^/(w)/([a-zA-Z\d-_]+)$"
+ValidPath: "^/(w)/([a-zA-Z0-9-_]+)$"
 # URL path used to delineate the wiki pages.
 # The default is "w", which would appear publicly as:
 # example.com/w/page
