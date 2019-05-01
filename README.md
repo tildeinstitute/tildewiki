@@ -2,7 +2,7 @@
 
 A wiki engine designed around the needs of the [tildeverse](https://tildeverse.org)
 
-## [v0.4](https://github.com/gbmor/tildewiki/releases/tag/v0.4)
+## [v0.4.1](https://github.com/gbmor/tildewiki/releases/tag/v0.4.1)
 Version 0.4 has been significantly improved over 0.3. The code is much more efficient as far as both CPU cycles and memory allocations go. Please update if you're using 0.3.
 
 Currently powering the [tilde.institute](https://tilde.institute) wiki: 
