@@ -48,8 +48,10 @@ func main() {
 	log.Println("Building initial cache ...")
 	genPageCache()
 
+	viewpath := "/" + viper.GetString("ViewPath") + "/"
+
 	http.HandleFunc("/", indexHandler)
-	http.HandleFunc("/w/", validatePath(pageHandler))
+	http.HandleFunc(viewpath, validatePath(pageHandler))
 	http.HandleFunc("/css", cssHandler)
 	http.HandleFunc("/icon", iconHandler)
 
