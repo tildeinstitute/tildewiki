@@ -56,6 +56,9 @@ func loadPage(filename string) (*Page, error) {
 	if desc != "" {
 		desc = viper.GetString("DescSeparator") + " " + desc
 	}
+	if author != "" {
+		author = "`by " + author + "`"
+	}
 
 	longtitle := title + " " + viper.GetString("TitleSeparator") + " " + viper.GetString("Name")
 
@@ -96,7 +99,7 @@ func getMeta(metafinder *bufio.Scanner) (string, string, string) {
 			desc = string(bytes.TrimSpace(splitter[1]))
 			counter++
 		} else if bytes.Equal(bytes.ToLower(splitter[0]), []byte("author")) {
-			author = "`by " + string(bytes.TrimSpace(splitter[1])) + "`"
+			author = string(bytes.TrimSpace(splitter[1]))
 			counter++
 		}
 

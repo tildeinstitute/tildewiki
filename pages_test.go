@@ -67,7 +67,7 @@ var getMetaCases = []struct {
 		data:      metaTestScanner,
 		titlewant: "Example Page",
 		descwant:  "Example page for the wiki",
-		authwant:  "`by gbmor`",
+		authwant:  "gbmor",
 	},
 }
 
