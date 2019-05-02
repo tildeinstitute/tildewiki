@@ -60,6 +60,7 @@ func loadPage(filename string) (*Page, error) {
 		author = "`by " + author + "`"
 	}
 
+	// longtitle is used in the <title> tags of the output html
 	longtitle := title + " " + viper.GetString("TitleSeparator") + " " + viper.GetString("Name")
 
 	// store the raw bytes of the document after parsing
