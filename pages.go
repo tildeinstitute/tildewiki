@@ -45,9 +45,13 @@ func loadPage(filename string) (*Page, error) {
 	_, shortname := filepath.Split(filename)
 
 	// get meta info on file from the header comment
-	title := getTitle(body) + " " + viper.GetString("TitleSeparator") + " " + viper.GetString("Name")
-	author := getAuthor(body)
-	desc := getDesc(body)
+	bytereader := bytes.NewReader(body)
+	metafinder := bufio.NewScanner(bytereader)
+	title := getTitle(metafinder)
+	bytereader.Reset(body)
+	author := getAuthor(metafinder)
+	bytereader.Reset(body)
+	desc := getDesc(metafinder)
 
 	if title == "" {
 		title = shortname
@@ -73,13 +77,13 @@ func loadPage(filename string) (*Page, error) {
 // scan the page for the `title: ` field
 // in the header comment. used in the construction
 // of the page cache on startup
-func getTitle(data []byte) string {
+func getTitle(metafinder *bufio.Scanner) string {
 
 	// scan the file line by line until it finds
 	// the title: comment, return the value.
-	titlefinder := bufio.NewScanner(bytes.NewReader(data))
-	for titlefinder.Scan() {
-		splitter := bytes.Split(titlefinder.Bytes(), []byte(":"))
+	//titlefinder := bufio.NewScanner(metafinder)
+	for metafinder.Scan() {
+		splitter := bytes.Split(metafinder.Bytes(), []byte(":"))
 		if bytes.Equal(bytes.ToLower(splitter[0]), []byte("title")) {
 			return string(bytes.TrimSpace(splitter[1]))
 		}
@@ -91,13 +95,13 @@ func getTitle(data []byte) string {
 // scan the page for the `description: ` field
 // in the header comment. used in the construction
 // of the page cache on startup
-func getDesc(data []byte) string {
+func getDesc(metafinder *bufio.Scanner) string {
 
 	// scan the file line by line until it finds
 	// the description: comment, return the value.
-	descfinder := bufio.NewScanner(bytes.NewReader(data))
-	for descfinder.Scan() {
-		splitter := bytes.Split(descfinder.Bytes(), []byte(":"))
+	//descfinder := bufio.NewScanner(metafinder)
+	for metafinder.Scan() {
+		splitter := bytes.Split(metafinder.Bytes(), []byte(":"))
 		if bytes.Equal(bytes.ToLower(splitter[0]), []byte("description")) {
 			return string(bytes.TrimSpace(splitter[1]))
 		}
@@ -109,13 +113,13 @@ func getDesc(data []byte) string {
 // scan the page for the `author: ` field
 // in the header comment. used in the construction
 // of the page cache on startup
-func getAuthor(data []byte) string {
+func getAuthor(metafinder *bufio.Scanner) string {
 
 	// scan the file line by line until it finds
 	// the author: comment, return the value.
-	authfinder := bufio.NewScanner(bytes.NewReader(data))
-	for authfinder.Scan() {
-		splitter := bytes.Split(authfinder.Bytes(), []byte(":"))
+	//authfinder := bufio.NewScanner(metafinder)
+	for metafinder.Scan() {
+		splitter := bytes.Split(metafinder.Bytes(), []byte(":"))
 		if bytes.Equal(bytes.ToLower(splitter[0]), []byte("author")) {
 			return "`by " + string(bytes.TrimSpace(splitter[1])) + "`"
 		}

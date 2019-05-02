@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"io/ioutil"
 	"testing"
 	"time"
@@ -50,17 +52,19 @@ func Benchmark_loadPage(b *testing.B) {
 	}
 }
 
-var metaBytes, _ = ioutil.ReadFile("pages/example.md")
+var metaTestBytes, _ = ioutil.ReadFile("pages/example.md")
+var metaTestReader = bytes.NewReader(metaTestBytes)
+var metaTestScanner = bufio.NewScanner(metaTestReader)
 var getMetaCases = []struct {
 	name      string
-	data      []byte
+	data      *bufio.Scanner
 	titlewant string
 	descwant  string
 	authwant  string
 }{
 	{
 		name:      "example",
-		data:      metaBytes,
+		data:      metaTestScanner,
 		titlewant: "Example Page",
 		descwant:  "Example page for the wiki",
 		authwant:  "`by gbmor`",
@@ -74,12 +78,14 @@ func Test_getTitle(t *testing.T) {
 				t.Errorf("getTitle() = %v, want %v", got, tt.titlewant)
 			}
 		})
+		metaTestReader.Reset(metaTestBytes)
 	}
 }
 func Benchmark_getTitle(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for _, tt := range getMetaCases {
 			getTitle(tt.data)
+			metaTestReader.Reset(metaTestBytes)
 		}
 	}
 }
@@ -91,12 +97,14 @@ func Test_getDesc(t *testing.T) {
 				t.Errorf("getDesc() = %v, want %v", got, tt.descwant)
 			}
 		})
+		metaTestReader.Reset(metaTestBytes)
 	}
 }
 func Benchmark_getDesc(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for _, tt := range getMetaCases {
 			getDesc(tt.data)
+			metaTestReader.Reset(metaTestBytes)
 		}
 	}
 }
@@ -108,12 +116,14 @@ func Test_getAuthor(t *testing.T) {
 				t.Errorf("getAuthor() = %v, want %v", got, tt.authwant)
 			}
 		})
+		metaTestReader.Reset(metaTestBytes)
 	}
 }
 func Benchmark_getAuthor(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for _, tt := range getMetaCases {
 			getAuthor(tt.data)
+			metaTestReader.Reset(metaTestBytes)
 		}
 	}
 }
