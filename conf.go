@@ -48,7 +48,7 @@ func initConfigParams() *regexp.Regexp {
 // in the assets directory.
 // if the markdown doc can't be read, default to
 // net/http's error handling
-func error500(w http.ResponseWriter, r *http.Request) {
+func error500(w http.ResponseWriter, _ *http.Request) {
 	e500 := viper.GetString("AssetsDir") + "/500.md"
 	file, err := ioutil.ReadFile(e500)
 	if err != nil {
