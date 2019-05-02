@@ -71,58 +71,19 @@ var getMetaCases = []struct {
 	},
 }
 
-func Test_getTitle(t *testing.T) {
+func Test_getMeta(t *testing.T) {
 	for _, tt := range getMetaCases {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := getTitle(tt.data); got != tt.titlewant {
-				t.Errorf("getTitle() = %v, want %v", got, tt.titlewant)
+			if title, desc, auth := getMeta(tt.data); title != tt.titlewant || desc != tt.descwant || auth != tt.authwant {
+				t.Errorf("getMeta() = %v, %v, %v .. want %v, %v, %v", title, desc, auth, tt.titlewant, tt.descwant, tt.authwant)
 			}
 		})
-		metaTestReader.Reset(metaTestBytes)
 	}
 }
-func Benchmark_getTitle(b *testing.B) {
+func Benchmark_getMeta(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for _, tt := range getMetaCases {
-			getTitle(tt.data)
-			metaTestReader.Reset(metaTestBytes)
-		}
-	}
-}
-
-func Test_getDesc(t *testing.T) {
-	for _, tt := range getMetaCases {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := getDesc(tt.data); got != tt.descwant {
-				t.Errorf("getDesc() = %v, want %v", got, tt.descwant)
-			}
-		})
-		metaTestReader.Reset(metaTestBytes)
-	}
-}
-func Benchmark_getDesc(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		for _, tt := range getMetaCases {
-			getDesc(tt.data)
-			metaTestReader.Reset(metaTestBytes)
-		}
-	}
-}
-
-func Test_getAuthor(t *testing.T) {
-	for _, tt := range getMetaCases {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := getAuthor(tt.data); got != tt.authwant {
-				t.Errorf("getAuthor() = %v, want %v", got, tt.authwant)
-			}
-		})
-		metaTestReader.Reset(metaTestBytes)
-	}
-}
-func Benchmark_getAuthor(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		for _, tt := range getMetaCases {
-			getAuthor(tt.data)
+			_, _, _ = getMeta(tt.data)
 			metaTestReader.Reset(metaTestBytes)
 		}
 	}

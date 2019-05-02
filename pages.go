@@ -21,6 +21,7 @@ func loadPage(filename string) (*Page, error) {
 		log.Printf("%v\n", err)
 		return nil, err
 	}
+
 	// the cleanup crew
 	defer func() {
 		err := file.Close()
@@ -47,11 +48,7 @@ func loadPage(filename string) (*Page, error) {
 	// get meta info on file from the header comment
 	bytereader := bytes.NewReader(body)
 	metafinder := bufio.NewScanner(bytereader)
-	title := getTitle(metafinder)
-	bytereader.Reset(body)
-	author := getAuthor(metafinder)
-	bytereader.Reset(body)
-	desc := getDesc(metafinder)
+	title, desc, author := getMeta(metafinder)
 
 	if title == "" {
 		title = shortname
@@ -76,59 +73,44 @@ func loadPage(filename string) (*Page, error) {
 		Raw:       body}, nil
 }
 
-// scan the page for the `title: ` field
-// in the header comment. used in the construction
-// of the page cache on startup
-func getTitle(metafinder *bufio.Scanner) string {
+// scan the page to the following fields in the
+// header comment:
+//		title:
+//		author:
+//		description:
+func getMeta(metafinder *bufio.Scanner) (string, string, string) {
+
+	var title, desc, author string
+	var counter int
 
 	// scan the file line by line until it finds
-	// the title: comment, return the value.
+	// the comments.
 	for metafinder.Scan() {
+
 		splitter := bytes.Split(metafinder.Bytes(), []byte(":"))
+
 		if bytes.Equal(bytes.ToLower(splitter[0]), []byte("title")) {
-			return string(bytes.TrimSpace(splitter[1]))
+			title = string(bytes.TrimSpace(splitter[1]))
+			counter++
+		} else if bytes.Equal(bytes.ToLower(splitter[0]), []byte("description")) {
+			desc = string(bytes.TrimSpace(splitter[1]))
+			counter++
+		} else if bytes.Equal(bytes.ToLower(splitter[0]), []byte("author")) {
+			author = "`by " + string(bytes.TrimSpace(splitter[1])) + "`"
+			counter++
+		}
+
+		if counter >= 3 {
+			break
 		}
 	}
 
-	return ""
-}
-
-// scan the page for the `description: ` field
-// in the header comment. used in the construction
-// of the page cache on startup
-func getDesc(metafinder *bufio.Scanner) string {
-
-	// scan the file line by line until it finds
-	// the description: comment, return the value.
-	for metafinder.Scan() {
-		splitter := bytes.Split(metafinder.Bytes(), []byte(":"))
-		if bytes.Equal(bytes.ToLower(splitter[0]), []byte("description")) {
-			return string(bytes.TrimSpace(splitter[1]))
-		}
-	}
-
-	return ""
-}
-
-// scan the page for the `author: ` field
-// in the header comment. used in the construction
-// of the page cache on startup
-func getAuthor(metafinder *bufio.Scanner) string {
-
-	// scan the file line by line until it finds
-	// the author: comment, return the value.
-	for metafinder.Scan() {
-		splitter := bytes.Split(metafinder.Bytes(), []byte(":"))
-		if bytes.Equal(bytes.ToLower(splitter[0]), []byte("author")) {
-			return "`by " + string(bytes.TrimSpace(splitter[1])) + "`"
-		}
-	}
-
-	return ""
+	return title, desc, author
 }
 
 // generate the front page of the wiki
 func genIndex() []byte {
+
 	indexpath := viper.GetString("AssetsDir") + "/" + viper.GetString("Index")
 
 	// body holds the bytes of the generated index page being sent to the client.
@@ -146,6 +128,7 @@ func genIndex() []byte {
 	// wiki pages sorted alphabetically by title.
 	builder := bufio.NewScanner(bytes.NewReader(index))
 	builder.Split(bufio.ScanLines)
+
 	for builder.Scan() {
 		if bytes.Equal(builder.Bytes(), []byte("<!--pagelist-->")) {
 			buf.Write(tallyPages())
@@ -286,6 +269,7 @@ func (page *Page) checkCache() bool {
 // into cache, saving their modification time as well to
 // determine when to re-load the page.
 func genPageCache() {
+
 	indexpath := viper.GetString("AssetsDir") + "/" + viper.GetString("Index")
 	indexname := viper.GetString("Index")
 	pagedir := viper.GetString("PageDir")
@@ -306,6 +290,7 @@ func genPageCache() {
 	// spawn a new goroutine for each entry, to cache
 	// everything as quickly as possible
 	for _, f := range wikipages {
+
 		go func(f os.FileInfo) {
 
 			var page Page
