@@ -12,7 +12,7 @@ import (
 // handler for viewing content pages (not the index page)
 func pageHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	// get the file name from the request name
-	filename = filename + ".md"
+	filename += ".md"
 	// pull the page from cache
 	mutex.RLock()
 	page := cachedPages[filename]

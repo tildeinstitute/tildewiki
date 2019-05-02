@@ -105,7 +105,7 @@ var genIndexCases = []struct {
 func Test_genIndex(t *testing.T) {
 	for _, tt := range genIndexCases {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := genIndex(); len(got) <= 0 {
+			if got := genIndex(); len(got) == 0 {
 				t.Errorf("genIndex(), got %v bytes.", got)
 			}
 		})
@@ -115,7 +115,7 @@ func Benchmark_genIndex(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for range genIndexCases {
 			out := genIndex()
-			if len(out) <= 0 {
+			if len(out) == 0 {
 				continue
 			}
 		}
@@ -133,7 +133,7 @@ var tallyPagesCases = []struct {
 func Test_tallyPages(t *testing.T) {
 	for _, tt := range tallyPagesCases {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tallyPages(); len(got) <= 0 {
+			if got := tallyPages(); len(got) == 0 {
 				t.Errorf("tallyPages() = %v", got)
 			}
 		})
