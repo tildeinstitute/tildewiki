@@ -7,29 +7,6 @@ import (
 	"testing"
 )
 
-var setUpUsTheWikiTests = []struct {
-	name string
-}{
-	{
-		name: "this test isn't needed but I'm doing it for completeness",
-	},
-}
-
-func Test_setUpUsTheWiki(t *testing.T) {
-	for _, tt := range setUpUsTheWikiTests {
-		t.Run(tt.name, func(t *testing.T) {
-			setUpUsTheWiki()
-		})
-	}
-}
-func Benchmark_setUpUsTheWiki(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		for range setUpUsTheWikiTests {
-			setUpUsTheWiki()
-		}
-	}
-}
-
 var cssLocalTests = []struct {
 	name []byte
 	want bool
