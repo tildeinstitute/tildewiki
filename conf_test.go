@@ -1,7 +1,6 @@
 package main
 
 import (
-	"net/http"
 	"reflect"
 	"regexp"
 	"testing"
@@ -38,7 +37,7 @@ func Benchmark_initConfigParams(b *testing.B) {
 		}
 	}
 }
-*/
+
 func Test_error500(t *testing.T) {
 	type args struct {
 		w http.ResponseWriter
@@ -73,4 +72,4 @@ func Test_error404(t *testing.T) {
 			error404(tt.args.w, tt.args.r)
 		})
 	}
-}
+}*/
