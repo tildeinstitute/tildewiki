@@ -83,7 +83,6 @@ func getTitle(metafinder *bufio.Scanner) string {
 
 	// scan the file line by line until it finds
 	// the title: comment, return the value.
-	//titlefinder := bufio.NewScanner(metafinder)
 	for metafinder.Scan() {
 		splitter := bytes.Split(metafinder.Bytes(), []byte(":"))
 		if bytes.Equal(bytes.ToLower(splitter[0]), []byte("title")) {
@@ -101,7 +100,6 @@ func getDesc(metafinder *bufio.Scanner) string {
 
 	// scan the file line by line until it finds
 	// the description: comment, return the value.
-	//descfinder := bufio.NewScanner(metafinder)
 	for metafinder.Scan() {
 		splitter := bytes.Split(metafinder.Bytes(), []byte(":"))
 		if bytes.Equal(bytes.ToLower(splitter[0]), []byte("description")) {
@@ -119,7 +117,6 @@ func getAuthor(metafinder *bufio.Scanner) string {
 
 	// scan the file line by line until it finds
 	// the author: comment, return the value.
-	//authfinder := bufio.NewScanner(metafinder)
 	for metafinder.Scan() {
 		splitter := bytes.Split(metafinder.Bytes(), []byte(":"))
 		if bytes.Equal(bytes.ToLower(splitter[0]), []byte("author")) {
@@ -183,13 +180,20 @@ func tallyPages() []byte {
 	if len(files) == 0 {
 		return []byte("*No wiki pages! Add some content.*")
 	}
+
+	// if the config file says to reverse the page listing order
 	if reverse {
+
 		for i := len(files) - 1; i >= 0; i-- {
 			f := files[i]
+
+			// pull the page from the cache
 			mutex.RLock()
 			page := cachedPages[f.Name()]
 			mutex.RUnlock()
 
+			// if it hasn't been cached, cache it.
+			// usually means the page is new.
 			if page.Body == nil {
 				page.Shortname = f.Name()
 				page.Longname = pagedir + "/" + f.Name()
@@ -200,11 +204,15 @@ func tallyPages() []byte {
 				}
 			}
 
+			// get the URI path from the file name
+			// and write the formatted link to the
+			// bytes.Buffer
 			linkname := bytes.TrimSuffix([]byte(page.Shortname), []byte(".md"))
 			buf.WriteString("* [" + page.Title + "](/" + viewpath + "/" + string(linkname) + ") " + page.Desc + " " + page.Author + "\n")
 		}
 	} else {
 
+		// if the config file says to NOT reverse the page listing order
 		for _, f := range files {
 
 			// pull the page from the cache
