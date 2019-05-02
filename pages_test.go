@@ -185,12 +185,6 @@ func TestPage_cache(t *testing.T) {
 			page := &Page{
 				Longname:  tt.fields.Longname,
 				Shortname: tt.fields.Shortname,
-				Title:     tt.fields.Title,
-				Desc:      tt.fields.Desc,
-				Author:    tt.fields.Author,
-				Modtime:   tt.fields.Modtime,
-				Body:      tt.fields.Body,
-				Raw:       tt.fields.Raw,
 			}
 			if err := page.cache(); (err != nil) != tt.wantErr {
 				t.Errorf("Page.cache() error = %v, wantErr %v", err, tt.wantErr)
@@ -219,12 +213,6 @@ func TestPage_checkCache(t *testing.T) {
 			page := &Page{
 				Longname:  tt.fields.Longname,
 				Shortname: tt.fields.Shortname,
-				Title:     tt.fields.Title,
-				Desc:      tt.fields.Desc,
-				Author:    tt.fields.Author,
-				Modtime:   tt.fields.Modtime,
-				Body:      tt.fields.Body,
-				Raw:       tt.fields.Raw,
 			}
 			err := page.cache()
 			if err != nil {
