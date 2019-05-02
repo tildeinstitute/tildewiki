@@ -4,9 +4,12 @@ import (
 	"bufio"
 	"bytes"
 	"io/ioutil"
+	"log"
 	"testing"
 	"time"
 )
+
+var hush bytes.Buffer
 
 var loadPageCases = []struct {
 	name     string
@@ -28,6 +31,7 @@ var loadPageCases = []struct {
 }
 
 func Test_loadPage(t *testing.T) {
+	log.SetOutput(&hush)
 	for _, tt := range loadPageCases {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := loadPage(tt.filename)
@@ -42,6 +46,7 @@ func Test_loadPage(t *testing.T) {
 	}
 }
 func Benchmark_loadPage(b *testing.B) {
+	log.SetOutput(&hush)
 	for i := 0; i < b.N; i++ {
 		for _, c := range loadPageCases {
 			_, err := loadPage(c.filename)
@@ -136,12 +141,7 @@ func Test_tallyPages(t *testing.T) {
 }
 func Benchmark_tallyPages(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		for range tallyPagesCases {
-			out := tallyPages()
-			if len(out) <= 0 {
-				continue
-			}
-		}
+		tallyPages()
 	}
 }
 
@@ -214,10 +214,6 @@ func TestPage_checkCache(t *testing.T) {
 				Longname:  tt.fields.Longname,
 				Shortname: tt.fields.Shortname,
 			}
-			err := page.cache()
-			if err != nil {
-				t.Errorf("Page.checkCache() returned error: %v\n", err)
-			}
 			var got interface{} = page.checkCache()
 			switch got.(type) {
 			case bool:
@@ -235,10 +231,6 @@ func Benchmark_Page_checkCache(b *testing.B) {
 				Longname:  tt.fields.Longname,
 				Shortname: tt.fields.Shortname,
 			}
-			err := page.cache()
-			if err != nil {
-				continue
-			}
 			var maybe interface{} = page.checkCache()
 			if maybe.(bool) {
 				continue
@@ -248,6 +240,7 @@ func Benchmark_Page_checkCache(b *testing.B) {
 }
 
 func Test_genPageCache(t *testing.T) {
+	log.SetOutput(&hush)
 	tests := []struct {
 		name string
 	}{
@@ -262,6 +255,7 @@ func Test_genPageCache(t *testing.T) {
 	}
 }
 func Benchmark_genPageCache(b *testing.B) {
+	log.SetOutput(&hush)
 	tests := []struct {
 		name string
 	}{
