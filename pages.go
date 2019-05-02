@@ -60,6 +60,8 @@ func loadPage(filename string) (*Page, error) {
 		desc = viper.GetString("DescSeparator") + " " + desc
 	}
 
+	longtitle := title + " " + viper.GetString("TitleSeparator") + " " + viper.GetString("Name")
+
 	// store the raw bytes of the document after parsing
 	// from markdown to HTML.
 	// keep the unparsed markdown for future use (maybe gopher?)
@@ -70,7 +72,7 @@ func loadPage(filename string) (*Page, error) {
 		Author:    author,
 		Desc:      desc,
 		Modtime:   stat.ModTime(),
-		Body:      render(body, viper.GetString("CSS"), title),
+		Body:      render(body, viper.GetString("CSS"), longtitle),
 		Raw:       body}, nil
 }
 
