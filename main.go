@@ -1,6 +1,7 @@
 package main // import "github.com/gbmor/tildewiki"
 
 import (
+	"bytes"
 	"log"
 	"net/http"
 	"sync"
@@ -43,6 +44,12 @@ var mutex = &sync.RWMutex{}
 func main() {
 	// show the logo, repo link, etc
 	setUpUsTheWiki()
+
+	// tell tildewiki to be quiet
+	if viper.GetBool("QuietLogging") {
+		var hush bytes.Buffer
+		log.SetOutput(&hush)
+	}
 
 	// fill the page cache
 	log.Println("**NOTICE** Building initial cache ...")

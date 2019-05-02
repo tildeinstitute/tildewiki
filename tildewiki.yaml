@@ -16,6 +16,10 @@
 # Changing this requires a restart.
 Port: "8080"
 
+# Change to true to have nothing display after the initial
+# start-up messages
+QuietLogging: false
+
 # The name of the wiki
 Name: "Tildewiki"
 # Used in the <title> tag between name and description
