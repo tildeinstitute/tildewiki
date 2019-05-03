@@ -28,7 +28,7 @@ var markdownTests = []struct {
 		name:  "two",
 		css:   "https://tilde.institute/tilde.css",
 		title: "test page 2",
-		data:  mdTestData1,
+		data:  mdTestData2,
 		want:  bf.NewHTMLRenderer(bf.HTMLRendererParameters{}),
 	},
 }
@@ -36,8 +36,7 @@ var markdownTests = []struct {
 func Test_setupMarkdown(t *testing.T) {
 	for _, tt := range markdownTests {
 		t.Run(string(tt.name), func(t *testing.T) {
-			var got interface{}
-			got = setupMarkdown(tt.css, tt.title)
+			var got interface{} = setupMarkdown(tt.css, tt.title)
 			if _, ok := got.(*bf.HTMLRenderer); !ok {
 				t.Errorf("setupMarkdown() returned incorrect type: %v", reflect.TypeOf(got))
 			}
@@ -55,8 +54,7 @@ func Benchmark_setupMarkdown(b *testing.B) {
 func Test_render(t *testing.T) {
 	for _, tt := range markdownTests {
 		t.Run(string(tt.name), func(t *testing.T) {
-			var got interface{}
-			got = render(tt.data, tt.css, tt.title)
+			var got interface{} = render(tt.data, tt.css, tt.title)
 			if _, ok := got.([]byte); !ok {
 				t.Errorf("render() didn't return byte array: %v", reflect.TypeOf(got))
 			}
