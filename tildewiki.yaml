@@ -19,6 +19,12 @@ Port: "8080"
 # Change to true to have nothing display after the initial
 # start-up messages
 QuietLogging: false
+# Change to true to have all messages beyond the initial
+# start-up go to a file. The name is either relative to
+# the executable or absolute. If QuietLogging is set,
+# nothing will be written to the file.
+FileLogging: false
+LogFile: "tildewiki.log"
 
 # The name of the wiki
 Name: "Tildewiki"

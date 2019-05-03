@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"regexp"
 
 	"github.com/fsnotify/fsnotify"
@@ -42,6 +43,31 @@ func initConfigParams() *regexp.Regexp {
 
 	//return Templates, ValidPath
 	return validPath
+}
+
+// Set up non-stdout/stderr logging,
+// if it's been specified in the config file
+func logSetup() error {
+
+	// Tell tildewiki to log to a file
+	if viper.GetBool("FileLogging") {
+		logfile, err := os.OpenFile(viper.GetString("LogFile"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			return err
+		}
+		log.SetOutput(logfile)
+	}
+
+	// Tell Tildewiki to be quiet,
+	// Supersedes file logging
+	if viper.GetBool("QuietLogging") {
+		var hush, err = os.Open("/dev/null")
+		if err != nil {
+			return err
+		}
+		log.SetOutput(hush)
+	}
+	return nil
 }
 
 // this is a custom 500 page using a markdown doc

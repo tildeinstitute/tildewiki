@@ -1,7 +1,6 @@
 package main // import "github.com/gbmor/tildewiki"
 
 import (
-	"bytes"
 	"log"
 	"net/http"
 	"sync"
@@ -45,10 +44,10 @@ func main() {
 	// show the logo, repo link, etc
 	setUpUsTheWiki()
 
-	// tell tildewiki to be quiet
-	if viper.GetBool("QuietLogging") {
-		var hush bytes.Buffer
-		log.SetOutput(&hush)
+	// set up logging if the config file params
+	// are set
+	if err := logSetup(); err != nil {
+		log.Printf("Couldn't set up non-default logging: %v\n", err)
 	}
 
 	// fill the page cache
