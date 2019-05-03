@@ -4,10 +4,16 @@
 
 A wiki engine designed around the needs of the [tildeverse](https://tildeverse.org)
 
-## [v0.4.1](https://github.com/gbmor/tildewiki/releases/tag/v0.4.1)
-Version 0.4 has been significantly improved over 0.3. The code is much
-more efficient as far as both CPU cycles and memory allocations go. Please
-update if you're using 0.3.
+## [v0.5](https://github.com/gbmor/tildewiki/releases/tag/v0.5)
+A ton of refactoring has gone into 0.5. Here's some noteworthy changes:
+* Index page is now being cached
+* Refresh interval for the index page is configurable
+* Logging can be output to `stdout` (default), to a file, or to /dev/null for some peace and quiet.
+
+I've been stress testing it with [tsenart/vegeta](https://github.com/tsenart/vegeta).
+With all the internal changes in v0.5, it can handle thousands of requests at once.
+I did lose access to it during a 50,000 request surge after the index cache refresh
+interval passed. Not too shabby, right?
 
 Currently powering the [tilde.institute](https://tilde.institute) wiki: 
 * [https://wiki.tilde.institute](https://wiki.tilde.institute) 
@@ -16,6 +22,7 @@ Currently powering the [tilde.institute](https://tilde.institute) wiki:
 ## Features
 
 * Speed is a priority
+* Robust enough to handle thousands of requests
 * Mobile-friendly pages
 * Markdown!
 * Uses [kognise/water.css](https://github.com/kognise/water.css) dark theme by
