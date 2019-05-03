@@ -26,6 +26,12 @@ QuietLogging: false
 FileLogging: false
 LogFile: "tildewiki.log"
 
+# Minimum time between cache refreshes for the index page
+# Should be a typical time string: 30m, 60s, 10s, etc.
+# This is to rate-limit how often TildeWiki has to read
+# the index file and pages directory
+IndexRefreshInterval: "30s"
+
 # The name of the wiki
 Name: "Tildewiki"
 # Used in the <title> tag between name and description

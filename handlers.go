@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -47,9 +48,31 @@ func pageHandler(w http.ResponseWriter, r *http.Request, filename string) {
 // Calls genIndex() for each request. I need to work
 // on caching the index page.
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	parsed := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("TitleSeparator")+" "+viper.GetString("ShortDesc"))
+
+	// parse the refresh interval
+	interval, err := time.ParseDuration(viper.GetString("IndexRefreshInterval"))
+	if err != nil {
+		log.Printf("Couldn't parse index refresh interval: %v\n", err)
+	}
+
+	// if the time is zero, regenerate the index
+	if indexCache.LastTally.IsZero() {
+		body := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("TitleSeparator")+" "+viper.GetString("ShortDesc"))
+		inmutex.Lock()
+		indexCache.Body = body
+		inmutex.Unlock()
+	}
+
+	// if it's been longer than the interval, regenerate the index
+	if time.Since(indexCache.LastTally) > interval {
+		body := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("TitleSeparator")+" "+viper.GetString("ShortDesc"))
+		inmutex.Lock()
+		indexCache.Body = body
+		inmutex.Unlock()
+	}
+
 	w.Header().Set("Content-Type", htmlutf8)
-	_, err := w.Write(parsed)
+	_, err = w.Write(indexCache.Body)
 	if err != nil {
 		log.Printf("Error writing %s to HTTP stream: %v\n", viper.GetString("CSS"), err)
 		error500(w, r)

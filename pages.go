@@ -31,8 +31,19 @@ type Page struct {
 	Raw       []byte
 }
 
+var indexCache = indexPage{}
+var inmutex = &sync.RWMutex{}
+
+type indexPage struct {
+	Modtime   time.Time
+	LastTally time.Time
+	Body      []byte
+	Raw       []byte
+}
+
 // Creates a page struct
 func newPage(longname, shortname, title, author, desc string, modtime time.Time, body, raw []byte) *Page {
+
 	return &Page{
 		Longname:  longname,
 		Shortname: shortname,
@@ -138,22 +149,35 @@ func getMeta(body []byte) (string, string, string) {
 // generate the front page of the wiki
 func genIndex() []byte {
 
+	var err error
 	indexpath := viper.GetString("AssetsDir") + "/" + viper.GetString("Index")
+
+	stat, err := os.Stat(indexpath)
+	if err != nil {
+		log.Printf("Couldn't stat index: %v\n", err)
+	}
+
+	if indexCache.Modtime != stat.ModTime() {
+		inmutex.Lock()
+		indexCache.Raw, err = ioutil.ReadFile(indexpath)
+		inmutex.Unlock()
+		if err != nil {
+			return []byte("Could not open \"" + indexpath + "\"")
+		}
+
+	}
 
 	// body holds the bytes of the generated index page being sent to the client.
 	// create the byte array and the buffer used to write to it
 	body := make([]byte, 0)
 	buf := bytes.NewBuffer(body)
 
-	index, err := ioutil.ReadFile(indexpath)
-	if err != nil {
-		return []byte("Could not open \"" + indexpath + "\"")
-	}
-
 	// scan the file line by line until it finds the anchor
 	// comment. replace the anchor comment with a list of
 	// wiki pages sorted alphabetically by title.
-	builder := bufio.NewScanner(bytes.NewReader(index))
+	inmutex.RLock()
+	builder := bufio.NewScanner(bytes.NewReader(indexCache.Raw))
+	inmutex.RUnlock()
 	builder.Split(bufio.ScanLines)
 
 	for builder.Scan() {
@@ -163,6 +187,10 @@ func genIndex() []byte {
 			buf.Write(append(builder.Bytes(), byte('\n')))
 		}
 	}
+
+	inmutex.Lock()
+	indexCache.LastTally = time.Now()
+	inmutex.Unlock()
 
 	return buf.Bytes()
 }
