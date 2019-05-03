@@ -1,11 +1,6 @@
 package main
 
-import (
-	"net/http"
-	"reflect"
-	"testing"
-)
-
+/*
 func Test_pageHandler(t *testing.T) {
 	type args struct {
 		w        http.ResponseWriter
@@ -97,4 +92,4 @@ func Test_validatePath(t *testing.T) {
 			}
 		})
 	}
-}
+}*/

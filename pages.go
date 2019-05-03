@@ -7,13 +7,58 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
+	"time"
 
 	"github.com/spf13/viper"
 )
 
+// the in-memory page cache
+var cachedPages = make(map[string]Page)
+
+// prevent concurrent writes to the cache
+var mutex = &sync.RWMutex{}
+
+// Page struct for caching
+type Page struct {
+	Longname  string
+	Shortname string
+	Title     string
+	Desc      string
+	Author    string
+	Modtime   time.Time
+	Body      []byte
+	Raw       []byte
+}
+
+var indexCache = indexPage{}
+var inmutex = &sync.RWMutex{}
+
+type indexPage struct {
+	Modtime   time.Time
+	LastTally time.Time
+	Body      []byte
+	Raw       []byte
+}
+
+// Creates a page struct
+func newPage(longname, shortname, title, author, desc string, modtime time.Time, body, raw []byte) *Page {
+
+	return &Page{
+		Longname:  longname,
+		Shortname: shortname,
+		Title:     title,
+		Author:    author,
+		Desc:      desc,
+		Modtime:   modtime,
+		Body:      body,
+		Raw:       raw}
+
+}
+
 // Loads a given wiki page and returns a page struct pointer.
 // Used for building the initial cache and re-caching.
-func loadPage(filename string) (*Page, error) {
+func buildPage(filename string) (*Page, error) {
 
 	// open the page into *os.File
 	file, err := os.Open(filename)
@@ -21,6 +66,7 @@ func loadPage(filename string) (*Page, error) {
 		log.Printf("%v\n", err)
 		return nil, err
 	}
+
 	// the cleanup crew
 	defer func() {
 		err := file.Close()
@@ -45,104 +91,95 @@ func loadPage(filename string) (*Page, error) {
 	_, shortname := filepath.Split(filename)
 
 	// get meta info on file from the header comment
-	title := getTitle(body)
-	author := getAuthor(body)
-	desc := getDesc(body)
+	title, desc, author := getMeta(body)
 
 	if title == "" {
 		title = shortname
 	}
 	if desc != "" {
-		desc = ":: " + desc
+		desc = viper.GetString("DescSeparator") + " " + desc
 	}
+	if author != "" {
+		author = "`by " + author + "`"
+	}
+
+	// longtitle is used in the <title> tags of the output html
+	longtitle := title + " " + viper.GetString("TitleSeparator") + " " + viper.GetString("Name")
 
 	// store the raw bytes of the document after parsing
 	// from markdown to HTML.
 	// keep the unparsed markdown for future use (maybe gopher?)
-	return &Page{
-		Longname:  filename,
-		Shortname: shortname,
-		Title:     title,
-		Author:    author,
-		Desc:      desc,
-		Modtime:   stat.ModTime(),
-		Body:      render(body, viper.GetString("CSS"), title),
-		Raw:       body}, nil
+	bodydata := render(body, viper.GetString("CSS"), longtitle)
+	return newPage(filename, shortname, title, author, desc, stat.ModTime(), bodydata, body), nil
 }
 
-// scan the page for the `title: ` field
-// in the header comment. used in the construction
-// of the page cache on startup
-func getTitle(data []byte) string {
+// scan the page to the following fields in the
+// header comment:
+//		title:
+//		author:
+//		description:
+func getMeta(body []byte) (string, string, string) {
+
+	bytereader := bytes.NewReader(body)
+	metafinder := bufio.NewScanner(bytereader)
+	var title, desc, author string
 
 	// scan the file line by line until it finds
-	// the title: comment, return the value.
-	titlefinder := bufio.NewScanner(bytes.NewReader(data))
-	for titlefinder.Scan() {
-		splitter := bytes.Split(titlefinder.Bytes(), []byte(":"))
+	// the comments.
+	for metafinder.Scan() {
+
+		splitter := bytes.Split(metafinder.Bytes(), []byte(":"))
+
 		if bytes.Equal(bytes.ToLower(splitter[0]), []byte("title")) {
-			return string(bytes.TrimSpace(splitter[1]))
+			title = string(bytes.TrimSpace(splitter[1]))
+		} else if bytes.Equal(bytes.ToLower(splitter[0]), []byte("description")) {
+			desc = string(bytes.TrimSpace(splitter[1]))
+		} else if bytes.Equal(bytes.ToLower(splitter[0]), []byte("author")) {
+			author = string(bytes.TrimSpace(splitter[1]))
+		}
+
+		if title != "" && desc != "" && author != "" {
+			return title, desc, author
 		}
 	}
 
-	return ""
-}
-
-// scan the page for the `description: ` field
-// in the header comment. used in the construction
-// of the page cache on startup
-func getDesc(data []byte) string {
-
-	// scan the file line by line until it finds
-	// the description: comment, return the value.
-	descfinder := bufio.NewScanner(bytes.NewReader(data))
-	for descfinder.Scan() {
-		splitter := bytes.Split(descfinder.Bytes(), []byte(":"))
-		if bytes.Equal(bytes.ToLower(splitter[0]), []byte("description")) {
-			return string(bytes.TrimSpace(splitter[1]))
-		}
-	}
-
-	return ""
-}
-
-// scan the page for the `author: ` field
-// in the header comment. used in the construction
-// of the page cache on startup
-func getAuthor(data []byte) string {
-
-	// scan the file line by line until it finds
-	// the author: comment, return the value.
-	authfinder := bufio.NewScanner(bytes.NewReader(data))
-	for authfinder.Scan() {
-		splitter := bytes.Split(authfinder.Bytes(), []byte(":"))
-		if bytes.Equal(bytes.ToLower(splitter[0]), []byte("author")) {
-			return "`by " + string(bytes.TrimSpace(splitter[1])) + "`"
-		}
-	}
-
-	return ""
+	return title, desc, author
 }
 
 // generate the front page of the wiki
 func genIndex() []byte {
+
+	var err error
 	indexpath := viper.GetString("AssetsDir") + "/" + viper.GetString("Index")
+
+	stat, err := os.Stat(indexpath)
+	if err != nil {
+		log.Printf("Couldn't stat index: %v\n", err)
+	}
+
+	if indexCache.Modtime != stat.ModTime() {
+		inmutex.Lock()
+		indexCache.Raw, err = ioutil.ReadFile(indexpath)
+		inmutex.Unlock()
+		if err != nil {
+			return []byte("Could not open \"" + indexpath + "\"")
+		}
+
+	}
 
 	// body holds the bytes of the generated index page being sent to the client.
 	// create the byte array and the buffer used to write to it
 	body := make([]byte, 0)
 	buf := bytes.NewBuffer(body)
 
-	index, err := ioutil.ReadFile(indexpath)
-	if err != nil {
-		return []byte("Could not open \"" + indexpath + "\"")
-	}
-
 	// scan the file line by line until it finds the anchor
 	// comment. replace the anchor comment with a list of
 	// wiki pages sorted alphabetically by title.
-	builder := bufio.NewScanner(bytes.NewReader(index))
+	inmutex.RLock()
+	builder := bufio.NewScanner(bytes.NewReader(indexCache.Raw))
+	inmutex.RUnlock()
 	builder.Split(bufio.ScanLines)
+
 	for builder.Scan() {
 		if bytes.Equal(builder.Bytes(), []byte("<!--pagelist-->")) {
 			buf.Write(tallyPages())
@@ -150,6 +187,10 @@ func genIndex() []byte {
 			buf.Write(append(builder.Bytes(), byte('\n')))
 		}
 	}
+
+	inmutex.Lock()
+	indexCache.LastTally = time.Now()
+	inmutex.Unlock()
 
 	return buf.Bytes()
 }
@@ -177,13 +218,20 @@ func tallyPages() []byte {
 	if len(files) == 0 {
 		return []byte("*No wiki pages! Add some content.*")
 	}
+
+	// if the config file says to reverse the page listing order
 	if reverse {
+
 		for i := len(files) - 1; i >= 0; i-- {
 			f := files[i]
+
+			// pull the page from the cache
 			mutex.RLock()
 			page := cachedPages[f.Name()]
 			mutex.RUnlock()
 
+			// if it hasn't been cached, cache it.
+			// usually means the page is new.
 			if page.Body == nil {
 				page.Shortname = f.Name()
 				page.Longname = pagedir + "/" + f.Name()
@@ -194,11 +242,15 @@ func tallyPages() []byte {
 				}
 			}
 
+			// get the URI path from the file name
+			// and write the formatted link to the
+			// bytes.Buffer
 			linkname := bytes.TrimSuffix([]byte(page.Shortname), []byte(".md"))
 			buf.WriteString("* [" + page.Title + "](/" + viewpath + "/" + string(linkname) + ") " + page.Desc + " " + page.Author + "\n")
 		}
 	} else {
 
+		// if the config file says to NOT reverse the page listing order
 		for _, f := range files {
 
 			// pull the page from the cache
@@ -233,9 +285,9 @@ func tallyPages() []byte {
 // of a single page
 func (page *Page) cache() error {
 
-	// loadPage() is defined in this file.
+	// buildPage() is defined in this file.
 	// it reads the file and builds the Page struct
-	page, err := loadPage(page.Longname)
+	page, err := buildPage(page.Longname)
 	if err != nil {
 		return err
 	}
@@ -272,6 +324,7 @@ func (page *Page) checkCache() bool {
 // into cache, saving their modification time as well to
 // determine when to re-load the page.
 func genPageCache() {
+
 	indexpath := viper.GetString("AssetsDir") + "/" + viper.GetString("Index")
 	indexname := viper.GetString("Index")
 	pagedir := viper.GetString("PageDir")
@@ -292,6 +345,7 @@ func genPageCache() {
 	// spawn a new goroutine for each entry, to cache
 	// everything as quickly as possible
 	for _, f := range wikipages {
+
 		go func(f os.FileInfo) {
 
 			var page Page

@@ -2,11 +2,17 @@ package main
 
 import (
 	"io/ioutil"
+	"log"
+	"os"
 	"testing"
 	"time"
 )
 
-var loadPageCases = []struct {
+// to quiet the function output during
+// testing and benchmarks
+var hush, _ = os.Open("/dev/null")
+
+var buildPageCases = []struct {
 	name     string
 	filename string
 	want     *Page
@@ -25,24 +31,23 @@ var loadPageCases = []struct {
 	},
 }
 
-func Test_loadPage(t *testing.T) {
-	for _, tt := range loadPageCases {
+func Test_buildPage(t *testing.T) {
+	log.SetOutput(hush)
+	for _, tt := range buildPageCases {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := loadPage(tt.filename)
+			_, err := buildPage(tt.filename)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("loadPage() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("buildPage() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			//if !reflect.DeepEqual(got, tt.want) {
-			//	t.Errorf("loadPage() = %v, want %v", got, tt.want)
-			//}
 		})
 	}
 }
-func Benchmark_loadPage(b *testing.B) {
+func Benchmark_buildPage(b *testing.B) {
+	log.SetOutput(hush)
 	for i := 0; i < b.N; i++ {
-		for _, c := range loadPageCases {
-			_, err := loadPage(c.filename)
+		for _, c := range buildPageCases {
+			_, err := buildPage(c.filename)
 			if err != nil {
 				continue
 			}
@@ -50,7 +55,7 @@ func Benchmark_loadPage(b *testing.B) {
 	}
 }
 
-var metaBytes, _ = ioutil.ReadFile("pages/example.md")
+var metaTestBytes, _ = ioutil.ReadFile("pages/example.md")
 var getMetaCases = []struct {
 	name      string
 	data      []byte
@@ -60,60 +65,26 @@ var getMetaCases = []struct {
 }{
 	{
 		name:      "example",
-		data:      metaBytes,
+		data:      metaTestBytes,
 		titlewant: "Example Page",
 		descwant:  "Example page for the wiki",
-		authwant:  "`by gbmor`",
+		authwant:  "gbmor",
 	},
 }
 
-func Test_getTitle(t *testing.T) {
+func Test_getMeta(t *testing.T) {
 	for _, tt := range getMetaCases {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := getTitle(tt.data); got != tt.titlewant {
-				t.Errorf("getTitle() = %v, want %v", got, tt.titlewant)
+			if title, desc, auth := getMeta(tt.data); title != tt.titlewant || desc != tt.descwant || auth != tt.authwant {
+				t.Errorf("getMeta() = %v, %v, %v .. want %v, %v, %v", title, desc, auth, tt.titlewant, tt.descwant, tt.authwant)
 			}
 		})
 	}
 }
-func Benchmark_getTitle(b *testing.B) {
+func Benchmark_getMeta(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for _, tt := range getMetaCases {
-			getTitle(tt.data)
-		}
-	}
-}
-
-func Test_getDesc(t *testing.T) {
-	for _, tt := range getMetaCases {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := getDesc(tt.data); got != tt.descwant {
-				t.Errorf("getDesc() = %v, want %v", got, tt.descwant)
-			}
-		})
-	}
-}
-func Benchmark_getDesc(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		for _, tt := range getMetaCases {
-			getDesc(tt.data)
-		}
-	}
-}
-
-func Test_getAuthor(t *testing.T) {
-	for _, tt := range getMetaCases {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := getAuthor(tt.data); got != tt.authwant {
-				t.Errorf("getAuthor() = %v, want %v", got, tt.authwant)
-			}
-		})
-	}
-}
-func Benchmark_getAuthor(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		for _, tt := range getMetaCases {
-			getAuthor(tt.data)
+			_, _, _ = getMeta(tt.data)
 		}
 	}
 }
@@ -129,7 +100,7 @@ var genIndexCases = []struct {
 func Test_genIndex(t *testing.T) {
 	for _, tt := range genIndexCases {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := genIndex(); len(got) <= 0 {
+			if got := genIndex(); len(got) == 0 {
 				t.Errorf("genIndex(), got %v bytes.", got)
 			}
 		})
@@ -139,7 +110,7 @@ func Benchmark_genIndex(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for range genIndexCases {
 			out := genIndex()
-			if len(out) <= 0 {
+			if len(out) == 0 {
 				continue
 			}
 		}
@@ -157,7 +128,7 @@ var tallyPagesCases = []struct {
 func Test_tallyPages(t *testing.T) {
 	for _, tt := range tallyPagesCases {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tallyPages(); len(got) <= 0 {
+			if got := tallyPages(); len(got) == 0 {
 				t.Errorf("tallyPages() = %v", got)
 			}
 		})
@@ -165,12 +136,7 @@ func Test_tallyPages(t *testing.T) {
 }
 func Benchmark_tallyPages(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		for range tallyPagesCases {
-			out := tallyPages()
-			if len(out) <= 0 {
-				continue
-			}
-		}
+		tallyPages()
 	}
 }
 
@@ -214,12 +180,6 @@ func TestPage_cache(t *testing.T) {
 			page := &Page{
 				Longname:  tt.fields.Longname,
 				Shortname: tt.fields.Shortname,
-				Title:     tt.fields.Title,
-				Desc:      tt.fields.Desc,
-				Author:    tt.fields.Author,
-				Modtime:   tt.fields.Modtime,
-				Body:      tt.fields.Body,
-				Raw:       tt.fields.Raw,
 			}
 			if err := page.cache(); (err != nil) != tt.wantErr {
 				t.Errorf("Page.cache() error = %v, wantErr %v", err, tt.wantErr)
@@ -248,16 +208,6 @@ func TestPage_checkCache(t *testing.T) {
 			page := &Page{
 				Longname:  tt.fields.Longname,
 				Shortname: tt.fields.Shortname,
-				Title:     tt.fields.Title,
-				Desc:      tt.fields.Desc,
-				Author:    tt.fields.Author,
-				Modtime:   tt.fields.Modtime,
-				Body:      tt.fields.Body,
-				Raw:       tt.fields.Raw,
-			}
-			err := page.cache()
-			if err != nil {
-				t.Errorf("Page.checkCache() returned error: %v\n", err)
 			}
 			var got interface{} = page.checkCache()
 			switch got.(type) {
@@ -276,10 +226,6 @@ func Benchmark_Page_checkCache(b *testing.B) {
 				Longname:  tt.fields.Longname,
 				Shortname: tt.fields.Shortname,
 			}
-			err := page.cache()
-			if err != nil {
-				continue
-			}
 			var maybe interface{} = page.checkCache()
 			if maybe.(bool) {
 				continue
@@ -289,6 +235,7 @@ func Benchmark_Page_checkCache(b *testing.B) {
 }
 
 func Test_genPageCache(t *testing.T) {
+	log.SetOutput(hush)
 	tests := []struct {
 		name string
 	}{
@@ -303,6 +250,7 @@ func Test_genPageCache(t *testing.T) {
 	}
 }
 func Benchmark_genPageCache(b *testing.B) {
+	log.SetOutput(hush)
 	tests := []struct {
 		name string
 	}{
