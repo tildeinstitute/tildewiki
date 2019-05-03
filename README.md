@@ -19,7 +19,7 @@ Contains all the new changes going into the next version
 
 ### Currently powering the [tilde.institute](https://tilde.institute) wiki: 
 * [https://wiki.tilde.institute](https://wiki.tilde.institute) 
-* [gtmetrix report](https://gtmetrix.com/reports/wiki.tilde.institute/Fj8pHvcT)
+* [gtmetrix report](https://gtmetrix.com/reports/wiki.tilde.institute/F1tzxEch)
 
 ## Features
 
