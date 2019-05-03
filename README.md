@@ -11,9 +11,8 @@ A ton of refactoring has gone into 0.5. Here's some noteworthy changes:
 * Logging can be output to `stdout` (default), to a file, or to /dev/null for some peace and quiet.
 
 I've been stress testing it with [tsenart/vegeta](https://github.com/tsenart/vegeta).
-With all the internal changes in v0.5, it can handle thousands of requests at once.
-I did lose access to it during a 50,000 request surge after the index cache refresh
-interval passed. Not too shabby, right?
+With all the internal changes in v0.5, it can handle a *lot* of requests before performance
+starts to degrade.
 
 Currently powering the [tilde.institute](https://tilde.institute) wiki: 
 * [https://wiki.tilde.institute](https://wiki.tilde.institute) 
