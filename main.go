@@ -3,6 +3,7 @@ package main // import "github.com/gbmor/tildewiki"
 import (
 	"log"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
@@ -46,8 +47,33 @@ func main() {
 
 	// set up logging if the config file params
 	// are set
-	if err := logSetup(); err != nil {
-		log.Printf("Couldn't set up non-default logging: %v\n", err)
+	if viper.GetBool("FileLogging") {
+		logfile, err := os.OpenFile(viper.GetString("LogFile"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			log.Printf("Couldn't log to file: %v\n", err)
+		}
+		log.SetOutput(logfile)
+		defer func() {
+			err := logfile.Close()
+			if err != nil {
+				log.Printf("Couldn't close log file: %v\n", err)
+			}
+		}()
+	}
+	// Tell Tildewiki to be quiet,
+	// Supersedes file logging
+	if viper.GetBool("QuietLogging") {
+		logfile, err := os.Open("/dev/null")
+		if err != nil {
+			log.Printf("Couldn't quiet logging: %v\n", err)
+		}
+		log.SetOutput(logfile)
+		defer func() {
+			err := logfile.Close()
+			if err != nil {
+				log.Printf("Couldn't close log file: %v\n", err)
+			}
+		}()
 	}
 
 	// fill the page cache
