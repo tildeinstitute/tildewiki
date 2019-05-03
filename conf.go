@@ -10,6 +10,14 @@ import (
 	"github.com/spf13/viper"
 )
 
+// content-type constants
+const htmlutf8 = "text/html; charset=utf-8"
+const cssutf8 = "text/css; charset=utf-8"
+
+// initialize the basic configuration and
+// assign the parsed templates and compiled regex
+var validPath = initConfigParams()
+
 // Sets the basic parameters for the default viper (config library) instance
 func initConfigParams() *regexp.Regexp {
 	conf := viper.GetViper()

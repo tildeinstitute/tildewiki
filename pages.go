@@ -7,13 +7,47 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
+	"time"
 
 	"github.com/spf13/viper"
 )
 
+// the in-memory page cache
+var cachedPages = make(map[string]Page)
+
+// prevent concurrent writes to the cache
+var mutex = &sync.RWMutex{}
+
+// Page struct for caching
+type Page struct {
+	Longname  string
+	Shortname string
+	Title     string
+	Desc      string
+	Author    string
+	Modtime   time.Time
+	Body      []byte
+	Raw       []byte
+}
+
+// Creates a page struct
+func newPage(longname, shortname, title, author, desc string, modtime time.Time, body, raw []byte) *Page {
+	return &Page{
+		Longname:  longname,
+		Shortname: shortname,
+		Title:     title,
+		Author:    author,
+		Desc:      desc,
+		Modtime:   modtime,
+		Body:      body,
+		Raw:       raw}
+
+}
+
 // Loads a given wiki page and returns a page struct pointer.
 // Used for building the initial cache and re-caching.
-func loadPage(filename string) (*Page, error) {
+func buildPage(filename string) (*Page, error) {
 
 	// open the page into *os.File
 	file, err := os.Open(filename)
@@ -46,9 +80,7 @@ func loadPage(filename string) (*Page, error) {
 	_, shortname := filepath.Split(filename)
 
 	// get meta info on file from the header comment
-	bytereader := bytes.NewReader(body)
-	metafinder := bufio.NewScanner(bytereader)
-	title, desc, author := getMeta(metafinder)
+	title, desc, author := getMeta(body)
 
 	if title == "" {
 		title = shortname
@@ -66,15 +98,8 @@ func loadPage(filename string) (*Page, error) {
 	// store the raw bytes of the document after parsing
 	// from markdown to HTML.
 	// keep the unparsed markdown for future use (maybe gopher?)
-	return &Page{
-		Longname:  filename,
-		Shortname: shortname,
-		Title:     title,
-		Author:    author,
-		Desc:      desc,
-		Modtime:   stat.ModTime(),
-		Body:      render(body, viper.GetString("CSS"), longtitle),
-		Raw:       body}, nil
+	bodydata := render(body, viper.GetString("CSS"), longtitle)
+	return newPage(filename, shortname, title, author, desc, stat.ModTime(), bodydata, body), nil
 }
 
 // scan the page to the following fields in the
@@ -82,10 +107,11 @@ func loadPage(filename string) (*Page, error) {
 //		title:
 //		author:
 //		description:
-func getMeta(metafinder *bufio.Scanner) (string, string, string) {
+func getMeta(body []byte) (string, string, string) {
 
+	bytereader := bytes.NewReader(body)
+	metafinder := bufio.NewScanner(bytereader)
 	var title, desc, author string
-	var counter int
 
 	// scan the file line by line until it finds
 	// the comments.
@@ -95,17 +121,14 @@ func getMeta(metafinder *bufio.Scanner) (string, string, string) {
 
 		if bytes.Equal(bytes.ToLower(splitter[0]), []byte("title")) {
 			title = string(bytes.TrimSpace(splitter[1]))
-			counter++
 		} else if bytes.Equal(bytes.ToLower(splitter[0]), []byte("description")) {
 			desc = string(bytes.TrimSpace(splitter[1]))
-			counter++
 		} else if bytes.Equal(bytes.ToLower(splitter[0]), []byte("author")) {
 			author = string(bytes.TrimSpace(splitter[1]))
-			counter++
 		}
 
-		if counter >= 3 {
-			break
+		if title != "" && desc != "" && author != "" {
+			return title, desc, author
 		}
 	}
 
@@ -234,9 +257,9 @@ func tallyPages() []byte {
 // of a single page
 func (page *Page) cache() error {
 
-	// loadPage() is defined in this file.
+	// buildPage() is defined in this file.
 	// it reads the file and builds the Page struct
-	page, err := loadPage(page.Longname)
+	page, err := buildPage(page.Longname)
 	if err != nil {
 		return err
 	}

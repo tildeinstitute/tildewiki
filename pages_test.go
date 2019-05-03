@@ -1,17 +1,18 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"io/ioutil"
 	"log"
+	"os"
 	"testing"
 	"time"
 )
 
-var hush bytes.Buffer
+// to quiet the function output during
+// testing and benchmarks
+var hush, _ = os.Open("/dev/null")
 
-var loadPageCases = []struct {
+var buildPageCases = []struct {
 	name     string
 	filename string
 	want     *Page
@@ -30,26 +31,23 @@ var loadPageCases = []struct {
 	},
 }
 
-func Test_loadPage(t *testing.T) {
-	log.SetOutput(&hush)
-	for _, tt := range loadPageCases {
+func Test_buildPage(t *testing.T) {
+	log.SetOutput(hush)
+	for _, tt := range buildPageCases {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := loadPage(tt.filename)
+			_, err := buildPage(tt.filename)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("loadPage() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("buildPage() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			//if !reflect.DeepEqual(got, tt.want) {
-			//	t.Errorf("loadPage() = %v, want %v", got, tt.want)
-			//}
 		})
 	}
 }
-func Benchmark_loadPage(b *testing.B) {
-	log.SetOutput(&hush)
+func Benchmark_buildPage(b *testing.B) {
+	log.SetOutput(hush)
 	for i := 0; i < b.N; i++ {
-		for _, c := range loadPageCases {
-			_, err := loadPage(c.filename)
+		for _, c := range buildPageCases {
+			_, err := buildPage(c.filename)
 			if err != nil {
 				continue
 			}
@@ -58,18 +56,16 @@ func Benchmark_loadPage(b *testing.B) {
 }
 
 var metaTestBytes, _ = ioutil.ReadFile("pages/example.md")
-var metaTestReader = bytes.NewReader(metaTestBytes)
-var metaTestScanner = bufio.NewScanner(metaTestReader)
 var getMetaCases = []struct {
 	name      string
-	data      *bufio.Scanner
+	data      []byte
 	titlewant string
 	descwant  string
 	authwant  string
 }{
 	{
 		name:      "example",
-		data:      metaTestScanner,
+		data:      metaTestBytes,
 		titlewant: "Example Page",
 		descwant:  "Example page for the wiki",
 		authwant:  "gbmor",
@@ -89,7 +85,6 @@ func Benchmark_getMeta(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for _, tt := range getMetaCases {
 			_, _, _ = getMeta(tt.data)
-			metaTestReader.Reset(metaTestBytes)
 		}
 	}
 }
@@ -240,7 +235,7 @@ func Benchmark_Page_checkCache(b *testing.B) {
 }
 
 func Test_genPageCache(t *testing.T) {
-	log.SetOutput(&hush)
+	log.SetOutput(hush)
 	tests := []struct {
 		name string
 	}{
@@ -255,7 +250,7 @@ func Test_genPageCache(t *testing.T) {
 	}
 }
 func Benchmark_genPageCache(b *testing.B) {
-	log.SetOutput(&hush)
+	log.SetOutput(hush)
 	tests := []struct {
 		name string
 	}{
