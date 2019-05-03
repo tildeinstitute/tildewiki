@@ -41,7 +41,7 @@ type indexPage struct {
 	Raw       []byte
 }
 
-// Creates a page struct
+// Creates a filled page object
 func newPage(longname, shortname, title, author, desc string, modtime time.Time, body, raw []byte) *Page {
 
 	return &Page{
@@ -54,6 +54,20 @@ func newPage(longname, shortname, title, author, desc string, modtime time.Time,
 		Body:      body,
 		Raw:       raw}
 
+}
+
+// creates a page object with the minimal number of fields filled
+func newBarePage(longname, shortname string) *Page {
+	return &Page{
+		Longname:  longname,
+		Shortname: shortname,
+		Title:     "",
+		Author:    "",
+		Desc:      "",
+		Modtime:   time.Time{},
+		Body:      nil,
+		Raw:       nil,
+	}
 }
 
 // Loads a given wiki page and returns a page struct pointer.
@@ -343,7 +357,7 @@ func genPageCache() {
 
 		go func(f os.FileInfo) {
 
-			page := newPage(pagedir+"/"+f.Name(), f.Name(), "", "", "", time.Time{}, nil, nil)
+			page := newBarePage(pagedir+"/"+f.Name(), f.Name())
 
 			err = page.cache()
 			if err != nil {
