@@ -130,12 +130,15 @@ func getMeta(body []byte) (string, string, string) {
 
 		splitter := bytes.Split(metafinder.Bytes(), []byte(":"))
 
-		if bytes.Equal(bytes.ToLower(splitter[0]), []byte("title")) {
+		switch string(bytes.ToLower(splitter[0])) {
+		case "title":
 			title = string(bytes.TrimSpace(splitter[1]))
-		} else if bytes.Equal(bytes.ToLower(splitter[0]), []byte("description")) {
+		case "description":
 			desc = string(bytes.TrimSpace(splitter[1]))
-		} else if bytes.Equal(bytes.ToLower(splitter[0]), []byte("author")) {
+		case "author":
 			author = string(bytes.TrimSpace(splitter[1]))
+		default:
+			continue
 		}
 
 		if title != "" && desc != "" && author != "" {
