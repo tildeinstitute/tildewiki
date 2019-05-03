@@ -9,7 +9,7 @@ import (
 )
 
 // TildeWiki version
-const twvers = "0.5"
+const twvers = "0.6"
 
 func main() {
 	// show the logo, repo link, etc
