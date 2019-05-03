@@ -140,10 +140,10 @@ func getMeta(body []byte) (string, string, string) {
 		default:
 			continue
 		}
-
 		if title != "" && desc != "" && author != "" {
 			return title, desc, author
 		}
+
 	}
 
 	return title, desc, author
@@ -328,22 +328,14 @@ func (page *Page) checkCache() bool {
 // determine when to re-load the page.
 func genPageCache() {
 
-	indexpath := viper.GetString("AssetsDir") + "/" + viper.GetString("Index")
-	indexname := viper.GetString("Index")
-	pagedir := viper.GetString("PageDir")
-
 	// build an array of all the (*os.FileInfo)'s
 	// needed to build the cache
-	indexpage, err := os.Stat(indexpath)
-	if err != nil {
-		log.Printf("Initial Cache Build :: Can't stat index page: %v\n", err)
-	}
+	pagedir := viper.GetString("PageDir")
 	wikipages, err := ioutil.ReadDir(pagedir)
 	if err != nil {
-		log.Printf("Initial Cache Build :: Can't read directory %s: %v\n", pagedir, err)
+		log.Printf("Initial Cache Build :: Can't read directory %s\n", pagedir)
+		panic(err)
 	}
-
-	wikipages = append(wikipages, indexpage)
 
 	// spawn a new goroutine for each entry, to cache
 	// everything as quickly as possible
@@ -351,23 +343,7 @@ func genPageCache() {
 
 		go func(f os.FileInfo) {
 
-			var page Page
-			page.Shortname = f.Name()
-
-			// store any page with the same name as
-			// the index page as its relative path
-			// for the key.
-			// this is to try to avoid collisions
-			// by explicitly disallowing pages with
-			// the same filename as the index.
-			// later I'll cache the assets separately
-			// but this works for now.
-			if page.Shortname == indexname {
-				page.Shortname = indexpath
-				page.Longname = page.Shortname
-			} else {
-				page.Longname = pagedir + "/" + page.Shortname
-			}
+			page := newPage(pagedir+"/"+f.Name(), f.Name(), "", "", "", time.Time{}, nil, nil)
 
 			err = page.cache()
 			if err != nil {
