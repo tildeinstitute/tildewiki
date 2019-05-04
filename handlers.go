@@ -50,33 +50,21 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("Couldn't parse index refresh interval: %v\n", err)
 	}
-
-	// if the time is zero, regenerate the index
-	if indexCache.LastTally.IsZero() {
-		body := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("TitleSeparator")+" "+viper.GetString("ShortDesc"))
-		imutex.Lock()
-		indexCache.Body = body
-		imutex.Unlock()
-	}
-
-	// if it's been longer than the interval, regenerate the index
-	if time.Since(indexCache.LastTally) > interval {
-		body := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("TitleSeparator")+" "+viper.GetString("ShortDesc"))
-		imutex.Lock()
-		indexCache.Body = body
-		imutex.Unlock()
-	}
-
 	// check if the index has been changed
 	stat, err := os.Stat(viper.GetString("AssetsDir") + "/" + viper.GetString("Index"))
 	if err != nil {
 		log.Printf("Couldn't stat index page: %v\n", err)
 	}
-	if stat.ModTime() != indexCache.Modtime {
-		body := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("TitleSeparator")+" "+viper.GetString("ShortDesc"))
-		imutex.Lock()
-		indexCache.Body = body
-		imutex.Unlock()
+
+	// if the last tally time is zero, or past the
+	// interval in the config file, regenerate the index
+	if indexCache.LastTally.IsZero() || time.Since(indexCache.LastTally) > interval {
+		regenIndex()
+	}
+	// if the modtime is zero or the index has changed
+	// on disk, regenerate cache
+	if indexCache.Modtime.IsZero() || stat.ModTime() != indexCache.Modtime {
+		regenIndex()
 	}
 
 	w.Header().Set("Content-Type", htmlutf8)
@@ -85,6 +73,15 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error writing %s to HTTP stream: %v\n", viper.GetString("CSS"), err)
 		error500(w, r)
 	}
+}
+
+// This is used solely by indexHandler() so I didn't have
+// to write the same four lines several times
+func regenIndex() {
+	body := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("TitleSeparator")+" "+viper.GetString("ShortDesc"))
+	imutex.Lock()
+	indexCache.Body = body
+	imutex.Unlock()
 }
 
 // Serves the favicon as a URL.
