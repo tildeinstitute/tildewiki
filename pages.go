@@ -106,7 +106,6 @@ func buildPage(filename string) (*Page, error) {
 
 	// get meta info on file from the header comment
 	title, desc, author := getMeta(body)
-
 	if title == "" {
 		title = shortname
 	}
@@ -155,8 +154,9 @@ func getMeta(body []byte) (string, string, string) {
 		default:
 			continue
 		}
+
 		if title != "" && desc != "" && author != "" {
-			return title, desc, author
+			break
 		}
 
 	}
@@ -239,64 +239,45 @@ func tallyPages() []byte {
 
 	// if the config file says to reverse the page listing order
 	if reverse {
-
 		for i := len(files) - 1; i >= 0; i-- {
-			f := files[i]
-
-			// pull the page from the cache
-			mutex.RLock()
-			page := cachedPages[f.Name()]
-			mutex.RUnlock()
-
-			// if it hasn't been cached, cache it.
-			// usually means the page is new.
-			if page.Body == nil {
-				page.Shortname = f.Name()
-				page.Longname = pagedir + "/" + f.Name()
-
-				err := page.cache()
-				if err != nil {
-					log.Printf("Couldn't pull new page %s into cache: %v\n", page.Shortname, err)
-				}
-			}
-
-			// get the URI path from the file name
-			// and write the formatted link to the
-			// bytes.Buffer
-			linkname := bytes.TrimSuffix([]byte(page.Shortname), []byte(".md"))
-			buf.WriteString("* [" + page.Title + "](/" + viewpath + "/" + string(linkname) + ") " + page.Desc + " " + page.Author + "\n")
+			writeIndexLinks(pagedir, viewpath, files[i], buf)
 		}
 	} else {
-
 		// if the config file says to NOT reverse the page listing order
 		for _, f := range files {
-
-			// pull the page from the cache
-			mutex.RLock()
-			page := cachedPages[f.Name()]
-			mutex.RUnlock()
-
-			// if it hasn't been cached, cache it.
-			// usually means the page is new.
-			if page.Body == nil {
-				page.Shortname = f.Name()
-				page.Longname = pagedir + "/" + f.Name()
-
-				err := page.cache()
-				if err != nil {
-					log.Printf("Couldn't pull new page %s into cache: %v\n", page.Shortname, err)
-				}
-			}
-
-			// get the URI path from the file name
-			// and write the formatted link to the
-			// bytes.Buffer
-			linkname := bytes.TrimSuffix([]byte(page.Shortname), []byte(".md"))
-			buf.WriteString("* [" + page.Title + "](/" + viewpath + "/" + string(linkname) + ") " + page.Desc + " " + page.Author + "\n")
+			writeIndexLinks(pagedir, viewpath, f, buf)
 		}
 	}
+
 	buf.WriteByte(byte('\n'))
 	return buf.Bytes()
+}
+
+// Takes in a file and outputs a markdown link to it
+func writeIndexLinks(pagedir string, viewpath string, f os.FileInfo, buf *bytes.Buffer) {
+
+	// pull the page from the cache
+	mutex.RLock()
+	page := cachedPages[f.Name()]
+	mutex.RUnlock()
+
+	// if it hasn't been cached, cache it.
+	// usually means the page is new.
+	if page.Body == nil {
+		page.Shortname = f.Name()
+		page.Longname = pagedir + "/" + f.Name()
+
+		err := page.cache()
+		if err != nil {
+			log.Printf("Couldn't pull new page %s into cache: %v\n", page.Shortname, err)
+		}
+	}
+
+	// get the URI path from the file name
+	// and write the formatted link to the
+	// bytes.Buffer
+	linkname := bytes.TrimSuffix([]byte(page.Shortname), []byte(".md"))
+	buf.WriteString("* [" + page.Title + "](/" + viewpath + "/" + string(linkname) + ") " + page.Desc + " " + page.Author + "\n")
 }
 
 // Caches a page
