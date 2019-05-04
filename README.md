@@ -4,8 +4,8 @@
 
 A wiki engine designed around the needs of the [tildeverse](https://tildeverse.org)
 
-## [v0.5](https://github.com/gbmor/tildewiki/releases/tag/v0.5)
-A ton of refactoring has gone into 0.5. Here's some noteworthy changes:
+## [v0.5.1](https://github.com/gbmor/tildewiki/releases/tag/v0.5.1)
+A ton of refactoring has gone into 0.5. Here are some noteworthy changes:
 * Index page is now being cached
 * Refresh interval for the index page is configurable
 * Logging can be output to `stdout` (default), to a file, or to /dev/null for some peace and quiet.
@@ -24,14 +24,13 @@ Contains all the new changes going into the next version
 ## Features
 
 * Speed is a priority
-* Robust enough to handle thousands of requests
 * Mobile-friendly pages
 * Markdown!
 * Uses [kognise/water.css](https://github.com/kognise/water.css) dark theme by
 default (and includes as an example, a simple but nice local CSS file)
 * Automatically reloads YAML configuration when a change is detected.
 * Generates list of pages and places at anchor-point in index page
-* Caches pages to memory and only re-renders when the file modification time changes
+* Caches pages to memory and only re-renders when the file changes
 * Extremely configurable:
   * URL path for viewing pages
   * Directory for page data

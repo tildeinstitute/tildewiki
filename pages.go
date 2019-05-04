@@ -17,9 +17,9 @@ import (
 var cachedPages = make(map[string]Page)
 
 // prevent concurrent writes to the cache
-var mutex = &sync.RWMutex{}
+var pmutex = &sync.RWMutex{}
 
-// Page struct for caching
+// Page cache object definition
 type Page struct {
 	Longname  string
 	Shortname string
@@ -31,9 +31,13 @@ type Page struct {
 	Raw       []byte
 }
 
+// the in-memory index cache object
 var indexCache = indexPage{}
-var inmutex = &sync.RWMutex{}
 
+// mutex for the index cache
+var imutex = &sync.RWMutex{}
+
+// index cache object definition
 type indexPage struct {
 	Modtime   time.Time
 	LastTally time.Time
@@ -41,7 +45,7 @@ type indexPage struct {
 	Raw       []byte
 }
 
-// Creates a page struct
+// Creates a filled page object
 func newPage(longname, shortname, title, author, desc string, modtime time.Time, body, raw []byte) *Page {
 
 	return &Page{
@@ -56,7 +60,21 @@ func newPage(longname, shortname, title, author, desc string, modtime time.Time,
 
 }
 
-// Loads a given wiki page and returns a page struct pointer.
+// Creates a page object with the minimal number of fields filled
+func newBarePage(longname, shortname string) *Page {
+	return &Page{
+		Longname:  longname,
+		Shortname: shortname,
+		Title:     "",
+		Author:    "",
+		Desc:      "",
+		Modtime:   time.Time{},
+		Body:      nil,
+		Raw:       nil,
+	}
+}
+
+// Loads a given wiki page and returns a page object.
 // Used for building the initial cache and re-caching.
 func buildPage(filename string) (*Page, error) {
 
@@ -92,7 +110,6 @@ func buildPage(filename string) (*Page, error) {
 
 	// get meta info on file from the header comment
 	title, desc, author := getMeta(body)
-
 	if title == "" {
 		title = shortname
 	}
@@ -113,13 +130,14 @@ func buildPage(filename string) (*Page, error) {
 	return newPage(filename, shortname, title, author, desc, stat.ModTime(), bodydata, body), nil
 }
 
-// scan the page to the following fields in the
+// Scan the page until reaching following fields in the
 // header comment:
 //		title:
 //		author:
 //		description:
 func getMeta(body []byte) (string, string, string) {
 
+	// a bit redundant, but scanner is simpler to use
 	bytereader := bytes.NewReader(body)
 	metafinder := bufio.NewScanner(bytereader)
 	var title, desc, author string
@@ -130,23 +148,27 @@ func getMeta(body []byte) (string, string, string) {
 
 		splitter := bytes.Split(metafinder.Bytes(), []byte(":"))
 
-		if bytes.Equal(bytes.ToLower(splitter[0]), []byte("title")) {
+		switch string(bytes.ToLower(splitter[0])) {
+		case "title":
 			title = string(bytes.TrimSpace(splitter[1]))
-		} else if bytes.Equal(bytes.ToLower(splitter[0]), []byte("description")) {
+		case "description":
 			desc = string(bytes.TrimSpace(splitter[1]))
-		} else if bytes.Equal(bytes.ToLower(splitter[0]), []byte("author")) {
+		case "author":
 			author = string(bytes.TrimSpace(splitter[1]))
+		default:
+			continue
 		}
 
 		if title != "" && desc != "" && author != "" {
-			return title, desc, author
+			break
 		}
+
 	}
 
 	return title, desc, author
 }
 
-// generate the front page of the wiki
+// Generate the front page of the wiki
 func genIndex() []byte {
 
 	var err error
@@ -158,9 +180,9 @@ func genIndex() []byte {
 	}
 
 	if indexCache.Modtime != stat.ModTime() {
-		inmutex.Lock()
+		imutex.Lock()
 		indexCache.Raw, err = ioutil.ReadFile(indexpath)
-		inmutex.Unlock()
+		imutex.Unlock()
 		if err != nil {
 			return []byte("Could not open \"" + indexpath + "\"")
 		}
@@ -175,9 +197,9 @@ func genIndex() []byte {
 	// scan the file line by line until it finds the anchor
 	// comment. replace the anchor comment with a list of
 	// wiki pages sorted alphabetically by title.
-	inmutex.RLock()
+	imutex.RLock()
 	builder := bufio.NewScanner(bytes.NewReader(indexCache.Raw))
-	inmutex.RUnlock()
+	imutex.RUnlock()
 	builder.Split(bufio.ScanLines)
 
 	for builder.Scan() {
@@ -188,14 +210,14 @@ func genIndex() []byte {
 		}
 	}
 
-	inmutex.Lock()
+	imutex.Lock()
 	indexCache.LastTally = time.Now()
-	inmutex.Unlock()
+	imutex.Unlock()
 
 	return buf.Bytes()
 }
 
-// generate a list of pages for the front page
+// Generate a list of pages for the front page
 func tallyPages() []byte {
 
 	// pagelist and its associated buffer hold the links
@@ -221,68 +243,48 @@ func tallyPages() []byte {
 
 	// if the config file says to reverse the page listing order
 	if reverse {
-
 		for i := len(files) - 1; i >= 0; i-- {
-			f := files[i]
-
-			// pull the page from the cache
-			mutex.RLock()
-			page := cachedPages[f.Name()]
-			mutex.RUnlock()
-
-			// if it hasn't been cached, cache it.
-			// usually means the page is new.
-			if page.Body == nil {
-				page.Shortname = f.Name()
-				page.Longname = pagedir + "/" + f.Name()
-
-				err := page.cache()
-				if err != nil {
-					log.Printf("Couldn't pull new page %s into cache: %v\n", page.Shortname, err)
-				}
-			}
-
-			// get the URI path from the file name
-			// and write the formatted link to the
-			// bytes.Buffer
-			linkname := bytes.TrimSuffix([]byte(page.Shortname), []byte(".md"))
-			buf.WriteString("* [" + page.Title + "](/" + viewpath + "/" + string(linkname) + ") " + page.Desc + " " + page.Author + "\n")
+			writeIndexLinks(pagedir, viewpath, files[i], buf)
 		}
 	} else {
-
 		// if the config file says to NOT reverse the page listing order
 		for _, f := range files {
-
-			// pull the page from the cache
-			mutex.RLock()
-			page := cachedPages[f.Name()]
-			mutex.RUnlock()
-
-			// if it hasn't been cached, cache it.
-			// usually means the page is new.
-			if page.Body == nil {
-				page.Shortname = f.Name()
-				page.Longname = pagedir + "/" + f.Name()
-
-				err := page.cache()
-				if err != nil {
-					log.Printf("Couldn't pull new page %s into cache: %v\n", page.Shortname, err)
-				}
-			}
-
-			// get the URI path from the file name
-			// and write the formatted link to the
-			// bytes.Buffer
-			linkname := bytes.TrimSuffix([]byte(page.Shortname), []byte(".md"))
-			buf.WriteString("* [" + page.Title + "](/" + viewpath + "/" + string(linkname) + ") " + page.Desc + " " + page.Author + "\n")
+			writeIndexLinks(pagedir, viewpath, f, buf)
 		}
 	}
+
 	buf.WriteByte(byte('\n'))
 	return buf.Bytes()
 }
 
-// used when refreshing the cached copy
-// of a single page
+// Takes in a file and outputs a markdown link to it
+func writeIndexLinks(pagedir string, viewpath string, f os.FileInfo, buf *bytes.Buffer) {
+
+	// pull the page from the cache
+	pmutex.RLock()
+	page := cachedPages[f.Name()]
+	pmutex.RUnlock()
+
+	// if it hasn't been cached, cache it.
+	// usually means the page is new.
+	if page.Body == nil {
+		page.Shortname = f.Name()
+		page.Longname = pagedir + "/" + f.Name()
+
+		err := page.cache()
+		if err != nil {
+			log.Printf("Couldn't pull new page %s into cache: %v\n", page.Shortname, err)
+		}
+	}
+
+	// get the URI path from the file name
+	// and write the formatted link to the
+	// bytes.Buffer
+	linkname := bytes.TrimSuffix([]byte(page.Shortname), []byte(".md"))
+	buf.WriteString("* [" + page.Title + "](/" + viewpath + "/" + string(linkname) + ") " + page.Desc + " " + page.Author + "\n")
+}
+
+// Caches a page
 func (page *Page) cache() error {
 
 	// buildPage() is defined in this file.
@@ -292,16 +294,16 @@ func (page *Page) cache() error {
 		return err
 	}
 
-	mutex.Lock()
+	pmutex.Lock()
 	cachedPages[page.Shortname] = *page
-	mutex.Unlock()
+	pmutex.Unlock()
 
 	return nil
 
 }
 
-// compare the recorded modtime of a cached page to the
-// modtime of the file. if they're different,
+// Compare the recorded modtime of a cached page to the
+// modtime of the file on disk. If they're different,
 // return `true`, indicating the cache needs
 // to be refreshed.
 func (page *Page) checkCache() bool {
@@ -322,25 +324,17 @@ func (page *Page) checkCache() bool {
 
 // When TildeWiki first starts, pull all available pages
 // into cache, saving their modification time as well to
-// determine when to re-load the page.
+// detect changes to a page on disk.
 func genPageCache() {
-
-	indexpath := viper.GetString("AssetsDir") + "/" + viper.GetString("Index")
-	indexname := viper.GetString("Index")
-	pagedir := viper.GetString("PageDir")
 
 	// build an array of all the (*os.FileInfo)'s
 	// needed to build the cache
-	indexpage, err := os.Stat(indexpath)
-	if err != nil {
-		log.Printf("Initial Cache Build :: Can't stat index page: %v\n", err)
-	}
+	pagedir := viper.GetString("PageDir")
 	wikipages, err := ioutil.ReadDir(pagedir)
 	if err != nil {
-		log.Printf("Initial Cache Build :: Can't read directory %s: %v\n", pagedir, err)
+		log.Printf("Initial Cache Build :: Can't read directory %s\n", pagedir)
+		panic(err)
 	}
-
-	wikipages = append(wikipages, indexpage)
 
 	// spawn a new goroutine for each entry, to cache
 	// everything as quickly as possible
@@ -348,23 +342,7 @@ func genPageCache() {
 
 		go func(f os.FileInfo) {
 
-			var page Page
-			page.Shortname = f.Name()
-
-			// store any page with the same name as
-			// the index page as its relative path
-			// for the key.
-			// this is to try to avoid collisions
-			// by explicitly disallowing pages with
-			// the same filename as the index.
-			// later I'll cache the assets separately
-			// but this works for now.
-			if page.Shortname == indexname {
-				page.Shortname = indexpath
-				page.Longname = page.Shortname
-			} else {
-				page.Longname = pagedir + "/" + page.Shortname
-			}
+			page := newBarePage(pagedir+"/"+f.Name(), f.Name())
 
 			err = page.cache()
 			if err != nil {

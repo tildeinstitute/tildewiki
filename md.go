@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// sets parameters for the markdown->html renderer
+// Sets parameters for the markdown->html renderer
 func setupMarkdown(css string, title string) *bf.HTMLRenderer {
 	// if using local CSS file, use the virtually-served css
 	// path rather than the actual file name
@@ -28,7 +28,7 @@ func setupMarkdown(css string, title string) *bf.HTMLRenderer {
 	return bf.NewHTMLRenderer(params)
 }
 
-// wrapper function to generate the parameters above and
+// Wrapper function to generate the parameters above and
 // pass them to the blackfriday library's parsing function
 func render(data []byte, css string, title string) []byte {
 	return bf.Run(data, bf.WithRenderer(setupMarkdown(css, title)))
