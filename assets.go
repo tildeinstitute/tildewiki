@@ -14,7 +14,7 @@ func setUpUsTheWiki() {
 / /_/ / / /_/ /  __/ |/ |/ / / ,< / /
 \__/_/_/\__,_/\___/|__/|__/_/_/|_/_/ 
 
-         :: TildeWiki ` + twvers + ` ::
+        :: TildeWiki ` + twvers + ` ::
     (c)2019 Ben Morrison (gbmor)
                GPL v3
   https://github.com/gbmor/tildewiki
