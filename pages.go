@@ -17,9 +17,9 @@ import (
 var cachedPages = make(map[string]Page)
 
 // prevent concurrent writes to the cache
-var mutex = &sync.RWMutex{}
+var pmutex = &sync.RWMutex{}
 
-// Page struct for caching
+// Page cache object definition
 type Page struct {
 	Longname  string
 	Shortname string
@@ -31,9 +31,13 @@ type Page struct {
 	Raw       []byte
 }
 
+// the in-memory index cache object
 var indexCache = indexPage{}
-var inmutex = &sync.RWMutex{}
 
+// mutex for the index cache
+var imutex = &sync.RWMutex{}
+
+// index cache object definition
 type indexPage struct {
 	Modtime   time.Time
 	LastTally time.Time
@@ -176,9 +180,9 @@ func genIndex() []byte {
 	}
 
 	if indexCache.Modtime != stat.ModTime() {
-		inmutex.Lock()
+		imutex.Lock()
 		indexCache.Raw, err = ioutil.ReadFile(indexpath)
-		inmutex.Unlock()
+		imutex.Unlock()
 		if err != nil {
 			return []byte("Could not open \"" + indexpath + "\"")
 		}
@@ -193,9 +197,9 @@ func genIndex() []byte {
 	// scan the file line by line until it finds the anchor
 	// comment. replace the anchor comment with a list of
 	// wiki pages sorted alphabetically by title.
-	inmutex.RLock()
+	imutex.RLock()
 	builder := bufio.NewScanner(bytes.NewReader(indexCache.Raw))
-	inmutex.RUnlock()
+	imutex.RUnlock()
 	builder.Split(bufio.ScanLines)
 
 	for builder.Scan() {
@@ -206,9 +210,9 @@ func genIndex() []byte {
 		}
 	}
 
-	inmutex.Lock()
+	imutex.Lock()
 	indexCache.LastTally = time.Now()
-	inmutex.Unlock()
+	imutex.Unlock()
 
 	return buf.Bytes()
 }
@@ -257,9 +261,9 @@ func tallyPages() []byte {
 func writeIndexLinks(pagedir string, viewpath string, f os.FileInfo, buf *bytes.Buffer) {
 
 	// pull the page from the cache
-	mutex.RLock()
+	pmutex.RLock()
 	page := cachedPages[f.Name()]
-	mutex.RUnlock()
+	pmutex.RUnlock()
 
 	// if it hasn't been cached, cache it.
 	// usually means the page is new.
@@ -290,9 +294,9 @@ func (page *Page) cache() error {
 		return err
 	}
 
-	mutex.Lock()
+	pmutex.Lock()
 	cachedPages[page.Shortname] = *page
-	mutex.Unlock()
+	pmutex.Unlock()
 
 	return nil
 

@@ -15,9 +15,9 @@ func pageHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	// get the file name from the request name
 	filename += ".md"
 	// pull the page from cache
-	mutex.RLock()
+	pmutex.RLock()
 	page := cachedPages[filename]
-	mutex.RUnlock()
+	pmutex.RUnlock()
 
 	// see if it needs to be cached
 	if page.checkCache() {
@@ -54,17 +54,17 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	// if the time is zero, regenerate the index
 	if indexCache.LastTally.IsZero() {
 		body := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("TitleSeparator")+" "+viper.GetString("ShortDesc"))
-		inmutex.Lock()
+		imutex.Lock()
 		indexCache.Body = body
-		inmutex.Unlock()
+		imutex.Unlock()
 	}
 
 	// if it's been longer than the interval, regenerate the index
 	if time.Since(indexCache.LastTally) > interval {
 		body := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("TitleSeparator")+" "+viper.GetString("ShortDesc"))
-		inmutex.Lock()
+		imutex.Lock()
 		indexCache.Body = body
-		inmutex.Unlock()
+		imutex.Unlock()
 	}
 
 	// check if the index has been changed
@@ -74,9 +74,9 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if stat.ModTime() != indexCache.Modtime {
 		body := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("TitleSeparator")+" "+viper.GetString("ShortDesc"))
-		inmutex.Lock()
+		imutex.Lock()
 		indexCache.Body = body
-		inmutex.Unlock()
+		imutex.Unlock()
 	}
 
 	w.Header().Set("Content-Type", htmlutf8)
