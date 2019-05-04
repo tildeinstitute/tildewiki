@@ -43,10 +43,6 @@ func pageHandler(w http.ResponseWriter, r *http.Request, filename string) {
 }
 
 // Handler for viewing the index page.
-// Renders the index markdown file into HTML
-// and sends it to the client.
-// Calls genIndex() for each request. I need to work
-// on caching the index page.
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 	// parse the refresh interval
@@ -139,8 +135,8 @@ func cssHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// closure to validate the request paths (using the regex in main.go / tildewiki.yaml)
-// then pass everything on to the appropriate handler function if it all checks out
+// Validate the request path, then pass everything on
+// to the appropriate handler function.
 func validatePath(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		m := validPath.FindStringSubmatch(r.URL.Path)

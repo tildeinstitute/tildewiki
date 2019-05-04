@@ -56,7 +56,7 @@ func newPage(longname, shortname, title, author, desc string, modtime time.Time,
 
 }
 
-// creates a page object with the minimal number of fields filled
+// Creates a page object with the minimal number of fields filled
 func newBarePage(longname, shortname string) *Page {
 	return &Page{
 		Longname:  longname,
@@ -70,7 +70,7 @@ func newBarePage(longname, shortname string) *Page {
 	}
 }
 
-// Loads a given wiki page and returns a page struct pointer.
+// Loads a given wiki page and returns a page object.
 // Used for building the initial cache and re-caching.
 func buildPage(filename string) (*Page, error) {
 
@@ -127,13 +127,14 @@ func buildPage(filename string) (*Page, error) {
 	return newPage(filename, shortname, title, author, desc, stat.ModTime(), bodydata, body), nil
 }
 
-// scan the page to the following fields in the
+// Scan the page until reaching following fields in the
 // header comment:
 //		title:
 //		author:
 //		description:
 func getMeta(body []byte) (string, string, string) {
 
+	// a bit redundant, but scanner is simpler to use
 	bytereader := bytes.NewReader(body)
 	metafinder := bufio.NewScanner(bytereader)
 	var title, desc, author string
@@ -163,7 +164,7 @@ func getMeta(body []byte) (string, string, string) {
 	return title, desc, author
 }
 
-// generate the front page of the wiki
+// Generate the front page of the wiki
 func genIndex() []byte {
 
 	var err error
@@ -212,7 +213,7 @@ func genIndex() []byte {
 	return buf.Bytes()
 }
 
-// generate a list of pages for the front page
+// Generate a list of pages for the front page
 func tallyPages() []byte {
 
 	// pagelist and its associated buffer hold the links
@@ -298,8 +299,7 @@ func tallyPages() []byte {
 	return buf.Bytes()
 }
 
-// used when refreshing the cached copy
-// of a single page
+// Caches a page
 func (page *Page) cache() error {
 
 	// buildPage() is defined in this file.
@@ -317,8 +317,8 @@ func (page *Page) cache() error {
 
 }
 
-// compare the recorded modtime of a cached page to the
-// modtime of the file. if they're different,
+// Compare the recorded modtime of a cached page to the
+// modtime of the file on disk. If they're different,
 // return `true`, indicating the cache needs
 // to be refreshed.
 func (page *Page) checkCache() bool {
@@ -339,7 +339,7 @@ func (page *Page) checkCache() bool {
 
 // When TildeWiki first starts, pull all available pages
 // into cache, saving their modification time as well to
-// determine when to re-load the page.
+// detect changes to a page on disk.
 func genPageCache() {
 
 	// build an array of all the (*os.FileInfo)'s
