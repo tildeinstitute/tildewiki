@@ -14,9 +14,12 @@ I've been stress testing it with [tsenart/vegeta](https://github.com/tsenart/veg
 With all the internal changes in v0.5, it can handle a *lot* of requests before performance
 starts to degrade.
 
-Currently powering the [tilde.institute](https://tilde.institute) wiki: 
+### [Development Branch](https://github.com/gbmor/tildewiki/tree/dev)
+Contains all the new changes going into the next version
+
+### Currently powering the [tilde.institute](https://tilde.institute) wiki: 
 * [https://wiki.tilde.institute](https://wiki.tilde.institute) 
-* [gtmetrix report](https://gtmetrix.com/reports/wiki.tilde.institute/Fj8pHvcT)
+* [gtmetrix report](https://gtmetrix.com/reports/wiki.tilde.institute/F1tzxEch)
 
 ## Features
 
