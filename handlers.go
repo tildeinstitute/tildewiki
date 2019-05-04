@@ -67,6 +67,18 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		inmutex.Unlock()
 	}
 
+	// check if the index has been changed
+	stat, err := os.Stat(viper.GetString("AssetsDir") + "/" + viper.GetString("Index"))
+	if err != nil {
+		log.Printf("Couldn't stat index page: %v\n", err)
+	}
+	if stat.ModTime() != indexCache.Modtime {
+		body := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("TitleSeparator")+" "+viper.GetString("ShortDesc"))
+		inmutex.Lock()
+		indexCache.Body = body
+		inmutex.Unlock()
+	}
+
 	w.Header().Set("Content-Type", htmlutf8)
 	_, err = w.Write(indexCache.Body)
 	if err != nil {
