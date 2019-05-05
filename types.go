@@ -17,14 +17,9 @@ var indexCache = indexPage{}
 // mutex for the index cache
 var imutex = &sync.RWMutex{}
 
-type Cacher interface {
+type cacher interface {
 	cache()
 	checkcache()
-}
-
-type Slurper interface {
-	slurp()
-	slurpfile()
 }
 
 // Page cache object definition

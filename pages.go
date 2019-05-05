@@ -38,7 +38,8 @@ func buildPage(filename string) (*Page, error) {
 	}
 
 	// body holds the raw bytes from the file
-	body, err := ioutil.ReadAll(file)
+	var body pagedata
+	body, err = ioutil.ReadAll(file)
 	if err != nil {
 		log.Printf("%v\n", err)
 	}
@@ -47,7 +48,7 @@ func buildPage(filename string) (*Page, error) {
 	_, shortname := filepath.Split(filename)
 
 	// get meta info on file from the header comment
-	title, desc, author := getMeta(body)
+	title, desc, author := body.getMeta()
 	if title == "" {
 		title = shortname
 	}
@@ -73,7 +74,7 @@ func buildPage(filename string) (*Page, error) {
 //		title:
 //		author:
 //		description:
-func getMeta(body []byte) (string, string, string) {
+func (body pagedata) getMeta() (string, string, string) {
 
 	// a bit redundant, but scanner is simpler to use
 	bytereader := bytes.NewReader(body)
