@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/spf13/viper"
@@ -219,13 +220,13 @@ func tallyPages() []byte {
 		return []byte("*No wiki pages! Add some content.*")
 	}
 
-	// if the config file says to reverse the page listing order
-	if reverse {
+	// true if reversing page order, otherwise don't reverse
+	switch reverse {
+	case true:
 		for i := len(files) - 1; i >= 0; i-- {
 			writeIndexLinks(pagedir, viewpath, files[i], buf)
 		}
-	} else {
-		// if the config file says to NOT reverse the page listing order
+	default:
 		for _, f := range files {
 			writeIndexLinks(pagedir, viewpath, f, buf)
 		}
@@ -267,17 +268,16 @@ func (page *Page) cache() error {
 
 	// buildPage() is defined in this file.
 	// it reads the file and builds the Page struct
-	page, err := buildPage(page.Longname)
+	newpage, err := buildPage(page.Longname)
 	if err != nil {
 		return err
 	}
 
 	pmutex.Lock()
-	cachedPages[page.Shortname] = *page
+	cachedPages[newpage.Shortname] = *newpage
 	pmutex.Unlock()
 
 	return nil
-
 }
 
 // Compare the recorded modtime of a cached page to the
@@ -297,7 +297,6 @@ func (page *Page) checkCache() bool {
 	}
 
 	return false
-
 }
 
 // When TildeWiki first starts, pull all available pages
@@ -316,10 +315,12 @@ func genPageCache() {
 
 	// spawn a new goroutine for each entry, to cache
 	// everything as quickly as possible
+	var wg sync.WaitGroup
 	for _, f := range wikipages {
+		f := f
+		wg.Add(1)
 
-		go func(f os.FileInfo) {
-
+		go func() {
 			page := newBarePage(pagedir+"/"+f.Name(), f.Name())
 
 			err = page.cache()
@@ -328,7 +329,9 @@ func genPageCache() {
 			}
 
 			log.Println("Cached page " + page.Shortname)
-		}(f)
+			wg.Done()
+		}()
 	}
 
+	wg.Wait()
 }
