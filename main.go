@@ -10,7 +10,7 @@ import (
 )
 
 // TildeWiki version
-const twvers = "0.5.1"
+const twvers = "0.5.2"
 
 func main() {
 	// determine number of parallel processes allowed
