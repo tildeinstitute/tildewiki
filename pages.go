@@ -107,6 +107,37 @@ func (body pagedata) getMeta() (string, string, string) {
 	return title, desc, author
 }
 
+// Checks the index page's cache. Returns true if the
+// index needs to be re-cached.
+func (indexCache indexPage) checkCache() bool {
+
+	// parse the refresh interval
+	interval, err := time.ParseDuration(viper.GetString("IndexRefreshInterval"))
+	if err != nil {
+		log.Printf("Couldn't parse index refresh interval: %v\n", err)
+		return true
+	}
+	// check if the index has been changed
+	stat, err := os.Stat(viper.GetString("AssetsDir") + "/" + viper.GetString("Index"))
+	if err != nil {
+		log.Printf("Couldn't stat index page: %v\n", err)
+		return true
+	}
+
+	// if the last tally time is zero, or past the
+	// interval in the config file, regenerate the index
+	if indexCache.LastTally.IsZero() || time.Since(indexCache.LastTally) > interval {
+		return true
+	}
+	// if the modtime is zero or the index has changed
+	// on disk, regenerate cache
+	if indexCache.Modtime.IsZero() || stat.ModTime() != indexCache.Modtime {
+		return true
+	}
+
+	return false
+}
+
 // Generate the front page of the wiki
 func genIndex() []byte {
 
