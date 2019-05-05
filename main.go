@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime"
 
 	"github.com/spf13/viper"
 )
@@ -12,6 +13,8 @@ import (
 const twvers = "0.5.1"
 
 func main() {
+	// determine number of parallel processes allowed
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	// show the logo, repo link, etc
 	setUpUsTheWiki()
 
