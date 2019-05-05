@@ -19,7 +19,7 @@ var imutex = &sync.RWMutex{}
 
 type cacher interface {
 	cache()
-	checkcache()
+	checkCache()
 }
 
 // Page cache object definition

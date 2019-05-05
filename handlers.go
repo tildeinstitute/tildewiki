@@ -46,7 +46,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 	// check the index page's cache
 	if indexCache.checkCache() {
-		regenIndex()
+		indexCache.cache()
 	}
 
 	// serve the index page
@@ -56,15 +56,6 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error writing %s to HTTP stream: %v\n", viper.GetString("CSS"), err)
 		error500(w, r)
 	}
-}
-
-// This is used solely by indexHandler() so I didn't have
-// to write the same four lines several times
-func regenIndex() {
-	body := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("TitleSeparator")+" "+viper.GetString("ShortDesc"))
-	imutex.Lock()
-	indexCache.Body = body
-	imutex.Unlock()
 }
 
 // Serves the favicon as a URL.

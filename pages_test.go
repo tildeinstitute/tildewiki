@@ -6,6 +6,8 @@ import (
 	"os"
 	"testing"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 // to quiet the function output during
@@ -150,6 +152,61 @@ type fields struct {
 	Modtime   time.Time
 	Body      []byte
 	Raw       []byte
+}
+
+type indexFields struct {
+	Modtime   time.Time
+	LastTally time.Time
+}
+
+var testindexstat, _ = os.Stat(viper.GetString("AssetsDir") + "/" + viper.GetString("Index"))
+var IndexCacheCases = []struct {
+	name   string
+	fields indexFields
+	want   bool
+}{
+	{
+		name: "test1",
+		fields: indexFields{
+			Modtime:   testindexstat.ModTime(),
+			LastTally: time.Now(),
+		},
+		want: false,
+	},
+	{
+		name: "test2",
+		fields: indexFields{
+			Modtime:   time.Time{},
+			LastTally: time.Time{},
+		},
+		want: true,
+	},
+}
+
+var testIndex = indexPage{
+	Modtime:   time.Time{},
+	LastTally: time.Time{},
+}
+
+func Test_indexPage_checkCache(t *testing.T) {
+
+	for _, tt := range IndexCacheCases {
+		t.Run(tt.name, func(t *testing.T) {
+			testIndex.Modtime = tt.fields.Modtime
+			testIndex.LastTally = tt.fields.LastTally
+			if got := testIndex.checkCache(); got != tt.want {
+				t.Errorf("indexPage.checkCache() - got %v, want %v\n", got, tt.want)
+			}
+		})
+	}
+}
+
+func Benchmark_indexPage_checkCache(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		for range IndexCacheCases {
+			testIndex.checkCache()
+		}
+	}
 }
 
 var PageCacheCases = []struct {

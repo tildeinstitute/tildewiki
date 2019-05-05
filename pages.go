@@ -109,7 +109,7 @@ func (body pagedata) getMeta() (string, string, string) {
 
 // Checks the index page's cache. Returns true if the
 // index needs to be re-cached.
-func (indexCache indexPage) checkCache() bool {
+func (indexCache *indexPage) checkCache() bool {
 
 	// parse the refresh interval
 	interval, err := time.ParseDuration(viper.GetString("IndexRefreshInterval"))
@@ -136,6 +136,14 @@ func (indexCache indexPage) checkCache() bool {
 	}
 
 	return false
+}
+
+// Re-caches the index page
+func (indexCache *indexPage) cache() {
+	body := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("TitleSeparator")+" "+viper.GetString("ShortDesc"))
+	imutex.Lock()
+	indexCache.Body = body
+	imutex.Unlock()
 }
 
 // Generate the front page of the wiki
