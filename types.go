@@ -20,10 +20,10 @@ var imutex = &sync.RWMutex{}
 // The cacher interface, for future use.
 // indexPage and Page types implement
 // this interface, currently.
-type cacher interface {
-	cache()
-	checkCache()
-}
+//type cacher interface {
+//	cache()
+//	checkCache()
+//}
 
 // Page cache object definition
 type Page struct {
