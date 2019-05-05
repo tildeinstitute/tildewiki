@@ -47,7 +47,7 @@ func pageHandler(w http.ResponseWriter, r *http.Request, filename string) {
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 	// check the index page's cache
-	pingCache(&indexCache)
+	pingCache(indexCache)
 
 	// the etag header is used for browser-level caching.
 	// sending the sha256 sum of the modtime in hexadecimal
