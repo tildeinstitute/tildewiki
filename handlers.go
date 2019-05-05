@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -32,7 +34,12 @@ func pageHandler(w http.ResponseWriter, r *http.Request, filename string) {
 		return
 	}
 
+	// the etag header is used for browser-level caching.
+	// sending the sha256 sum of the modtime in hexadecimal
+	etag := sha256.Sum256([]byte(page.Modtime.String()))
+	etags := fmt.Sprintf("%x", etag)
 	// send the page to the client
+	w.Header().Set("ETag", "\""+etags+"\"")
 	w.Header().Set("Content-Type", htmlutf8)
 	_, err := w.Write(page.Body)
 	if err != nil {
@@ -49,6 +56,11 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		indexCache.cache()
 	}
 
+	// the etag header is used for browser-level caching.
+	// sending the sha256 sum of the modtime in hexadecimal
+	etag := sha256.Sum256([]byte(indexCache.Modtime.String()))
+	etags := fmt.Sprintf("%x", etag)
+	w.Header().Set("ETag", "\""+etags+"\"")
 	// serve the index page
 	w.Header().Set("Content-Type", htmlutf8)
 	_, err := w.Write(indexCache.Body)
@@ -74,7 +86,16 @@ func iconHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%v\n", err)
 		error500(w, r)
 	}
+	stat, err := os.Stat(viper.GetString("AssetsDir") + "/" + viper.GetString("Icon"))
+	if err != nil {
+		log.Printf("Couldn't stat icon to send ETag header: %v\n", err)
+	}
 
+	// the etag header is used for browser-level caching.
+	// sending the sha256 sum of the modtime in hexadecimal
+	etag := sha256.Sum256([]byte(stat.ModTime().String()))
+	etags := fmt.Sprintf("%x", etag)
+	w.Header().Set("ETag", "\""+etags+"\"")
 	// check the mime type, then send
 	// the bytes to the client
 	w.Header().Set("Content-Type", http.DetectContentType(icon))
@@ -108,6 +129,16 @@ func cssHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%v\n", err)
 		error500(w, r)
 	}
+	stat, err := os.Stat(viper.GetString("CSS"))
+	if err != nil {
+		log.Printf("Couldn't stat CSS file to send ETag header: %v\n", err)
+	}
+
+	// the etag header is used for browser-level caching.
+	// sending the sha256 sum of the modtime in hexadecimal
+	etag := sha256.Sum256([]byte(stat.ModTime().String()))
+	etags := fmt.Sprintf("%x", etag)
+	w.Header().Set("ETag", "\""+etags+"\"")
 
 	// send it to the client
 	w.Header().Set("Content-Type", cssutf8)
