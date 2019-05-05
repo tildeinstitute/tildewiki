@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/spf13/viper"
 )
@@ -45,43 +44,18 @@ func pageHandler(w http.ResponseWriter, r *http.Request, filename string) {
 // Handler for viewing the index page.
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 
-	// parse the refresh interval
-	interval, err := time.ParseDuration(viper.GetString("IndexRefreshInterval"))
-	if err != nil {
-		log.Printf("Couldn't parse index refresh interval: %v\n", err)
-	}
-	// check if the index has been changed
-	stat, err := os.Stat(viper.GetString("AssetsDir") + "/" + viper.GetString("Index"))
-	if err != nil {
-		log.Printf("Couldn't stat index page: %v\n", err)
+	// check the index page's cache
+	if indexCache.checkCache() {
+		indexCache.cache()
 	}
 
-	// if the last tally time is zero, or past the
-	// interval in the config file, regenerate the index
-	if indexCache.LastTally.IsZero() || time.Since(indexCache.LastTally) > interval {
-		regenIndex()
-	}
-	// if the modtime is zero or the index has changed
-	// on disk, regenerate cache
-	if indexCache.Modtime.IsZero() || stat.ModTime() != indexCache.Modtime {
-		regenIndex()
-	}
-
+	// serve the index page
 	w.Header().Set("Content-Type", htmlutf8)
-	_, err = w.Write(indexCache.Body)
+	_, err := w.Write(indexCache.Body)
 	if err != nil {
 		log.Printf("Error writing %s to HTTP stream: %v\n", viper.GetString("CSS"), err)
 		error500(w, r)
 	}
-}
-
-// This is used solely by indexHandler() so I didn't have
-// to write the same four lines several times
-func regenIndex() {
-	body := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("TitleSeparator")+" "+viper.GetString("ShortDesc"))
-	imutex.Lock()
-	indexCache.Body = body
-	imutex.Unlock()
 }
 
 // Serves the favicon as a URL.

@@ -2,8 +2,9 @@
 
 A wiki engine designed around the needs of the [tildeverse](https://tildeverse.org)
 
-## [v0.5.1](https://github.com/gbmor/tildewiki/releases/tag/v0.5.1)
+## [v0.5.2](https://github.com/gbmor/tildewiki/releases/tag/v0.5.2)
 A ton of refactoring has gone into 0.5. Here are some noteworthy changes:
+* Various performance improvements
 * Index page is now being cached
 * Refresh interval for the index page is configurable
 * Logging can be output to `stdout` (default), to a file, or to /dev/null for some peace and quiet.

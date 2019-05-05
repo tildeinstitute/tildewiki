@@ -4,14 +4,17 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime"
 
 	"github.com/spf13/viper"
 )
 
 // TildeWiki version
-const twvers = "0.5.1"
+const twvers = "0.5.2"
 
 func main() {
+	// determine number of parallel processes allowed
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	// show the logo, repo link, etc
 	setUpUsTheWiki()
 

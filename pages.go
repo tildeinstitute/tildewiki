@@ -13,67 +13,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-// the in-memory page cache
-var cachedPages = make(map[string]Page)
-
-// prevent concurrent writes to the cache
-var pmutex = &sync.RWMutex{}
-
-// Page cache object definition
-type Page struct {
-	Longname  string
-	Shortname string
-	Title     string
-	Desc      string
-	Author    string
-	Modtime   time.Time
-	Body      []byte
-	Raw       []byte
-}
-
-// the in-memory index cache object
-var indexCache = indexPage{}
-
-// mutex for the index cache
-var imutex = &sync.RWMutex{}
-
-// index cache object definition
-type indexPage struct {
-	Modtime   time.Time
-	LastTally time.Time
-	Body      []byte
-	Raw       []byte
-}
-
-// Creates a filled page object
-func newPage(longname, shortname, title, author, desc string, modtime time.Time, body, raw []byte) *Page {
-
-	return &Page{
-		Longname:  longname,
-		Shortname: shortname,
-		Title:     title,
-		Author:    author,
-		Desc:      desc,
-		Modtime:   modtime,
-		Body:      body,
-		Raw:       raw}
-
-}
-
-// Creates a page object with the minimal number of fields filled
-func newBarePage(longname, shortname string) *Page {
-	return &Page{
-		Longname:  longname,
-		Shortname: shortname,
-		Title:     "",
-		Author:    "",
-		Desc:      "",
-		Modtime:   time.Time{},
-		Body:      nil,
-		Raw:       nil,
-	}
-}
-
 // Loads a given wiki page and returns a page object.
 // Used for building the initial cache and re-caching.
 func buildPage(filename string) (*Page, error) {
@@ -100,7 +39,8 @@ func buildPage(filename string) (*Page, error) {
 	}
 
 	// body holds the raw bytes from the file
-	body, err := ioutil.ReadAll(file)
+	var body pagedata
+	body, err = ioutil.ReadAll(file)
 	if err != nil {
 		log.Printf("%v\n", err)
 	}
@@ -109,7 +49,7 @@ func buildPage(filename string) (*Page, error) {
 	_, shortname := filepath.Split(filename)
 
 	// get meta info on file from the header comment
-	title, desc, author := getMeta(body)
+	title, desc, author := body.getMeta()
 	if title == "" {
 		title = shortname
 	}
@@ -135,7 +75,7 @@ func buildPage(filename string) (*Page, error) {
 //		title:
 //		author:
 //		description:
-func getMeta(body []byte) (string, string, string) {
+func (body pagedata) getMeta() (string, string, string) {
 
 	// a bit redundant, but scanner is simpler to use
 	bytereader := bytes.NewReader(body)
@@ -166,6 +106,45 @@ func getMeta(body []byte) (string, string, string) {
 	}
 
 	return title, desc, author
+}
+
+// Checks the index page's cache. Returns true if the
+// index needs to be re-cached.
+func (indexCache *indexPage) checkCache() bool {
+
+	// parse the refresh interval
+	interval, err := time.ParseDuration(viper.GetString("IndexRefreshInterval"))
+	if err != nil {
+		log.Printf("Couldn't parse index refresh interval: %v\n", err)
+		return true
+	}
+	// check if the index has been changed
+	stat, err := os.Stat(viper.GetString("AssetsDir") + "/" + viper.GetString("Index"))
+	if err != nil {
+		log.Printf("Couldn't stat index page: %v\n", err)
+		return true
+	}
+
+	// if the last tally time is zero, or past the
+	// interval in the config file, regenerate the index
+	if indexCache.LastTally.IsZero() || time.Since(indexCache.LastTally) > interval {
+		return true
+	}
+	// if the modtime is zero or the index has changed
+	// on disk, regenerate cache
+	if indexCache.Modtime.IsZero() || stat.ModTime() != indexCache.Modtime {
+		return true
+	}
+
+	return false
+}
+
+// Re-caches the index page
+func (indexCache *indexPage) cache() {
+	body := render(genIndex(), viper.GetString("CSS"), viper.GetString("Name")+" "+viper.GetString("TitleSeparator")+" "+viper.GetString("ShortDesc"))
+	imutex.Lock()
+	indexCache.Body = body
+	imutex.Unlock()
 }
 
 // Generate the front page of the wiki
@@ -241,13 +220,13 @@ func tallyPages() []byte {
 		return []byte("*No wiki pages! Add some content.*")
 	}
 
-	// if the config file says to reverse the page listing order
-	if reverse {
+	// true if reversing page order, otherwise don't reverse
+	switch reverse {
+	case true:
 		for i := len(files) - 1; i >= 0; i-- {
 			writeIndexLinks(pagedir, viewpath, files[i], buf)
 		}
-	} else {
-		// if the config file says to NOT reverse the page listing order
+	default:
 		for _, f := range files {
 			writeIndexLinks(pagedir, viewpath, f, buf)
 		}
@@ -289,17 +268,16 @@ func (page *Page) cache() error {
 
 	// buildPage() is defined in this file.
 	// it reads the file and builds the Page struct
-	page, err := buildPage(page.Longname)
+	newpage, err := buildPage(page.Longname)
 	if err != nil {
 		return err
 	}
 
 	pmutex.Lock()
-	cachedPages[page.Shortname] = *page
+	cachedPages[newpage.Shortname] = *newpage
 	pmutex.Unlock()
 
 	return nil
-
 }
 
 // Compare the recorded modtime of a cached page to the
@@ -319,7 +297,6 @@ func (page *Page) checkCache() bool {
 	}
 
 	return false
-
 }
 
 // When TildeWiki first starts, pull all available pages
@@ -338,10 +315,12 @@ func genPageCache() {
 
 	// spawn a new goroutine for each entry, to cache
 	// everything as quickly as possible
+	var wg sync.WaitGroup
 	for _, f := range wikipages {
+		f := f
+		wg.Add(1)
 
-		go func(f os.FileInfo) {
-
+		go func() {
 			page := newBarePage(pagedir+"/"+f.Name(), f.Name())
 
 			err = page.cache()
@@ -350,7 +329,9 @@ func genPageCache() {
 			}
 
 			log.Println("Cached page " + page.Shortname)
-		}(f)
+			wg.Done()
+		}()
 	}
 
+	wg.Wait()
 }
