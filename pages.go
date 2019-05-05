@@ -7,72 +7,10 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"sync"
 	"time"
 
 	"github.com/spf13/viper"
 )
-
-// the in-memory page cache
-var cachedPages = make(map[string]Page)
-
-// prevent concurrent writes to the cache
-var pmutex = &sync.RWMutex{}
-
-// Page cache object definition
-type Page struct {
-	Longname  string
-	Shortname string
-	Title     string
-	Desc      string
-	Author    string
-	Modtime   time.Time
-	Body      []byte
-	Raw       []byte
-}
-
-// the in-memory index cache object
-var indexCache = indexPage{}
-
-// mutex for the index cache
-var imutex = &sync.RWMutex{}
-
-// index cache object definition
-type indexPage struct {
-	Modtime   time.Time
-	LastTally time.Time
-	Body      []byte
-	Raw       []byte
-}
-
-// Creates a filled page object
-func newPage(longname, shortname, title, author, desc string, modtime time.Time, body, raw []byte) *Page {
-
-	return &Page{
-		Longname:  longname,
-		Shortname: shortname,
-		Title:     title,
-		Author:    author,
-		Desc:      desc,
-		Modtime:   modtime,
-		Body:      body,
-		Raw:       raw}
-
-}
-
-// Creates a page object with the minimal number of fields filled
-func newBarePage(longname, shortname string) *Page {
-	return &Page{
-		Longname:  longname,
-		Shortname: shortname,
-		Title:     "",
-		Author:    "",
-		Desc:      "",
-		Modtime:   time.Time{},
-		Body:      nil,
-		Raw:       nil,
-	}
-}
 
 // Loads a given wiki page and returns a page object.
 // Used for building the initial cache and re-caching.
