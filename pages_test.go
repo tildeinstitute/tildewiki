@@ -55,10 +55,11 @@ func Benchmark_buildPage(b *testing.B) {
 	}
 }
 
-var metaTestBytes, _ = ioutil.ReadFile("pages/example.md")
+var metaBytes, _ = ioutil.ReadFile("pages/example.md")
+var metaTestBytes pagedata = metaBytes
 var getMetaCases = []struct {
 	name      string
-	data      []byte
+	data      pagedata
 	titlewant string
 	descwant  string
 	authwant  string
@@ -75,7 +76,7 @@ var getMetaCases = []struct {
 func Test_getMeta(t *testing.T) {
 	for _, tt := range getMetaCases {
 		t.Run(tt.name, func(t *testing.T) {
-			if title, desc, auth := getMeta(tt.data); title != tt.titlewant || desc != tt.descwant || auth != tt.authwant {
+			if title, desc, auth := tt.data.getMeta(); title != tt.titlewant || desc != tt.descwant || auth != tt.authwant {
 				t.Errorf("getMeta() = %v, %v, %v .. want %v, %v, %v", title, desc, auth, tt.titlewant, tt.descwant, tt.authwant)
 			}
 		})
@@ -84,7 +85,7 @@ func Test_getMeta(t *testing.T) {
 func Benchmark_getMeta(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for _, tt := range getMetaCases {
-			_, _, _ = getMeta(tt.data)
+			_, _, _ = tt.data.getMeta()
 		}
 	}
 }
