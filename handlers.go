@@ -21,12 +21,7 @@ func pageHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	pmutex.RUnlock()
 
 	// see if it needs to be cached
-	if page.checkCache() {
-		err := page.cache()
-		if err != nil {
-			log.Printf("Client requested %s, but couldn't update cache: %v", page.Shortname, err)
-		}
-	}
+	pingCache(&page)
 
 	// if the page doesn't exist, redirect to the index
 	if page.Body == nil {
@@ -52,9 +47,7 @@ func pageHandler(w http.ResponseWriter, r *http.Request, filename string) {
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 	// check the index page's cache
-	if indexCache.checkCache() {
-		indexCache.cache()
-	}
+	pingCache(&indexCache)
 
 	// the etag header is used for browser-level caching.
 	// sending the sha256 sum of the modtime in hexadecimal
