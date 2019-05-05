@@ -5,18 +5,21 @@ import (
 	"time"
 )
 
-// the in-memory page cache
+// The in-memory page cache
 var cachedPages = make(map[string]Page)
 
-// prevent concurrent writes to the cache
+// Mutex for the page cache
 var pmutex = &sync.RWMutex{}
 
-// the in-memory index cache object
+// The in-memory index cache
 var indexCache = indexPage{}
 
-// mutex for the index cache
+// Mutex for the index cache
 var imutex = &sync.RWMutex{}
 
+// The cacher interface, for future use.
+// indexPage and Page types implement
+// this interface, currently.
 type cacher interface {
 	cache()
 	checkCache()
@@ -34,7 +37,7 @@ type Page struct {
 	Raw       pagedata
 }
 
-// index cache object definition
+// Index cache object definition
 type indexPage struct {
 	Modtime   time.Time
 	LastTally time.Time
@@ -42,6 +45,8 @@ type indexPage struct {
 	Raw       pagedata
 }
 
+// Type alias for methods and readability
+// in certain situations.
 type pagedata []byte
 
 // Creates a filled page object
