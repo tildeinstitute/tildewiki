@@ -209,6 +209,14 @@ func Benchmark_indexPage_checkCache(b *testing.B) {
 	}
 }
 
+func Benchmark_indexPage_cache(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		for range IndexCacheCases {
+			testIndex.cache()
+		}
+	}
+}
+
 var PageCacheCases = []struct {
 	name    string
 	fields  fields
