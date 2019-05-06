@@ -58,6 +58,8 @@ func main() {
 	http.HandleFunc(confVars.viewPath, validatePath(pageHandler))
 	http.HandleFunc("/css", cssHandler)
 	http.HandleFunc("/icon", iconHandler)
+	http.HandleFunc("/500", error500)
+	http.HandleFunc("/404", error404)
 
 	log.Println("**NOTICE** Binding to " + confVars.port)
 

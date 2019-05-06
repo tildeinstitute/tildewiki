@@ -132,39 +132,38 @@ func Test_validatePath(t *testing.T) {
 		})
 	}
 
+}*/
+
+// Tests if /500 returns a status 200, which means
+// the handler is working. Doesn't test for 500-triggering
+// situations yet.
+func Test_error500(t *testing.T) {
+	name := "Error 500 Handler Test"
+	initConfigParams()
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "localhost:8080/500", nil)
+	t.Run(name, func(t *testing.T) {
+		error500(w, r)
+		resp := w.Result()
+		if resp.StatusCode != 200 {
+			t.Errorf("error500(): %v\n", resp.StatusCode)
+		}
+	})
 }
 
-func Test_error500(t *testing.T) {
-	type args struct {
-		w http.ResponseWriter
-		r *http.Request
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			error500(tt.args.w, tt.args.r)
-		})
-	}
-}
+// Tests for a 200 status code because it serves requests
+// that fail the regex path validation, rather than a traditional
+// 404 status code.
 func Test_error404(t *testing.T) {
-	type args struct {
-		w http.ResponseWriter
-		r *http.Request
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			error404(tt.args.w, tt.args.r)
-		})
-	}
-}*/
+	name := "Error 404 Handler Test"
+	initConfigParams()
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "localhost:8080"+confVars.viewPath+"?@$#$", nil)
+	t.Run(name, func(t *testing.T) {
+		error404(w, r)
+		resp := w.Result()
+		if resp.StatusCode != 200 {
+			t.Errorf("error404(): %v\n", resp.StatusCode)
+		}
+	})
+}
