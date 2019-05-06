@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/spf13/viper"
 )
 
 // handler for viewing content pages (not the index page)
