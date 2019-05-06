@@ -1,12 +1,14 @@
 # Tildewiki [![Go Report Card](https://goreportcard.com/badge/github.com/gbmor/tildewiki)](https://goreportcard.com/report/github.com/gbmor/tildewiki) [![GolangCI](https://img.shields.io/badge/golangci-check-blue.svg)](https://golangci.com/r/github.com/gbmor/tildewiki) [![Travis CI](https://api.travis-ci.org/gbmor/tildewiki.svg?branch=master)](https://travis-ci.org/gbmor/tildewiki)
 A wiki engine designed around the needs of the [tildeverse](https://tildeverse.org)
 
-## [v0.5.2](https://github.com/gbmor/tildewiki/releases/tag/v0.5.2)
+## [v0.5.3](https://github.com/gbmor/tildewiki/releases/tag/v0.5.3)
 A ton of refactoring has gone into 0.5. Here are some noteworthy changes:
 * Various performance improvements
 * Index page is now being cached
 * Refresh interval for the index page is configurable
 * Logging can be output to `stdout` (default), to a file, or to /dev/null for some peace and quiet.
+* Fixed an annoying bug where a CSS change in tildewiki.yml wasn't reflected without a restart
+* Code readability improvements
 
 I've been stress testing it with [tsenart/vegeta](https://github.com/tsenart/vegeta).
 With all the internal changes in v0.5, it can handle a *lot* of requests before performance
