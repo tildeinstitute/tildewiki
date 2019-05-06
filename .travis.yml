@@ -4,8 +4,6 @@ go:
 - 1.11.x
 - 1.12.x
 
-distro: xenial
-
   #addons:
   #apt:
   #packages:
