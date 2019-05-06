@@ -27,7 +27,7 @@ Contains all the new changes going into the next version
 * Markdown!
 * Uses [kognise/water.css](https://github.com/kognise/water.css) dark theme by
 default (and includes as an example, a simple but nice local CSS file)
-* YAML configuration
+* `YAML` configuration
 * Automatically reloads config file when a change is detected.
 * Generates list of pages, then places at an anchor comment in the index page
 * Caches pages to memory and only re-renders when the file changes
@@ -35,9 +35,9 @@ default (and includes as an example, a simple but nice local CSS file)
   * URL path for viewing pages
   * Directory for page data
   * File to use for index page
-  * Logging output (file, stdout, null) and file location
+  * Logging output (file, `stdout`, `null`) and file location
 * Runs as a multithreaded service, rather than via CGI
-* Easily use Nginx to proxy requests to it. This allows you to use your
+* Easily use `Nginx` to proxy requests to it. This allows you to use your
 existing SSL certificates.
 
 ### Notes
