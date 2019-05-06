@@ -8,7 +8,6 @@ addons:
   apt:
     packages:
       - rpm
-      - deb
 
         #services:
         #- docker
