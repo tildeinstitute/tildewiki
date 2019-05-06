@@ -7,8 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/spf13/viper"
 )
 
 // handler for viewing content pages (not the index page)
@@ -75,11 +73,13 @@ func iconHandler(w http.ResponseWriter, r *http.Request) {
 		if os.IsNotExist(err) {
 			log.Printf("Favicon file specified in config does not exist: /icon request 404\n")
 			error404(w, r)
+			return
 		}
 		log.Printf("%v\n", err)
 		error500(w, r)
+		return
 	}
-	stat, err := os.Stat(viper.GetString("AssetsDir") + "/" + viper.GetString("Icon"))
+	stat, err := os.Stat(confVars.assetsDir + "/" + confVars.iconPath)
 	if err != nil {
 		log.Printf("Couldn't stat icon to send ETag header: %v\n", err)
 	}
@@ -118,11 +118,13 @@ func cssHandler(w http.ResponseWriter, r *http.Request) {
 		if os.IsNotExist(err) {
 			log.Printf("CSS file specified in config does not exist: /css request 404\n")
 			error404(w, r)
+			return
 		}
 		log.Printf("%v\n", err)
 		error500(w, r)
+		return
 	}
-	stat, err := os.Stat(viper.GetString("CSS"))
+	stat, err := os.Stat(confVars.cssPath)
 	if err != nil {
 		log.Printf("Couldn't stat CSS file to send ETag header: %v\n", err)
 	}
@@ -166,6 +168,7 @@ func error500(w http.ResponseWriter, _ *http.Request) {
 	if err != nil {
 		log.Printf("Tried to read 500.md: %v\n", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	w.Header().Set("Content-Type", htmlutf8)
 	_, err = w.Write(render(file, "500: Internal Server Error"))
@@ -185,6 +188,7 @@ func error404(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("Tried to read 404.md: %v\n", err)
 		http.Error(w, err.Error(), http.StatusNotFound)
+		return
 	}
 	w.Header().Set("Content-Type", htmlutf8)
 	_, err = w.Write(render(file, "404: File Not Found"))

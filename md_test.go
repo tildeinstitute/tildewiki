@@ -36,8 +36,8 @@ func Test_setupMarkdown(t *testing.T) {
 	for _, tt := range markdownTests {
 		t.Run(string(tt.name), func(t *testing.T) {
 			var got interface{} = setupMarkdown(tt.css, tt.title)
-			if _, ok := got.(*bf.HTMLRenderer); !ok || got == nil {
-				t.Errorf("setupMarkdown() returned incorrect type or is nil: %v", reflect.TypeOf(got))
+			if _, ok := got.(*bf.HTMLRenderer); !ok {
+				t.Errorf("setupMarkdown() returned incorrect type: %v", reflect.TypeOf(got))
 			}
 		})
 	}
