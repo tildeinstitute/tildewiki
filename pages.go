@@ -235,9 +235,7 @@ func tallyPages(buf *bytes.Buffer) {
 func writeIndexLinks(f os.FileInfo, buf *bytes.Buffer) {
 
 	// pull the page from the cache
-	pmutex.RLock()
-	page := cachedPages[f.Name()]
-	pmutex.RUnlock()
+	page := pullFromCache(f.Name())
 
 	// if it hasn't been cached, cache it.
 	// usually means the page is new.
@@ -324,4 +322,13 @@ func pingCache(c cacher) {
 	if c.checkCache() {
 		c.cache()
 	}
+}
+
+func pullFromCache(filename string) *Page {
+
+	pmutex.RLock()
+	page := cachedPages[filename]
+	pmutex.RUnlock()
+
+	return page
 }
