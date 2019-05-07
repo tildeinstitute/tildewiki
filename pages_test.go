@@ -229,7 +229,9 @@ func Benchmark_indexPage_checkCache(b *testing.B) {
 func Benchmark_indexPage_cache(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for range IndexCacheCases {
-			testIndex.cache()
+			if err := testIndex.cache(); err != nil {
+				b.Errorf("testIndex.cache() - %v\n", err)
+			}
 		}
 	}
 }
@@ -299,7 +301,9 @@ func Benchmark_Page_cache(b *testing.B) {
 				Longname:  tt.fields.Longname,
 				Shortname: tt.fields.Shortname,
 			}
-			page.cache()
+			if err := page.cache(); err != nil && tt.wantErr == false {
+				b.Errorf("While benchmarking page.cache, caught: %v\n", err)
+			}
 		}
 	}
 }

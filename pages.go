@@ -247,7 +247,9 @@ func writeIndexLinks(f os.FileInfo, buf *bytes.Buffer) {
 	if page.Body == nil {
 		page.Shortname = f.Name()
 		page.Longname = confVars.pageDir + "/" + f.Name()
-		page.cache()
+		if err := page.cache(); err != nil {
+			log.Printf("While caching page %v during the index generation, caught an error: %v\n", page.Shortname, err)
+		}
 	}
 
 	// get the URI path from the file name
@@ -305,7 +307,9 @@ func genPageCache() {
 
 			go func(f os.FileInfo) {
 				page := newBarePage(confVars.pageDir+"/"+f.Name(), f.Name())
-				page.cache()
+				if err := page.cache(); err != nil {
+					log.Printf("While generating initial cache, caught error for %v: %v\n", f.Name(), err)
+				}
 				log.Printf("Cached page %v\n", page.Shortname)
 
 				wg.Done()
@@ -327,7 +331,9 @@ func genPageCache() {
 func pingCache(c cacher) {
 
 	if c.checkCache() {
-		c.cache()
+		if err := c.cache(); err != nil {
+			log.Printf("Pinged cache, received error while caching: %v\n", err)
+		}
 	}
 }
 
