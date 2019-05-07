@@ -68,12 +68,3 @@ func initConfigParams() {
 	})
 
 }
-
-// Blanks stored modtimes for the page cache.
-// Used to trigger a forced re-cache on the
-// next page load.
-func triggerRecache() {
-	for _, v := range cachedPages {
-		v.Recache = true
-	}
-}
