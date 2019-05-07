@@ -314,7 +314,7 @@ func TestPage_checkCache(t *testing.T) {
 				Shortname: tt.fields.Shortname,
 				Modtime:   tt.fields.Modtime,
 			}
-			var got bool = page.checkCache()
+			got := page.checkCache()
 			if got != tt.needCache {
 				t.Errorf("Page.checkCache() = %v", got)
 			}
