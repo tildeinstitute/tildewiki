@@ -186,7 +186,7 @@ func genIndex() []byte {
 
 	for builder.Scan() {
 		if bytes.Equal(builder.Bytes(), []byte("<!--pagelist-->")) {
-			buf.Write(tallyPages())
+			tallyPages(buf)
 		} else {
 			buf.Write(append(builder.Bytes(), byte('\n')))
 		}
@@ -200,21 +200,17 @@ func genIndex() []byte {
 }
 
 // Generate a list of pages for the front page
-func tallyPages() []byte {
+func tallyPages(buf *bytes.Buffer) {
 
-	// pagelist and its associated buffer hold the links
-	// displayed on the index page
-	pagelist := make([]byte, 0, 1)
-	buf := bytes.NewBuffer(pagelist)
-
-	// get a list of files in the director specified
+	// get a list of files in the directory specified
 	// in the config file parameter "PageDir"
 	if files, err := ioutil.ReadDir(confVars.pageDir); err == nil {
 
 		// entry is used in the loop to construct the markdown
 		// link to the given page
 		if len(files) == 0 {
-			return []byte("*No wiki pages! Add some content.*")
+			buf.WriteString("*No wiki pages! Add some content.*\n")
+			return
 		}
 
 		// true if reversing page order, otherwise don't reverse
@@ -229,11 +225,10 @@ func tallyPages() []byte {
 			}
 		}
 	} else {
-		return []byte("*PageDir can't be read.*")
+		buf.WriteString("*PageDir can't be read.*\n")
 	}
 
 	buf.WriteByte(byte('\n'))
-	return buf.Bytes()
 }
 
 // Takes in a file and outputs a markdown link to it
@@ -264,16 +259,13 @@ func (page *Page) cache() {
 
 	// buildPage() is defined in this file.
 	// it reads the file and builds the Page struct
-	newpage, err := buildPage(page.Longname)
-	if err != nil {
+	if newpage, err := buildPage(page.Longname); err == nil {
+		pmutex.Lock()
+		cachedPages[newpage.Shortname] = newpage
+		pmutex.Unlock()
+	} else {
 		log.Printf("Couldn't cache %v: %v", page.Longname, err)
-		return
 	}
-
-	pmutex.Lock()
-	cachedPages[newpage.Shortname] = newpage
-	pmutex.Unlock()
-
 }
 
 // Compare the recorded modtime of a cached page to the
@@ -305,15 +297,18 @@ func genPageCache() {
 		for _, f := range wikipages {
 
 			wg.Add(1)
+
 			go func(f os.FileInfo) {
 				page := newBarePage(confVars.pageDir+"/"+f.Name(), f.Name())
 				page.cache()
 				log.Printf("Cached page %v\n", page.Shortname)
+
 				wg.Done()
 			}(f)
 		}
 
 		wg.Wait()
+
 	} else {
 		log.Printf("Initial cache build :: Can't read directory: %s\n", err)
 		log.Printf("**NOTICE** TildeWiki's cache may not function correctly until this is resolved.\n")
