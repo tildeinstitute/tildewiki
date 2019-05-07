@@ -292,32 +292,30 @@ func (page *Page) checkCache() bool {
 
 // When TildeWiki first starts, pull all available pages
 // into cache, saving their modification time as well to
-// detect changes to a page on disk.
+// detect changes to a page.
 func genPageCache() {
-
-	// build an array of all the (*os.FileInfo)'s
-	// needed to build the cache
-	wikipages, err := ioutil.ReadDir(confVars.pageDir)
-	if err != nil {
-		log.Printf("Initial Cache Build :: Can't read directory %s\n", confVars.pageDir)
-		panic(err)
-	}
 
 	// spawn a new goroutine for each entry, to cache
 	// everything as quickly as possible
-	var wg sync.WaitGroup
-	for _, f := range wikipages {
+	if wikipages, err := ioutil.ReadDir(confVars.pageDir); err == nil {
+		var wg sync.WaitGroup
+		for _, f := range wikipages {
 
-		wg.Add(1)
-		go func(f os.FileInfo) {
-			page := newBarePage(confVars.pageDir+"/"+f.Name(), f.Name())
-			page.cache()
-			log.Println("Cached page " + page.Shortname)
-			wg.Done()
-		}(f)
+			wg.Add(1)
+			go func(f os.FileInfo) {
+				page := newBarePage(confVars.pageDir+"/"+f.Name(), f.Name())
+				page.cache()
+				log.Printf("Cached page %v\n", page.Shortname)
+				wg.Done()
+			}(f)
+		}
+
+		wg.Wait()
+	} else {
+		log.Printf("Initial cache build :: Can't read directory: %s\n", err)
+		log.Printf("**NOTICE** TildeWiki's cache may not function correctly until this is resolved.\n")
+		log.Printf("\tPlease verify the directory in tildewiki.yml is correct and restart TildeWiki\n")
 	}
-
-	wg.Wait()
 }
 
 // Wrapper function to check the cache
