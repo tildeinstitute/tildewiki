@@ -7,8 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/spf13/viper"
 )
 
 // handler for viewing content pages (not the index page)
@@ -31,10 +29,10 @@ func pageHandler(w http.ResponseWriter, r *http.Request, filename string) {
 
 	// the etag header is used for browser-level caching.
 	// sending the sha256 sum of the modtime in hexadecimal
-	etag := sha256.Sum256([]byte(page.Modtime.String()))
-	etags := fmt.Sprintf("%x", etag)
+	etag := fmt.Sprintf("%x", sha256.Sum256([]byte(page.Modtime.String())))
+
 	// send the page to the client
-	w.Header().Set("ETag", "\""+etags+"\"")
+	w.Header().Set("ETag", "\""+etag+"\"")
 	w.Header().Set("Content-Type", htmlutf8)
 	_, err := w.Write(page.Body)
 	if err != nil {
@@ -51,10 +49,10 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 	// the etag header is used for browser-level caching.
 	// sending the sha256 sum of the modtime in hexadecimal
-	etag := sha256.Sum256([]byte(indexCache.Modtime.String()))
-	etags := fmt.Sprintf("%x", etag)
-	w.Header().Set("ETag", "\""+etags+"\"")
+	etag := fmt.Sprintf("%x", sha256.Sum256([]byte(indexCache.Modtime.String())))
+
 	// serve the index page
+	w.Header().Set("ETag", "\""+etag+"\"")
 	w.Header().Set("Content-Type", htmlutf8)
 	_, err := w.Write(indexCache.Body)
 	if err != nil {
@@ -79,18 +77,20 @@ func iconHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%v\n", err)
 		error500(w, r)
 	}
-	stat, err := os.Stat(viper.GetString("AssetsDir") + "/" + viper.GetString("Icon"))
+
+	// stat to get the mod time for the etag header
+	stat, err := os.Stat(longname)
 	if err != nil {
 		log.Printf("Couldn't stat icon to send ETag header: %v\n", err)
 	}
 
 	// the etag header is used for browser-level caching.
 	// sending the sha256 sum of the modtime in hexadecimal
-	etag := sha256.Sum256([]byte(stat.ModTime().String()))
-	etags := fmt.Sprintf("%x", etag)
-	w.Header().Set("ETag", "\""+etags+"\"")
+	etag := fmt.Sprintf("%x", sha256.Sum256([]byte(stat.ModTime().String())))
+
 	// check the mime type, then send
 	// the bytes to the client
+	w.Header().Set("ETag", "\""+etag+"\"")
 	w.Header().Set("Content-Type", http.DetectContentType(icon))
 	_, err = w.Write(icon)
 	if err != nil {
@@ -122,18 +122,19 @@ func cssHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%v\n", err)
 		error500(w, r)
 	}
-	stat, err := os.Stat(viper.GetString("CSS"))
+
+	// stat to get the mod time for the etag header
+	stat, err := os.Stat(confVars.cssPath)
 	if err != nil {
 		log.Printf("Couldn't stat CSS file to send ETag header: %v\n", err)
 	}
 
 	// the etag header is used for browser-level caching.
 	// sending the sha256 sum of the modtime in hexadecimal
-	etag := sha256.Sum256([]byte(stat.ModTime().String()))
-	etags := fmt.Sprintf("%x", etag)
-	w.Header().Set("ETag", "\""+etags+"\"")
+	etag := fmt.Sprintf("%x", sha256.Sum256([]byte(stat.ModTime().String())))
 
 	// send it to the client
+	w.Header().Set("ETag", "\""+etag+"\"")
 	w.Header().Set("Content-Type", cssutf8)
 	_, err = w.Write(css)
 	if err != nil {
@@ -162,11 +163,13 @@ func validatePath(fn func(http.ResponseWriter, *http.Request, string)) http.Hand
 // net/http's error handling
 func error500(w http.ResponseWriter, _ *http.Request) {
 	e500 := confVars.assetsDir + "/500.md"
+
 	file, err := ioutil.ReadFile(e500)
 	if err != nil {
 		log.Printf("Tried to read 500.md: %v\n", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+
 	w.Header().Set("Content-Type", htmlutf8)
 	_, err = w.Write(render(file, "500: Internal Server Error"))
 	if err != nil {
@@ -181,13 +184,15 @@ func error500(w http.ResponseWriter, _ *http.Request) {
 // net/http's error handling
 func error404(w http.ResponseWriter, r *http.Request) {
 	e404 := confVars.assetsDir + "/404.md"
+
 	file, err := ioutil.ReadFile(e404)
 	if err != nil {
 		log.Printf("Tried to read 404.md: %v\n", err)
 		http.Error(w, err.Error(), http.StatusNotFound)
 	}
+
 	w.Header().Set("Content-Type", htmlutf8)
-	_, err = w.Write(render(file, "404: File Not Found"))
+	_, err = w.Write(render(file, "404: Not Found"))
 	if err != nil {
 		log.Printf("Failed to write to HTTP stream: %v\n", err)
 		error500(w, r)
