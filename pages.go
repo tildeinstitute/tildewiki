@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"io/ioutil"
 	"log"
 	"os"
@@ -143,11 +144,15 @@ func (indexCache *indexPage) checkCache() bool {
 }
 
 // Re-caches the index page
-func (indexCache *indexPage) cache() {
+func (indexCache *indexPage) cache() error {
 	body := render(genIndex(), confVars.wikiName+" "+confVars.titleSep+" "+confVars.wikiDesc)
+	if body == nil {
+		return errors.New("indexPage.cache(): getting nil bytes")
+	}
 	imutex.Lock()
 	indexCache.Body = body
 	imutex.Unlock()
+	return nil
 }
 
 // Generate the front page of the wiki
@@ -253,7 +258,7 @@ func writeIndexLinks(f os.FileInfo, buf *bytes.Buffer) {
 }
 
 // Caches a page
-func (page *Page) cache() {
+func (page *Page) cache() error {
 
 	// buildPage() is defined in this file.
 	// it reads the file and builds the Page struct
@@ -263,7 +268,9 @@ func (page *Page) cache() {
 		pmutex.Unlock()
 	} else {
 		log.Printf("Couldn't cache %v: %v", page.Longname, err)
+		return err
 	}
+	return nil
 }
 
 // Compare the recorded modtime of a cached page to the
