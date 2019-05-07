@@ -10,10 +10,6 @@ A ton of refactoring has gone into `v0.5`. Here are some noteworthy changes:
 * Fixed an annoying bug where a CSS change in `tildewiki.yml` wasn't reflected without a restart
 * Code readability improvements
 
-I've been stress testing it with [tsenart/vegeta](https://github.com/tsenart/vegeta).
-With all the internal changes in `v0.5`, it can handle a *lot* of requests before performance
-starts to degrade.
-
 ### [Development Branch](https://github.com/gbmor/tildewiki/tree/dev)
 Contains all the new changes going into the next version
 
@@ -39,6 +35,66 @@ default (and includes as an example, a simple but nice local CSS file)
 * Runs as a multithreaded service, rather than via CGI
 * Easily use `Nginx` to proxy requests to it. This allows you to use your
 existing SSL certificates.
+
+## Benchmarks
+
+* [bombardier](https://github.com/codesenberg/bombardier)
+
+```
+bombardier -c 100 -n 200000 http://localhost:8080
+Bombarding http://localhost:8080 with 200000 request(s) using 100 connection(s)
+ 200000 / 200000 [===========================================] 100.00% 7512/s 26s
+Done!
+Statistics        Avg      Stdev        Max
+  Reqs/sec      7548.57     663.04   10453.06
+  Latency       13.24ms     2.38ms    49.32ms
+  HTTP codes:
+    1xx - 0, 2xx - 200000, 3xx - 0, 4xx - 0, 5xx - 0
+    others - 0
+  Throughput:     8.55MB/s
+
+```
+
+* [baton](https://github.com/americanexpress/baton)
+```
+$ baton -u http://localhost:8080 -c 100 -r 200000
+
+...
+
+=========================== Results ========================================
+
+Total requests:                                200000
+Time taken to complete requests:        27.270626274s
+Requests per second:                             7334
+Max response time (ms):                            52
+Min response time (ms):                             0
+Avg response time (ms):                         13.11
+
+========= Percentage of responses by status code ==========================
+
+Number of connection errors:                        0
+Number of 1xx responses:                            0
+Number of 2xx responses:                       200000
+Number of 3xx responses:                            0
+Number of 4xx responses:                            0
+Number of 5xx responses:                            0
+
+========= Percentage of responses received within a certain time (ms)======
+
+         9% : 5 ms
+        13% : 10 ms
+        79% : 15 ms
+        95% : 20 ms
+        98% : 25 ms
+        99% : 30 ms
+        99% : 35 ms
+        99% : 40 ms
+        99% : 45 ms
+       100% : 52 ms
+
+===========================================================================
+
+```
 
 ### Notes
 * Builds with `Go 1.11` and `Go 1.12`. Not tested with any other version.
