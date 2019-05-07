@@ -38,9 +38,12 @@ func Test_buildPage(t *testing.T) {
 	log.SetOutput(hush)
 	for _, tt := range buildPageCases {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := buildPage(tt.filename)
+			testpage, err := buildPage(tt.filename)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("buildPage() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("buildPage() error = %v, wantErr %v\n", err, tt.wantErr)
+			}
+			if testpage == nil && !tt.wantErr {
+				t.Errorf("buildPage() returned nil bytes when it wasn't expected.\n")
 			}
 		})
 	}
@@ -92,33 +95,23 @@ func Benchmark_getMeta(b *testing.B) {
 	}
 }
 
-var genIndexCases = []struct {
-	name string
-}{
-	{
-		name: "index",
-	},
-}
-
 func Test_genIndex(t *testing.T) {
-	for _, tt := range genIndexCases {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := genIndex(); len(got) == 0 {
-				t.Errorf("genIndex(), got %v bytes.", got)
-			}
-		})
-	}
+	initConfigParams()
+	log.SetOutput(hush)
+	genPageCache()
+	t.Run("genIndex() test", func(t *testing.T) {
+		if got := genIndex(); got == nil {
+			t.Errorf("genIndex(), got %v bytes.", got)
+		}
+	})
 }
 func Benchmark_genIndex(b *testing.B) {
+	initConfigParams()
+	log.SetOutput(hush)
 	genPageCache()
 	for i := 0; i < b.N; i++ {
-		for range genIndexCases {
-			indexCache.Modtime = time.Time{}
-			out := genIndex()
-			if len(out) == 0 {
-				continue
-			}
-		}
+		indexCache.Modtime = time.Time{}
+		genIndex()
 	}
 }
 
@@ -147,7 +140,9 @@ func Benchmark_tallyPages(b *testing.B) {
 		// because the likelihood of
 		// tallyPages calling page.cache() for
 		// every page is near-zero
-		tallyPages(tallyPagesBuf)
+		if tallyPages(tallyPagesBuf); tallyPagesBuf == nil {
+			b.Errorf("tallyPages() benchmark failed, got nil bytes\n")
+		}
 	}
 }
 
