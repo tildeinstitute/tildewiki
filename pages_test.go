@@ -120,13 +120,14 @@ func Benchmark_genIndex(b *testing.B) {
 	}
 }
 
+/*
 var tallyPagesCases = []struct {
 	name string
 }{
 	{
 		name: "index",
 	},
-}
+}*/
 
 var tallyPagesPagelist = make([]byte, 0, 1)
 var tallyPagesBuf = bytes.NewBuffer(tallyPagesPagelist)
