@@ -108,6 +108,7 @@ func Test_genIndex(t *testing.T) {
 	}
 }
 func Benchmark_genIndex(b *testing.B) {
+	genPageCache()
 	for i := 0; i < b.N; i++ {
 		for range genIndexCases {
 			out := genIndex()

@@ -112,25 +112,30 @@ func (body pagedata) getMeta() (string, string, string) {
 // index needs to be re-cached.
 func (indexCache *indexPage) checkCache() bool {
 
-	interval, err := time.ParseDuration(viper.GetString("IndexRefreshInterval"))
-	if err != nil {
+	if interval, err := time.ParseDuration(viper.GetString("IndexRefreshInterval")); err == nil {
+		// if the last tally time is past the
+		// interval in the config file, re-cache
+		if time.Since(indexCache.LastTally) > interval {
+			return true
+		}
+	} else {
 		log.Printf("Couldn't parse index refresh interval: %v\n", err)
 	}
+
 	// stat the index page to get the mod time for the next block
-	stat, err := os.Stat(confVars.assetsDir + "/" + confVars.indexFile)
-	if err != nil {
+	if stat, err := os.Stat(confVars.assetsDir + "/" + confVars.indexFile); err == nil {
+		// if the stored mod time is different
+		// from the file's modtime, re-cache
+		if stat.ModTime() != indexCache.Modtime {
+			return true
+		}
+	} else {
 		log.Printf("Couldn't stat index page: %v\n", err)
-		return false
 	}
 
-	// if the last tally time is zero, or past the
-	// interval in the config file, regenerate the index
-	if indexCache.LastTally.IsZero() || time.Since(indexCache.LastTally) > interval {
-		return true
-	}
-	// if the modtime is zero (never cached) or stored mod time is different
-	// from the file's modtime, (re)generate cache
-	if indexCache.Modtime.IsZero() || stat.ModTime() != indexCache.Modtime {
+	// if the last tally time or stored mod time is zero, signal
+	// to re-cache the index
+	if indexCache.LastTally.IsZero() || indexCache.Modtime.IsZero() {
 		return true
 	}
 
@@ -204,27 +209,27 @@ func tallyPages() []byte {
 
 	// get a list of files in the director specified
 	// in the config file parameter "PageDir"
-	files, err := ioutil.ReadDir(confVars.pageDir)
-	if err != nil {
+	if files, err := ioutil.ReadDir(confVars.pageDir); err == nil {
+
+		// entry is used in the loop to construct the markdown
+		// link to the given page
+		if len(files) == 0 {
+			return []byte("*No wiki pages! Add some content.*")
+		}
+
+		// true if reversing page order, otherwise don't reverse
+		switch confVars.reverseTally {
+		case true:
+			for i := len(files) - 1; i >= 0; i-- {
+				writeIndexLinks(files[i], buf)
+			}
+		default:
+			for _, f := range files {
+				writeIndexLinks(f, buf)
+			}
+		}
+	} else {
 		return []byte("*PageDir can't be read.*")
-	}
-
-	// entry is used in the loop to construct the markdown
-	// link to the given page
-	if len(files) == 0 {
-		return []byte("*No wiki pages! Add some content.*")
-	}
-
-	// true if reversing page order, otherwise don't reverse
-	switch confVars.reverseTally {
-	case true:
-		for i := len(files) - 1; i >= 0; i-- {
-			writeIndexLinks(files[i], buf)
-		}
-	default:
-		for _, f := range files {
-			writeIndexLinks(f, buf)
-		}
 	}
 
 	buf.WriteByte(byte('\n'))
@@ -277,14 +282,12 @@ func (page *Page) cache() {
 // to be refreshed.
 func (page *Page) checkCache() bool {
 
-	newpage, err := os.Stat(page.Longname)
-	if err != nil {
+	if newpage, err := os.Stat(page.Longname); err == nil {
+		if newpage.ModTime() != page.Modtime || page.Recache {
+			return true
+		}
+	} else {
 		log.Println("Can't stat " + page.Longname + ". Using cached copy...")
-		return false
-	}
-
-	if newpage.ModTime() != page.Modtime || page.Recache {
-		return true
 	}
 
 	return false
