@@ -324,6 +324,8 @@ func pingCache(c cacher) {
 	}
 }
 
+// Pulling from cache is its own function.
+// Less worrying about mutexes.
 func pullFromCache(filename string) *Page {
 
 	pmutex.RLock()
@@ -331,4 +333,13 @@ func pullFromCache(filename string) *Page {
 	pmutex.RUnlock()
 
 	return page
+}
+
+// Blanks stored modtimes for the page cache.
+// Used to trigger a forced re-cache on the
+// next page load.
+func triggerRecache() {
+	for _, v := range cachedPages {
+		v.Recache = true
+	}
 }

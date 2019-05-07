@@ -68,11 +68,3 @@ func initConfigParams() {
 	})
 
 }
-
-// Used to trigger a re-cache on the
-// next page load.
-func triggerRecache() {
-	for _, v := range cachedPages {
-		v.Recache = true
-	}
-}
