@@ -41,7 +41,8 @@ existing SSL certificates.
 * [bombardier](https://github.com/codesenberg/bombardier)
 
 ```
-bombardier -c 100 -n 200000 http://localhost:8080
+$ bombardier -c 100 -n 200000 http://localhost:8080
+
 Bombarding http://localhost:8080 with 200000 request(s) using 100 connection(s)
  200000 / 200000 [===========================================] 100.00% 7512/s 26s
 Done!
