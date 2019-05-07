@@ -50,6 +50,7 @@ func Test_buildPage(t *testing.T) {
 }
 func Benchmark_buildPage(b *testing.B) {
 	log.SetOutput(hush)
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for _, c := range buildPageCases {
 			_, err := buildPage(c.filename)
@@ -109,6 +110,7 @@ func Benchmark_genIndex(b *testing.B) {
 	initConfigParams()
 	log.SetOutput(hush)
 	genPageCache()
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		indexCache.Modtime = time.Time{}
 		genIndex()
@@ -336,6 +338,7 @@ func Benchmark_Page_checkCache(b *testing.B) {
 func Benchmark_genPageCache(b *testing.B) {
 	initConfigParams()
 	log.SetOutput(hush)
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		genPageCache()
 	}
