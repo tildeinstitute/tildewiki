@@ -1,7 +1,7 @@
 # Tildewiki [![Go Report Card](https://goreportcard.com/badge/github.com/gbmor/tildewiki)](https://goreportcard.com/report/github.com/gbmor/tildewiki) [![GolangCI](https://img.shields.io/badge/golangci-check-blue.svg)](https://golangci.com/r/github.com/gbmor/tildewiki) [![Travis CI](https://api.travis-ci.org/gbmor/tildewiki.svg?branch=master)](https://travis-ci.org/gbmor/tildewiki)
 A wiki engine designed around the needs of the [tildeverse](https://tildeverse.org)
 
-## [v0.5.3](https://github.com/gbmor/tildewiki/releases/tag/v0.5.3)
+## [v0.5.4](https://github.com/gbmor/tildewiki/releases/tag/v0.5.4)
 A ton of refactoring has gone into `v0.5`. Here are some noteworthy changes:
 * Various performance improvements
 * Index page is now being cached
@@ -9,6 +9,7 @@ A ton of refactoring has gone into `v0.5`. Here are some noteworthy changes:
 * Logging can be output to `stdout` (default), to a file, or to `/dev/null` for some peace and quiet.
 * Fixed an annoying bug where a CSS change in `tildewiki.yml` wasn't reflected without a restart
 * Code readability improvements
+* Improved testing (~61% coverage)
 
 ### [Development Branch](https://github.com/gbmor/tildewiki/tree/dev)
 Contains all the new changes going into the next version
