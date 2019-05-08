@@ -20,7 +20,7 @@ func main() {
 	// set up logging if the config file params
 	// are set
 	if confVars.fileLogging {
-		if llogfile, err := os.OpenFile(confVars.logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644); err == nil {
+		if llogfile, err := os.OpenFile(confVars.logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600); err == nil {
 			log.SetOutput(llogfile)
 			defer func() {
 				err := llogfile.Close()

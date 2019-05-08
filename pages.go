@@ -193,7 +193,10 @@ func genIndex() []byte {
 		if bytes.Equal(builder.Bytes(), []byte("<!--pagelist-->")) {
 			tallyPages(buf)
 		} else {
-			buf.Write(append(builder.Bytes(), byte('\n')))
+			n, err := buf.Write(append(builder.Bytes(), byte('\n')))
+			if err != nil || n == 0 {
+				log.Printf("Error writing to buffer: %v\n", err)
+			}
 		}
 	}
 
@@ -214,7 +217,10 @@ func tallyPages(buf *bytes.Buffer) {
 		// entry is used in the loop to construct the markdown
 		// link to the given page
 		if len(files) == 0 {
-			buf.WriteString("*No wiki pages! Add some content.*\n")
+			n, err := buf.WriteString("*No wiki pages! Add some content.*\n")
+			if err != nil || n == 0 {
+				log.Printf("Error writing to buffer: %v\n", err)
+			}
 			return
 		}
 
@@ -230,10 +236,16 @@ func tallyPages(buf *bytes.Buffer) {
 			}
 		}
 	} else {
-		buf.WriteString("*PageDir can't be read.*\n")
+		n, err := buf.WriteString("*PageDir can't be read.*\n")
+		if err != nil || n == 0 {
+			log.Printf("Error writing to buffer: %v\n", err)
+		}
 	}
 
-	buf.WriteByte(byte('\n'))
+	err := buf.WriteByte(byte('\n'))
+	if err != nil {
+		log.Printf("Error writing to buffer: %v\n", err)
+	}
 }
 
 // Takes in a file and outputs a markdown link to it
@@ -256,7 +268,10 @@ func writeIndexLinks(f os.FileInfo, buf *bytes.Buffer) {
 	// and write the formatted link to the
 	// bytes.Buffer
 	linkname := bytes.TrimSuffix([]byte(page.Shortname), []byte(".md"))
-	buf.WriteString("* [" + page.Title + "](" + confVars.viewPath + string(linkname) + ") " + page.Desc + " " + page.Author + "\n")
+	n, err := buf.WriteString("* [" + page.Title + "](" + confVars.viewPath + string(linkname) + ") " + page.Desc + " " + page.Author + "\n")
+	if err != nil || n == 0 {
+		log.Printf("Error writing to buffer: %v\n", err)
+	}
 }
 
 // Caches a page
