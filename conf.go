@@ -47,6 +47,7 @@ func initConfigParams() {
 	// location of said config file
 	conf.AddConfigPath(".")
 	conf.AddConfigPath("$HOME/.config/")
+	conf.AddConfigPath("/usr/local/tildewiki/")
 	conf.AddConfigPath("/etc/")
 	conf.AddConfigPath("/usr/local/etc/")
 
