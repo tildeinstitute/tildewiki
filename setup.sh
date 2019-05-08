@@ -96,9 +96,11 @@ uninstall_tildewiki()
 
 display_help()
 {
+  display_logo
   cat >/dev/stdout<<EOF
 
-TildeWiki Installation Script
+
+     TildeWiki Installation Script
 
   install   | Installs TildeWiki data to /usr/local/tildewiki
               Places a start-up script at /usr/local/bin/tildewiki
