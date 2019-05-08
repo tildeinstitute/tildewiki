@@ -173,6 +173,7 @@ var IndexCacheCases = []struct {
 		name: "test1",
 		fields: indexFields{
 			LastTally: time.Now(),
+			Modtime:   time.Time{},
 		},
 		want: false,
 	},
@@ -222,7 +223,18 @@ func Benchmark_indexPage_checkCache(b *testing.B) {
 	}
 }
 
-// No output to test here
+// Make sure indexPage.cache() is returning
+// non-nil bytes for indexPage.Body field
+func Test_indexPage_cache(t *testing.T) {
+	for _, tt := range IndexCacheCases {
+		testIndex.Modtime = tt.fields.Modtime
+		testIndex.LastTally = tt.fields.LastTally
+		testIndex.cache()
+		if testIndex.Body == nil {
+			t.Errorf("indexPage_cache(): Returning nil for field Body.\n")
+		}
+	}
+}
 func Benchmark_indexPage_cache(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for range IndexCacheCases {
@@ -234,6 +246,8 @@ func Benchmark_indexPage_cache(b *testing.B) {
 }
 
 var pageCacheCase2stat, _ = os.Stat("pages/example.md")
+var pageCacheCase2bytes, _ = ioutil.ReadFile("pages/example.md")
+var pageCacheCase1bytes, _ = ioutil.ReadFile("pages/test1.md")
 var PageCacheCases = []struct {
 	name      string
 	fields    fields
@@ -241,30 +255,32 @@ var PageCacheCases = []struct {
 	needCache bool
 }{
 	{
-		name: "test1",
+		name: "test1.md",
 		fields: fields{
 			Longname:  "pages/test1.md",
 			Shortname: "test1.md",
 			Modtime:   time.Time{},
+			Raw:       pageCacheCase1bytes,
 		},
 		wantErr:   false,
 		needCache: true,
 	},
 	{
-		name: "example",
+		name: "example.md",
 		fields: fields{
 			Longname:  "pages/example.md",
 			Shortname: "example.md",
 			Modtime:   pageCacheCase2stat.ModTime(),
+			Raw:       pageCacheCase2bytes,
 		},
 		wantErr:   false,
 		needCache: false,
 	},
 	{
-		name: "fake page",
+		name: "doesn't exist",
 		fields: fields{
-			Longname:  "pages/fakepage.md",
-			Shortname: "fakepage.md",
+			Longname:  "pages/fake.md",
+			Shortname: "fake.md",
 			Modtime:   time.Time{},
 		},
 		wantErr:   true,
@@ -272,26 +288,29 @@ var PageCacheCases = []struct {
 	},
 }
 
-// Check that the page.Body field isn't nil after
-// calling page.cache(), if the page is supposed
-// to exist.
+// Tests that the raw field matches
+// what's been pulled from disk.
 func TestPage_cache(t *testing.T) {
+	log.SetOutput(hush)
 	for _, tt := range PageCacheCases {
 		t.Run(tt.name, func(t *testing.T) {
 			page := &Page{
 				Longname:  tt.fields.Longname,
 				Shortname: tt.fields.Shortname,
+				Raw:       tt.fields.Raw,
 			}
 			if err := page.cache(); tt.wantErr == false {
 				cachedpage := cachedPages[tt.fields.Shortname]
-				if cachedpage.Body == nil {
-					t.Errorf("page.cache(): got nil page body: %v\n", err)
+				if !bytes.Equal(cachedpage.Raw, tt.fields.Raw) {
+					t.Errorf("page.cache(): byte mismatch for %v: %v\n", page.Shortname, err)
 				}
 			}
 		})
 	}
 }
 func Benchmark_Page_cache(b *testing.B) {
+	log.SetOutput(hush)
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for _, tt := range PageCacheCases {
 			page := &Page{
@@ -334,7 +353,18 @@ func Benchmark_Page_checkCache(b *testing.B) {
 	}
 }
 
-// No output to test for
+// Check that the fields are filled
+// for each page in the cache
+func Test_genPageCache(t *testing.T) {
+	initConfigParams()
+	log.SetOutput(hush)
+	genPageCache()
+	for k, v := range cachedPages {
+		if v.Body == nil || v.Raw == nil || v.Longname == "" {
+			t.Errorf("Test_genPageCache(): %v holds incorrect data or nil bytes\n", k)
+		}
+	}
+}
 func Benchmark_genPageCache(b *testing.B) {
 	initConfigParams()
 	log.SetOutput(hush)
