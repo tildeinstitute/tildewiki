@@ -84,6 +84,8 @@ EOF
 
 uninstall_tildewiki()
 {
+  [[ $(id -u) != 0 ]] && noroot_die "I can't be uninstalled unless this is run as root"
+  display_logo
   echo
   echo Removing files ...
   rm -rf /usr/local/tildewiki
