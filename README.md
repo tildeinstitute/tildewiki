@@ -1,15 +1,15 @@
 # Tildewiki [![Go Report Card](https://goreportcard.com/badge/github.com/gbmor/tildewiki)](https://goreportcard.com/report/github.com/gbmor/tildewiki) [![GolangCI](https://img.shields.io/badge/golangci-check-blue.svg)](https://golangci.com/r/github.com/gbmor/tildewiki) [![Travis CI](https://api.travis-ci.org/gbmor/tildewiki.svg?branch=master)](https://travis-ci.org/gbmor/tildewiki)
 A wiki engine designed around the needs of the [tildeverse](https://tildeverse.org)
 
-## [v0.5.4](https://github.com/gbmor/tildewiki/releases/tag/v0.5.4)
-A ton of refactoring has gone into `v0.5`. Here are some noteworthy changes:
+[\[Features\]](Features) | [\[Installation\]](Installation) | [\[Benchmarks\]](Benchmarks) | [\[Notes\]](Notes)
+
+## [v0.6.0](https://github.com/gbmor/tildewiki/releases/tag/v0.6.0)
+A ton of refactoring has gone into `v0.6`
 * Various performance improvements
-* Index page is now being cached
-* Refresh interval for the index page is configurable
-* Logging can be output to `stdout` (default), to a file, or to `/dev/null` for some peace and quiet.
-* Fixed an annoying bug where a CSS change in `tildewiki.yml` wasn't reflected without a restart
 * Code readability improvements
 * Improved testing (~61% coverage)
+* Script to automate build/install
+* Startup script to daemonize the process
 
 ### [Development Branch](https://github.com/gbmor/tildewiki/tree/dev)
 Contains all the new changes going into the next version
@@ -36,6 +36,101 @@ default (and includes as an example, a simple but nice local CSS file)
 * Runs as a multithreaded service, rather than via CGI
 * Easily use `Nginx` to proxy requests to it. This allows you to use your
 existing SSL certificates.
+
+## Installation
+
+The installation script uses `bash`, and the startup script uses `daemonize`. Both should
+be available in any Linux distribution's package repositories. However, they are not
+required to use TildeWiki.
+
+### Using the scripts
+
+First, clone the repository or download and untar a release archive, then enter the directory.
+
+```
+$ git clone git://github.com/gbmor/tildewiki.git && cd tildewiki
+
+$ curl -L https://github.com/gbmor/tildewiki/archive/v0.6.0.tar.gz | tar xzvf - && cd tildewiki-v0.6.0
+```
+
+If you used `git`, the master branch will be the most recent release. Development work stays
+in the `dev` branch, so there's no need to look for a tag.
+
+Execute `setup.sh` as root, with the `install` argument:
+
+```
+$ sudo ./setup.sh install
+```
+
+Once you receive the confirmation message, and no errors have appeared, you may run the
+startup script as root to test the installation:
+
+```
+$ sudo tildewiki
+```
+
+TildeWiki will drop privileges to the `tildewiki` user, which was created by the script.
+
+I'm going to add a `systemd` service file soon. For now, it'll need to be started like this.
+
+### Building manually
+
+If you prefer, you can install it this way. Clone the repository or download a source archive
+like above, and enter the directory. Once in the directory, you'll need to build the binary.
+
+```
+$ go build
+```
+
+It won't take long. Also, for those new to `go`, it doesn't need to live in your `GOPATH` as
+it's been set up to use Go Modules. Vendored dependencies are also included.
+
+After it finishes, you can leave the binary where it is or move it somewhere else. Remember
+to move the `pages` and `assets` directories with it, along with `tildewiki.yaml`.
+
+### Setting up TildeWIki
+
+Begin by combing through `tildewiki.yaml` (if you used the scripts, it's in `/usr/local/tildewiki`)
+and changing the options to something appropriate to your site. Afterwards, place your markdown-formatted
+pages into the directory specified by `PageDir` in the config and place your markdown-formatted 
+index file, including the anchor comment `<!--pagelist-->`, into the `AssetsDir`. Feel free to
+change the favicon and CSS to your liking.
+
+Once that's all done, either run `/usr/local/bin/tildewiki` (if you've used the scripts) or run
+the binary manually.
+
+### Serving TildeWiki
+
+Unless you plan on serving from :8080, or the port you chose in `tildewiki.yaml`, I recommend
+using `nginx` to proxy requests to TildeWiki. Here's an example server block for you to start with:
+
+Note: this example uses TLS and http2. [LetsEncrypt](https://letsencrypt.org) is awesome, and free.
+Their `certbot` tool is really easy to use.
+
+```
+server {
+    server_name wiki.example.com;
+    listen [::]:443 ssl http2;
+    listen 0.0.0.0:443 ssl http2;
+    ssl_certificate /etc/letsencrypt/live/wiki.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/wiki.example.com/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+    location / {
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_pass http://127.0.0.1:8080;
+    }
+}
+server {
+    if ($host = wiki.example.com) {
+        return 301 https://$host$request_uri;
+    }
+    listen 80;
+    server_name wiki.example.com;
+    return 404;
+}
+```
 
 ## Benchmarks
 
