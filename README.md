@@ -102,9 +102,13 @@ the binary manually.
 ### Serving TildeWiki
 
 Unless you plan on serving from :8080, or the port you chose in `tildewiki.yaml`, I recommend
-using `nginx` to proxy requests to TildeWiki. Here's an example server block for you to start with:
+proxying requests to TildeWiki via a dedicated HTTP server. There are several options for this,
+namely [Caddy](https://caddyserver.com/) and [nginx](https://nginx.org). The best option is
+for you to use Caddy: it integrates TLS certificate renewal and has a *very* easy configuration
+syntax.
 
-Note: this example uses TLS and http2. [LetsEncrypt](https://letsencrypt.org) is awesome, and free.
+If you're going to use Nginx, here's an example server block for you to start with. Note: this 
+example uses TLS and http2. [LetsEncrypt](https://letsencrypt.org) is awesome, and free. 
 Their `certbot` tool is really easy to use.
 
 ```
