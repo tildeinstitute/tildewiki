@@ -21,7 +21,7 @@ var imutex = &sync.RWMutex{}
 // indexPage and Page types implement
 // this interface, currently.
 type cacher interface {
-	cache()
+	cache() error
 	checkCache() bool
 }
 

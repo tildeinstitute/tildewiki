@@ -47,6 +47,7 @@ func initConfigParams() {
 	// location of said config file
 	conf.AddConfigPath(".")
 	conf.AddConfigPath("$HOME/.config/")
+	conf.AddConfigPath("/usr/local/tildewiki/")
 	conf.AddConfigPath("/etc/")
 	conf.AddConfigPath("/usr/local/etc/")
 
@@ -67,12 +68,4 @@ func initConfigParams() {
 		triggerRecache()
 	})
 
-}
-
-// Used to trigger a re-cache on the
-// next page load.
-func triggerRecache() {
-	for _, v := range cachedPages {
-		v.Recache = true
-	}
 }

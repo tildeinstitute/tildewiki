@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"io/ioutil"
 	"log"
 	"os"
@@ -26,7 +27,7 @@ func buildPage(filename string) (*Page, error) {
 
 	// the cleanup crew
 	defer func() {
-		err := file.Close()
+		err = file.Close()
 		if err != nil {
 			log.Printf("%v\n", err)
 		}
@@ -112,25 +113,30 @@ func (body pagedata) getMeta() (string, string, string) {
 // index needs to be re-cached.
 func (indexCache *indexPage) checkCache() bool {
 
-	interval, err := time.ParseDuration(viper.GetString("IndexRefreshInterval"))
-	if err != nil {
+	if interval, err := time.ParseDuration(viper.GetString("IndexRefreshInterval")); err == nil {
+		// if the last tally time is past the
+		// interval in the config file, re-cache
+		if time.Since(indexCache.LastTally) > interval {
+			return true
+		}
+	} else {
 		log.Printf("Couldn't parse index refresh interval: %v\n", err)
 	}
+
 	// stat the index page to get the mod time for the next block
-	stat, err := os.Stat(confVars.assetsDir + "/" + confVars.indexFile)
-	if err != nil {
+	if stat, err := os.Stat(confVars.assetsDir + "/" + confVars.indexFile); err == nil {
+		// if the stored mod time is different
+		// from the file's modtime, re-cache
+		if stat.ModTime() != indexCache.Modtime {
+			return true
+		}
+	} else {
 		log.Printf("Couldn't stat index page: %v\n", err)
-		return false
 	}
 
-	// if the last tally time is zero, or past the
-	// interval in the config file, regenerate the index
-	if indexCache.LastTally.IsZero() || time.Since(indexCache.LastTally) > interval {
-		return true
-	}
-	// if the modtime is zero (never cached) or stored mod time is different
-	// from the file's modtime, (re)generate cache
-	if indexCache.Modtime.IsZero() || stat.ModTime() != indexCache.Modtime {
+	// if the last tally time or stored mod time is zero, signal
+	// to re-cache the index
+	if indexCache.LastTally.IsZero() || indexCache.Modtime.IsZero() {
 		return true
 	}
 
@@ -138,11 +144,15 @@ func (indexCache *indexPage) checkCache() bool {
 }
 
 // Re-caches the index page
-func (indexCache *indexPage) cache() {
+func (indexCache *indexPage) cache() error {
 	body := render(genIndex(), confVars.wikiName+" "+confVars.titleSep+" "+confVars.wikiDesc)
+	if body == nil {
+		return errors.New("indexPage.cache(): getting nil bytes")
+	}
 	imutex.Lock()
 	indexCache.Body = body
 	imutex.Unlock()
+	return nil
 }
 
 // Generate the front page of the wiki
@@ -181,7 +191,7 @@ func genIndex() []byte {
 
 	for builder.Scan() {
 		if bytes.Equal(builder.Bytes(), []byte("<!--pagelist-->")) {
-			buf.Write(tallyPages())
+			tallyPages(buf)
 		} else {
 			buf.Write(append(builder.Bytes(), byte('\n')))
 		}
@@ -195,56 +205,51 @@ func genIndex() []byte {
 }
 
 // Generate a list of pages for the front page
-func tallyPages() []byte {
+func tallyPages(buf *bytes.Buffer) {
 
-	// pagelist and its associated buffer hold the links
-	// displayed on the index page
-	pagelist := make([]byte, 0, 1)
-	buf := bytes.NewBuffer(pagelist)
-
-	// get a list of files in the director specified
+	// get a list of files in the directory specified
 	// in the config file parameter "PageDir"
-	files, err := ioutil.ReadDir(confVars.pageDir)
-	if err != nil {
-		return []byte("*PageDir can't be read.*")
-	}
+	if files, err := ioutil.ReadDir(confVars.pageDir); err == nil {
 
-	// entry is used in the loop to construct the markdown
-	// link to the given page
-	if len(files) == 0 {
-		return []byte("*No wiki pages! Add some content.*")
-	}
+		// entry is used in the loop to construct the markdown
+		// link to the given page
+		if len(files) == 0 {
+			buf.WriteString("*No wiki pages! Add some content.*\n")
+			return
+		}
 
-	// true if reversing page order, otherwise don't reverse
-	switch confVars.reverseTally {
-	case true:
-		for i := len(files) - 1; i >= 0; i-- {
-			writeIndexLinks(files[i], buf)
+		// true if reversing page order, otherwise don't reverse
+		switch confVars.reverseTally {
+		case true:
+			for i := len(files) - 1; i >= 0; i-- {
+				writeIndexLinks(files[i], buf)
+			}
+		default:
+			for _, f := range files {
+				writeIndexLinks(f, buf)
+			}
 		}
-	default:
-		for _, f := range files {
-			writeIndexLinks(f, buf)
-		}
+	} else {
+		buf.WriteString("*PageDir can't be read.*\n")
 	}
 
 	buf.WriteByte(byte('\n'))
-	return buf.Bytes()
 }
 
 // Takes in a file and outputs a markdown link to it
 func writeIndexLinks(f os.FileInfo, buf *bytes.Buffer) {
 
 	// pull the page from the cache
-	pmutex.RLock()
-	page := cachedPages[f.Name()]
-	pmutex.RUnlock()
+	page := pullFromCache(f.Name())
 
 	// if it hasn't been cached, cache it.
 	// usually means the page is new.
 	if page.Body == nil {
 		page.Shortname = f.Name()
 		page.Longname = confVars.pageDir + "/" + f.Name()
-		page.cache()
+		if err := page.cache(); err != nil {
+			log.Printf("While caching page %v during the index generation, caught an error: %v\n", page.Shortname, err)
+		}
 	}
 
 	// get the URI path from the file name
@@ -255,20 +260,19 @@ func writeIndexLinks(f os.FileInfo, buf *bytes.Buffer) {
 }
 
 // Caches a page
-func (page *Page) cache() {
+func (page *Page) cache() error {
 
 	// buildPage() is defined in this file.
 	// it reads the file and builds the Page struct
-	newpage, err := buildPage(page.Longname)
-	if err != nil {
+	if newpage, err := buildPage(page.Longname); err == nil {
+		pmutex.Lock()
+		cachedPages[newpage.Shortname] = newpage
+		pmutex.Unlock()
+	} else {
 		log.Printf("Couldn't cache %v: %v", page.Longname, err)
-		return
+		return err
 	}
-
-	pmutex.Lock()
-	cachedPages[newpage.Shortname] = newpage
-	pmutex.Unlock()
-
+	return nil
 }
 
 // Compare the recorded modtime of a cached page to the
@@ -277,14 +281,12 @@ func (page *Page) cache() {
 // to be refreshed.
 func (page *Page) checkCache() bool {
 
-	newpage, err := os.Stat(page.Longname)
-	if err != nil {
+	if newpage, err := os.Stat(page.Longname); err == nil {
+		if newpage.ModTime() != page.Modtime || page.Recache {
+			return true
+		}
+	} else {
 		log.Println("Can't stat " + page.Longname + ". Using cached copy...")
-		return false
-	}
-
-	if newpage.ModTime() != page.Modtime || page.Recache {
-		return true
 	}
 
 	return false
@@ -292,32 +294,35 @@ func (page *Page) checkCache() bool {
 
 // When TildeWiki first starts, pull all available pages
 // into cache, saving their modification time as well to
-// detect changes to a page on disk.
+// detect changes to a page.
 func genPageCache() {
-
-	// build an array of all the (*os.FileInfo)'s
-	// needed to build the cache
-	wikipages, err := ioutil.ReadDir(confVars.pageDir)
-	if err != nil {
-		log.Printf("Initial Cache Build :: Can't read directory %s\n", confVars.pageDir)
-		panic(err)
-	}
 
 	// spawn a new goroutine for each entry, to cache
 	// everything as quickly as possible
-	var wg sync.WaitGroup
-	for _, f := range wikipages {
+	if wikipages, err := ioutil.ReadDir(confVars.pageDir); err == nil {
+		var wg sync.WaitGroup
+		for _, f := range wikipages {
 
-		wg.Add(1)
-		go func(f os.FileInfo) {
-			page := newBarePage(confVars.pageDir+"/"+f.Name(), f.Name())
-			page.cache()
-			log.Println("Cached page " + page.Shortname)
-			wg.Done()
-		}(f)
+			wg.Add(1)
+
+			go func(f os.FileInfo) {
+				page := newBarePage(confVars.pageDir+"/"+f.Name(), f.Name())
+				if err := page.cache(); err != nil {
+					log.Printf("While generating initial cache, caught error for %v: %v\n", f.Name(), err)
+				}
+				log.Printf("Cached page %v\n", page.Shortname)
+
+				wg.Done()
+			}(f)
+		}
+
+		wg.Wait()
+
+	} else {
+		log.Printf("Initial cache build :: Can't read directory: %s\n", err)
+		log.Printf("**NOTICE** TildeWiki's cache may not function correctly until this is resolved.\n")
+		log.Printf("\tPlease verify the directory in tildewiki.yml is correct and restart TildeWiki\n")
 	}
-
-	wg.Wait()
 }
 
 // Wrapper function to check the cache
@@ -326,6 +331,28 @@ func genPageCache() {
 func pingCache(c cacher) {
 
 	if c.checkCache() {
-		c.cache()
+		if err := c.cache(); err != nil {
+			log.Printf("Pinged cache, received error while caching: %v\n", err)
+		}
+	}
+}
+
+// Pulling from cache is its own function.
+// Less worrying about mutexes.
+func pullFromCache(filename string) *Page {
+
+	pmutex.RLock()
+	page := cachedPages[filename]
+	pmutex.RUnlock()
+
+	return page
+}
+
+// Blanks stored modtimes for the page cache.
+// Used to trigger a forced re-cache on the
+// next page load.
+func triggerRecache() {
+	for _, v := range cachedPages {
+		v.Recache = true
 	}
 }
