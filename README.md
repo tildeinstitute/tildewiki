@@ -1,7 +1,7 @@
 # Tildewiki [![Go Report Card](https://goreportcard.com/badge/github.com/gbmor/tildewiki)](https://goreportcard.com/report/github.com/gbmor/tildewiki) [![GolangCI](https://img.shields.io/badge/golangci-check-blue.svg)](https://golangci.com/r/github.com/gbmor/tildewiki) [![Travis CI](https://api.travis-ci.org/gbmor/tildewiki.svg?branch=master)](https://travis-ci.org/gbmor/tildewiki)
 A wiki engine designed around the needs of the [tildeverse](https://tildeverse.org)
 
-[\[Features\]](Features) | [\[Installation\]](Installation) | [\[Benchmarks\]](Benchmarks) | [\[Notes\]](Notes)
+[\[Features\]](#features) | [\[Installation\]](#installation) | [\[Benchmarks\]](#benchmarks) | [\[Notes\]](#notes)
 
 ## [v0.6.0](https://github.com/gbmor/tildewiki/releases/tag/v0.6.0)
 A ton of refactoring has gone into `v0.6`
@@ -18,7 +18,7 @@ Contains all the new changes going into the next version
 * [https://wiki.tilde.institute](https://wiki.tilde.institute) 
 * [gtmetrix report](https://gtmetrix.com/reports/wiki.tilde.institute/F1tzxEch)
 
-## Features
+## <a name="features"></a>Features
 * Speed is a priority
 * Mobile-friendly pages
 * Markdown!
@@ -37,7 +37,7 @@ default (and includes as an example, a simple but nice local CSS file)
 * Easily use `Nginx` to proxy requests to it. This allows you to use your
 existing SSL certificates.
 
-## Installation
+## <a name="installation"></a>Installation
 
 The installation script uses `bash`, and the startup script uses `daemonize`. Both should
 be available in any Linux distribution's package repositories. However, they are not
@@ -136,7 +136,7 @@ server {
 }
 ```
 
-## Benchmarks
+## <a name="benchmarks"></a>Benchmarks
 
 * [bombardier](https://github.com/codesenberg/bombardier)
 
@@ -197,7 +197,7 @@ Number of 5xx responses:                            0
 
 ```
 
-### Notes
+## <a name="notes"></a>Notes
 * Builds with `Go 1.11` and `Go 1.12`. Not tested with any other version.
 * Tested on Linux (Ubuntu 18.04LTS, Debian 9) and OpenBSD 6.4
 * If you have access to other environments and can test, please let me know.
