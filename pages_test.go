@@ -299,7 +299,7 @@ func TestPage_cache(t *testing.T) {
 				Shortname: tt.fields.Shortname,
 				Raw:       tt.fields.Raw,
 			}
-			if err := page.cache(); tt.wantErr == false {
+			if err := page.cache(); !tt.wantErr {
 				cachedpage := cachedPages[tt.fields.Shortname]
 				if !bytes.Equal(cachedpage.Raw, tt.fields.Raw) {
 					t.Errorf("page.cache(): byte mismatch for %v: %v\n", page.Shortname, err)
@@ -317,7 +317,7 @@ func Benchmark_Page_cache(b *testing.B) {
 				Longname:  tt.fields.Longname,
 				Shortname: tt.fields.Shortname,
 			}
-			if err := page.cache(); err != nil && tt.wantErr == false {
+			if err := page.cache(); err != nil && !tt.wantErr {
 				b.Errorf("While benchmarking page.cache, caught: %v\n", err)
 			}
 		}
