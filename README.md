@@ -1,5 +1,5 @@
-# Tildewiki [![Go Report Card](https://goreportcard.com/badge/github.com/gbmor/tildewiki)](https://goreportcard.com/report/github.com/gbmor/tildewiki) [![GolangCI](https://img.shields.io/badge/golangci-check-blue.svg)](https://golangci.com/r/github.com/gbmor/tildewiki) [![Travis CI](https://api.travis-ci.org/gbmor/tildewiki.svg?branch=master)](https://travis-ci.org/gbmor/tildewiki)
-A wiki engine designed around the needs of the [tildeverse](https://tildeverse.org)
+# TildeWiki [![Go Report Card](https://goreportcard.com/badge/github.com/gbmor/tildewiki)](https://goreportcard.com/report/github.com/gbmor/tildewiki) [![GolangCI](https://img.shields.io/badge/golangci-check-blue.svg)](https://golangci.com/r/github.com/gbmor/tildewiki) [![Travis CI](https://api.travis-ci.org/gbmor/tildewiki.svg?branch=master)](https://travis-ci.org/gbmor/tildewiki)
+TildeWiki is a memory-caching, static site server focused on the blog and wiki use-case. Originally designed around the needs of the [tildeverse](https://tildeverse.org).
 
 [\[Features\]](#features) | [\[Installation\]](#installation) | [\[Benchmarks\]](#benchmarks) | [\[Notes\]](#notes)
 
