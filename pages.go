@@ -27,7 +27,7 @@ func buildPage(filename string) (*Page, error) {
 
 	// the cleanup crew
 	defer func() {
-		err := file.Close()
+		err = file.Close()
 		if err != nil {
 			log.Printf("%v\n", err)
 		}
