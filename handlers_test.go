@@ -107,33 +107,6 @@ func Test_cssHandler(t *testing.T) {
 	})
 }
 
-// this test is a bit hairy, will finish soon
-/*
-func Test_validatePath(t *testing.T) {
-	w := httptest.NewRecorder()
-	type args struct {
-		fn func(*httptest.ResponseRecorder, *http.Request, string)
-	}
-	tests := []struct {
-		name string
-		args args
-		want http.HandlerFunc
-	}{
-		{
-			name: "valid",
-			args: func(w, httptest.NewRequest("GET", "localhost:8080/w/example", nil), "example"),
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := validatePath(tt.args.fn); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("validatePath() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-
-}*/
-
 // Tests if /500 returns a status 200, which means
 // the handler is working. Doesn't test for 500-triggering
 // situations yet.

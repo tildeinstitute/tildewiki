@@ -227,12 +227,14 @@ func Benchmark_indexPage_checkCache(b *testing.B) {
 // non-nil bytes for indexPage.Body field
 func Test_indexPage_cache(t *testing.T) {
 	for _, tt := range IndexCacheCases {
-		testIndex.Modtime = tt.fields.Modtime
-		testIndex.LastTally = tt.fields.LastTally
-		testIndex.cache()
-		if testIndex.Body == nil {
-			t.Errorf("indexPage_cache(): Returning nil for field Body.\n")
-		}
+		t.Run(tt.name, func(t *testing.T) {
+			testIndex.Modtime = tt.fields.Modtime
+			testIndex.LastTally = tt.fields.LastTally
+			testIndex.cache()
+			if testIndex.Body == nil {
+				t.Errorf("indexPage_cache(): Returning nil for field Body.\n")
+			}
+		})
 	}
 }
 func Benchmark_indexPage_cache(b *testing.B) {
@@ -359,11 +361,13 @@ func Test_genPageCache(t *testing.T) {
 	initConfigParams()
 	log.SetOutput(hush)
 	genPageCache()
-	for k, v := range cachedPages {
-		if v.Body == nil || v.Raw == nil || v.Longname == "" {
-			t.Errorf("Test_genPageCache(): %v holds incorrect data or nil bytes\n", k)
+	t.Run("genPageCache", func(t *testing.T) {
+		for k, v := range cachedPages {
+			if v.Body == nil || v.Raw == nil || v.Longname == "" {
+				t.Errorf("Test_genPageCache(): %v holds incorrect data or nil bytes\n", k)
+			}
 		}
-	}
+	})
 }
 func Benchmark_genPageCache(b *testing.B) {
 	initConfigParams()
@@ -372,4 +376,47 @@ func Benchmark_genPageCache(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		genPageCache()
 	}
+}
+
+// Ensure pullFromCache() doesn't return a
+// nil page from the cache
+func Test_pullFromCache(t *testing.T) {
+	initConfigParams()
+	log.SetOutput(hush)
+	genPageCache()
+	t.Run("pullFromCache", func(t *testing.T) {
+		for k := range cachedPages {
+			page, err := pullFromCache(k)
+			if page == nil || err != nil {
+				t.Errorf("%v returned nil\n", k)
+			}
+		}
+	})
+}
+func Benchmark_pullFromCache(b *testing.B) {
+	initConfigParams()
+	log.SetOutput(hush)
+	genPageCache()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		for k := range cachedPages {
+			pullFromCache(k)
+		}
+	}
+}
+
+// tests if triggerRecache sets the trip bool
+// on all pages in the cache
+func Test_triggerRecache(t *testing.T) {
+	initConfigParams()
+	log.SetOutput(hush)
+	genPageCache()
+	t.Run("triggerRecache", func(t *testing.T) {
+		triggerRecache()
+		for k, v := range cachedPages {
+			if !v.Recache {
+				t.Errorf("Recache didn't trip for %v\n", k)
+			}
+		}
+	})
 }
