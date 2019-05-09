@@ -15,7 +15,7 @@ A ton of refactoring has gone into `v0.6`
 * Startup script to daemonize the process
 
 ### [Development Branch](https://github.com/gbmor/tildewiki/tree/dev)
-Contains all the new changes going into the next version
+Contains the changes going into the next version
 
 ### Currently powering the [tilde.institute](https://tilde.institute) wiki: 
 * [https://wiki.tilde.institute](https://wiki.tilde.institute) 
@@ -26,7 +26,7 @@ Contains all the new changes going into the next version
 * Mobile-friendly pages
 * Markdown!<sup><a href="#2">2</a></sup>
 * Uses [kognise/water.css](https://github.com/kognise/water.css) dark theme by
-default (and includes as an example, a simple but nice local CSS file)
+default (and includes as an example, a simple but nice local CSS file)<sup><a href="#3">3</a></sup>
 * `YAML` configuration
 * Automatically reloads config file when a change is detected.
 * Generates list of pages, then places at an anchor comment in the index page
@@ -101,7 +101,7 @@ to move the `pages` and `assets` directories with it, along with `tildewiki.yaml
 Begin by combing through `tildewiki.yaml` (if you used the scripts, it's in `/usr/local/tildewiki`)
 and changing the options to something appropriate to your site. Afterwards, place your markdown-formatted
 pages into the directory specified by `PageDir` in the config and place your markdown-formatted 
-index file, including the anchor comment `<!--pagelist-->`, into the `AssetsDir`. Feel free to
+index file, containing the anchor comment `<!--pagelist-->`, into the `AssetsDir`. Feel free to
 change the favicon and CSS to your liking.
 
 Once that's all done, either run `/usr/local/bin/tildewiki` (if you've used the scripts) or run
@@ -109,11 +109,11 @@ the binary manually.
 
 ### Serving TildeWiki
 
-Unless you plan on serving from :8080, or the port you chose in `tildewiki.yaml`, I recommend
-proxying requests to TildeWiki via a dedicated HTTP server. There are several options for this,
-namely [Caddy](https://caddyserver.com/) and [nginx](https://nginx.org). The best option is
-for you to use Caddy: it integrates TLS certificate renewal and has a *very* easy configuration
-syntax.
+Unless you plan on serving directly from :8080 (which is fine!), or whichever port you chose in 
+`tildewiki.yaml`, I recommend proxying requests to TildeWiki so it can be served from a subdomain,
+for example. There are several options for this, namely [Caddy](https://caddyserver.com/) and 
+[nginx](https://nginx.org). The best option is for you to use Caddy: it integrates TLS certificate 
+renewal and has a *very* easy configuration syntax.
 
 If you're going to use Nginx, here's an example server block for you to start with. Note: this 
 example uses TLS and http2. [LetsEncrypt](https://letsencrypt.org) is awesome, and free. 
@@ -208,14 +208,10 @@ Number of 5xx responses:                            0
 ## <a name="notes"></a>Notes
 * Builds with `Go 1.11` and `Go 1.12`. Not tested with any other version.
 * Tested on Linux (Ubuntu 18.04LTS, Debian 9) and OpenBSD 6.4
-* If you have access to other environments and can test, please let me know.
-It will be much appreciated.
 
 1. <a name="1"></a>For [tildeverse](https://tildeverse.org) projects, we tend to use a PR
-workflow. For example, wiki pages are submitted to the repo via pull
-request. That's what I'm initially designing this around. I will likely
-add authentication and in-place page editing last, after everything else
-is done, including unit tests.
+workflow for collaboration. For example, wiki pages are submitted to the repo via pull
+request. I'm currently evaluating other options for page creation and editing.
 
 2. <a name="2"></a>Uses a patched copy of [russross/blackfriday](https://github.com/russross/blackfriday)
 ([gopkg](https://gopkg.in/russross/blackfriday.v2)) as the markdown
@@ -228,4 +224,6 @@ the document header during the `markdown->html` translation.
 [gbmor-forks/blackfriday](https://github.com/gbmor-forks/blackfriday).
 * The PR can be found here: [allow writing of user-specified
 &lt;meta.../&gt;...](https://github.com/russross/blackfriday/pull/541)
+
+3. <a name="3"></a>The local CSS provided is the "58 bytes of CSS" from [https://jrl.ninja/etc/1/](https://jrl.ninja/etc/1/)
 
