@@ -271,10 +271,13 @@ func writeIndexLinks(f os.FileInfo, buf *bytes.Buffer) {
 	// if it hasn't been cached, cache it.
 	// usually means the page is new.
 	if page.Body == nil {
-		page.Shortname = f.Name()
-		page.Longname = confVars.pageDir + "/" + f.Name()
-		if err := page.cache(); err != nil {
+		newpage := newBarePage(confVars.pageDir+"/"+f.Name(), f.Name())
+		if err := newpage.cache(); err != nil {
 			log.Printf("While caching page %v during the index generation, caught an error: %v\n", page.Shortname, err)
+		}
+		page, err = pullFromCache(f.Name())
+		if err != nil {
+			log.Printf("%v\n", err)
 		}
 	}
 
