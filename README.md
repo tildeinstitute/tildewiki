@@ -217,7 +217,6 @@ request. I'm currently evaluating other options for page creation and editing.
 ([gopkg](https://gopkg.in/russross/blackfriday.v2)) as the markdown
 parser. The patch allows injection of various `<meta.../>` tags into
 the document header during the `markdown->html` translation.
-
   * The patched `v2` repository lives at:
 [gbmor-forks/blackfriday.v2-patched](https://github.com/gbmor-forks/blackfriday.v2-patched)
   * The patched `master` repo lives at:
