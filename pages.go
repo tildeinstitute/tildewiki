@@ -235,12 +235,11 @@ func tallyPages(buf *bytes.Buffer) {
 		}
 
 		// true if reversing page order, otherwise don't reverse
-		switch confVars.reverseTally {
-		case true:
+		if confVars.reverseTally {
 			for i := len(files) - 1; i >= 0; i-- {
 				writeIndexLinks(files[i], buf)
 			}
-		default:
+		} else {
 			for _, f := range files {
 				writeIndexLinks(f, buf)
 			}
