@@ -43,6 +43,11 @@ The installation script uses `bash`, and the startup script uses `daemonize`. Bo
 be available in any Linux distribution's package repositories. However, they are not
 required to use TildeWiki.
 
+There's an archive containing just the binary, config file, and required directories/files
+available. If you download this, you can skip to the section on setting up TildeWiki.
+
+[download release binary](https://github.com/gbmor/tildewiki/releases/download/v0.6.0/tildewiki-0.6.0-bin-linux-amd64.tar.gz)
+
 ### Using the scripts
 
 First, clone the repository or download and untar a release archive, then enter the directory.
