@@ -1,5 +1,8 @@
 # TildeWiki [![Go Report Card](https://goreportcard.com/badge/github.com/gbmor/tildewiki)](https://goreportcard.com/report/github.com/gbmor/tildewiki) [![GolangCI](https://img.shields.io/badge/golangci-check-blue.svg)](https://golangci.com/r/github.com/gbmor/tildewiki) [![Travis CI](https://api.travis-ci.org/gbmor/tildewiki.svg?branch=master)](https://travis-ci.org/gbmor/tildewiki)
-TildeWiki is a memory-caching, static site server focused on the blog and wiki use-case. Originally designed around the needs of the [tildeverse](https://tildeverse.org).
+TildeWiki is a memory-caching static site server. The possible uses of TildeWiki range from blogs to wikis, and more.
+Let me know if you adapt it to a new use-case, I'm always interested!
+
+Originally designed around the needs of the [tildeverse](https://tildeverse.org).<sup><a href="#1">1</a></sup>
 
 [\[Features\]](#features) | [\[Installation\]](#installation) | [\[Benchmarks\]](#benchmarks) | [\[Notes\]](#notes)
 
@@ -21,7 +24,7 @@ Contains all the new changes going into the next version
 ## <a name="features"></a>Features
 * Speed is a priority
 * Mobile-friendly pages
-* Markdown!
+* Markdown!<sup><a href="#2">2</a></sup>
 * Uses [kognise/water.css](https://github.com/kognise/water.css) dark theme by
 default (and includes as an example, a simple but nice local CSS file)
 * `YAML` configuration
@@ -208,13 +211,13 @@ Number of 5xx responses:                            0
 * If you have access to other environments and can test, please let me know.
 It will be much appreciated.
 
-For [tildeverse](https://tildeverse.org) projects, we tend to use a PR
+1. <a name="1"></a>For [tildeverse](https://tildeverse.org) projects, we tend to use a PR
 workflow. For example, wiki pages are submitted to the repo via pull
 request. That's what I'm initially designing this around. I will likely
 add authentication and in-place page editing last, after everything else
 is done, including unit tests.
 
-Uses a patched copy of [russross/blackfriday](https://github.com/russross/blackfriday)
+2. <a name="2"></a>Uses a patched copy of [russross/blackfriday](https://github.com/russross/blackfriday)
 ([gopkg](https://gopkg.in/russross/blackfriday.v2)) as the markdown
 parser. The patch allows injection of various `<meta.../>` tags into
 the document header during the `markdown->html` translation.
