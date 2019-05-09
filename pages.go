@@ -112,11 +112,12 @@ func (body pagedata) getMeta() (string, string, string) {
 
 // Checks the index page's cache. Returns true if the
 // index needs to be re-cached.
+// This method helps satisfy the cacher interface.
 func (indexCache *indexPage) checkCache() bool {
 
+	// if the last tally time is past the
+	// interval in the config file, re-cache
 	if interval, err := time.ParseDuration(viper.GetString("IndexRefreshInterval")); err == nil {
-		// if the last tally time is past the
-		// interval in the config file, re-cache
 		if time.Since(indexCache.LastTally) > interval {
 			return true
 		}
@@ -124,10 +125,9 @@ func (indexCache *indexPage) checkCache() bool {
 		log.Printf("Couldn't parse index refresh interval: %v\n", err)
 	}
 
-	// stat the index page to get the mod time for the next block
+	// if the stored mod time is different
+	// from the file's modtime, re-cache
 	if stat, err := os.Stat(confVars.assetsDir + "/" + confVars.indexFile); err == nil {
-		// if the stored mod time is different
-		// from the file's modtime, re-cache
 		if stat.ModTime() != indexCache.Modtime {
 			return true
 		}
@@ -144,7 +144,8 @@ func (indexCache *indexPage) checkCache() bool {
 	return false
 }
 
-// Re-caches the index page
+// Re-caches the index page.
+// This method helps satisfy the cacher interface.
 func (indexCache *indexPage) cache() error {
 	body := render(genIndex(), confVars.wikiName+" "+confVars.titleSep+" "+confVars.wikiDesc)
 	if body == nil {
@@ -162,11 +163,14 @@ func genIndex() []byte {
 	var err error
 	indexpath := confVars.assetsDir + "/" + confVars.indexFile
 
+	// stat to check mod time
 	stat, err := os.Stat(indexpath)
 	if err != nil {
 		log.Printf("Couldn't stat index: %v\n", err)
 	}
 
+	// if the index file has been modified,
+	// vaccuum up those bytes into the cache
 	if indexCache.Modtime != stat.ModTime() {
 		imutex.Lock()
 		indexCache.Raw, err = ioutil.ReadFile(indexpath)
@@ -201,6 +205,9 @@ func genIndex() []byte {
 		}
 	}
 
+	// the LastTally field lets us know
+	// when the index was last generated
+	// by this function.
 	imutex.Lock()
 	indexCache.LastTally = time.Now()
 	imutex.Unlock()
@@ -208,7 +215,9 @@ func genIndex() []byte {
 	return buf.Bytes()
 }
 
-// Generate a list of pages for the front page
+// Generate a list of pages for the index.
+// Called by genIndex() when the anchor
+// comment has been found.
 func tallyPages(buf *bytes.Buffer) {
 
 	// get a list of files in the directory specified
@@ -249,7 +258,9 @@ func tallyPages(buf *bytes.Buffer) {
 	}
 }
 
-// Takes in a file and outputs a markdown link to it
+// Takes in a file and outputs a markdown link to it.
+// Called by tallyPages() for each file in the pages
+// directory.
 func writeIndexLinks(f os.FileInfo, buf *bytes.Buffer) {
 
 	// pull the page from the cache
@@ -278,11 +289,12 @@ func writeIndexLinks(f os.FileInfo, buf *bytes.Buffer) {
 	}
 }
 
-// Caches a page
+// Caches a page.
+// This method helps satisfy the cacher interface.
 func (page *Page) cache() error {
 
-	// buildPage() is defined in this file.
-	// it reads the file and builds the Page struct
+	// If buildPage() successfully returns a page
+	// object ptr, then push it into the cache
 	if newpage, err := buildPage(page.Longname); err == nil {
 		pmutex.Lock()
 		cachedPages[newpage.Shortname] = newpage
@@ -297,7 +309,9 @@ func (page *Page) cache() error {
 // Compare the recorded modtime of a cached page to the
 // modtime of the file on disk. If they're different,
 // return `true`, indicating the cache needs
-// to be refreshed.
+// to be refreshed. Also returns `true` if the
+// page.Recache field is set to `true`.
+// This method helps satisfy the cacher interface.
 func (page *Page) checkCache() bool {
 
 	if newpage, err := os.Stat(page.Longname); err == nil {
