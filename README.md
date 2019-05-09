@@ -218,11 +218,11 @@ request. I'm currently evaluating other options for page creation and editing.
 parser. The patch allows injection of various `<meta.../>` tags into
 the document header during the `markdown->html` translation.
 
-* The patched `v2` repository lives at:
+  * The patched `v2` repository lives at:
 [gbmor-forks/blackfriday.v2-patched](https://github.com/gbmor-forks/blackfriday.v2-patched)
-* The patched `master` repo lives at:
+  * The patched `master` repo lives at:
 [gbmor-forks/blackfriday](https://github.com/gbmor-forks/blackfriday).
-* The PR can be found here: [allow writing of user-specified
+  * The PR can be found here: [allow writing of user-specified
 &lt;meta.../&gt;...](https://github.com/russross/blackfriday/pull/541)
 
 3. <a name="3"></a>The local CSS provided is the "58 bytes of CSS" from [https://jrl.ninja/etc/1/](https://jrl.ninja/etc/1/)
