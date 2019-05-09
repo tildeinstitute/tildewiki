@@ -357,10 +357,14 @@ func pingCache(c cacher) {
 func pullFromCache(filename string) *Page {
 
 	pmutex.RLock()
-	page := cachedPages[filename]
+	if page, ok := cachedPages[filename]; ok {
+		pmutex.RUnlock()
+		return page
+	}
 	pmutex.RUnlock()
 
-	return page
+	log.Printf("Error pulling from cache\n")
+	return nil
 }
 
 // Blanks stored modtimes for the page cache.
