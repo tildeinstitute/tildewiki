@@ -2,3 +2,4 @@ tildewiki
 trace.out
 tildewiki.sh
 local/
+*.tar.gz
