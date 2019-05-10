@@ -49,7 +49,7 @@ required to use TildeWiki.
 There's an archive containing just the binary, config file, and required directories/files
 available. If you download this, you can skip to the section on setting up TildeWiki.
 
-[download release binary](https://github.com/gbmor/tildewiki/releases/download/v0.6.0/tildewiki-0.6.1-bin-linux-amd64.tar.gz)
+[download release binary](https://github.com/gbmor/tildewiki/releases/download/v0.6.1/tildewiki-0.6.1-bin-linux-amd64.tar.gz)
 
 ### Using the scripts
 
