@@ -6,7 +6,7 @@ Originally designed around the needs of the [tildeverse](https://tildeverse.org)
 
 [\[Features\]](#features) | [\[Installation\]](#installation) | [\[Benchmarks\]](#benchmarks) | [\[Notes\]](#notes)
 
-## [v0.6.0](https://github.com/gbmor/tildewiki/releases/tag/v0.6.0)
+## [v0.6.1](https://github.com/gbmor/tildewiki/releases/tag/v0.6.1)
 A ton of refactoring has gone into `v0.6`
 * Various performance improvements
 * Code readability improvements
@@ -49,7 +49,7 @@ required to use TildeWiki.
 There's an archive containing just the binary, config file, and required directories/files
 available. If you download this, you can skip to the section on setting up TildeWiki.
 
-[download release binary](https://github.com/gbmor/tildewiki/releases/download/v0.6.0/tildewiki-0.6.0-bin-linux-amd64.tar.gz)
+[download release binary](https://github.com/gbmor/tildewiki/releases/download/v0.6.0/tildewiki-0.6.1-bin-linux-amd64.tar.gz)
 
 ### Using the scripts
 
