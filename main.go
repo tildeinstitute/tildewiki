@@ -7,7 +7,7 @@ import (
 )
 
 // TildeWiki version
-const twvers = "0.6.0"
+const twvers = "0.6.1"
 
 func main() {
 
