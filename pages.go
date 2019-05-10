@@ -261,26 +261,33 @@ func tallyPages(buf *bytes.Buffer) {
 // Called by tallyPages() for each file in the pages
 // directory.
 func writeIndexLinks(f os.FileInfo, buf *bytes.Buffer) {
-
-	// pull the page from the cache
-	page, err := pullFromCache(f.Name())
-	if err != nil {
-		log.Printf("%v\n", err)
+	var page *Page
+	exists := false
+	var err error
+	for k := range cachedPages {
+		if f.Name() == k {
+			exists = true
+			break
+		}
 	}
-
-	// if it hasn't been cached, cache it.
-	// usually means the page is new.
-	if page.Body == nil {
+	if exists {
+		// pull the page from the cache
+		page, err = pullFromCache(f.Name())
+		if err != nil {
+			log.Printf("%v\n", err)
+		}
+	} else {
+		// if it hasn't been cached, cache it.
+		// usually means the page is new.
 		newpage := newBarePage(confVars.pageDir+"/"+f.Name(), f.Name())
-		if err := newpage.cache(); err != nil {
-			log.Printf("While caching page %v during the index generation, caught an error: %v\n", page.Shortname, err)
+		if err = newpage.cache(); err != nil {
+			log.Printf("While caching page %v during the index generation, caught an error: %v\n", f.Name(), err)
 		}
 		page, err = pullFromCache(f.Name())
 		if err != nil {
 			log.Printf("%v\n", err)
 		}
 	}
-
 	// get the URI path from the file name
 	// and write the formatted link to the
 	// bytes.Buffer
