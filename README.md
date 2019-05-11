@@ -6,13 +6,13 @@ Originally designed around the needs of the [tildeverse](https://tildeverse.org)
 
 [\[Features\]](#features) | [\[Installation\]](#installation) | [\[Benchmarks\]](#benchmarks) | [\[Notes\]](#notes)
 
-## [v0.6.1](https://github.com/gbmor/tildewiki/releases/tag/v0.6.1)
+## [v0.6.2](https://github.com/gbmor/tildewiki/releases/tag/v0.6.2)
 A ton of refactoring has gone into `v0.6`
 * Various performance improvements
 * Code readability improvements
-* Improved testing (~61% coverage)
 * Script to automate build/install
 * Startup script to daemonize the process
+* Bugfixes! Yay!
 
 ### [Development Branch](https://github.com/gbmor/tildewiki/tree/dev)
 Contains the changes going into the next version
@@ -25,6 +25,7 @@ Contains the changes going into the next version
 * Speed is a priority
 * Mobile-friendly pages
 * Markdown!<sup><a href="#2">2</a></sup>
+* Compressed responses (gzip)
 * Uses [kognise/water.css](https://github.com/kognise/water.css) dark theme by
 default (and includes as an example, a simple but nice local CSS file)<sup><a href="#3">3</a></sup>
 * `YAML` configuration
@@ -53,7 +54,7 @@ First, clone the repository or download and untar a release archive, then enter 
 ```
 $ git clone git://github.com/gbmor/tildewiki.git && cd tildewiki
 
-$ curl -L https://github.com/gbmor/tildewiki/archive/v0.6.0.tar.gz | tar xzvf - && cd tildewiki-v0.6.0
+$ curl -L https://github.com/gbmor/tildewiki/archive/v0.6.2.tar.gz | tar xzvf - && cd tildewiki-v0.6.2
 ```
 
 If you used `git`, the master branch will be the most recent release. Development work stays
