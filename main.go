@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/gorilla/handlers"
 )
 
 // TildeWiki version
@@ -52,12 +54,14 @@ func main() {
 	log.Println("**NOTICE** Building initial cache ...")
 	genPageCache()
 
-	http.HandleFunc("/", indexHandler)
-	http.HandleFunc(confVars.viewPath, validatePath(pageHandler))
-	http.HandleFunc("/css", cssHandler)
-	http.HandleFunc("/icon", iconHandler)
-	http.HandleFunc("/500", error500)
-	http.HandleFunc("/404", error404)
+	serv := http.NewServeMux()
+
+	serv.HandleFunc("/", indexHandler)
+	serv.HandleFunc(confVars.viewPath, validatePath(pageHandler))
+	serv.HandleFunc("/css", cssHandler)
+	serv.HandleFunc("/icon", iconHandler)
+	serv.HandleFunc("/500", error500)
+	serv.HandleFunc("/404", error404)
 
 	log.Println("**NOTICE** Binding to " + confVars.port)
 
@@ -66,5 +70,5 @@ func main() {
 		log.Printf("**NOTICE** Using reversed page listings on index ... \n")
 	}
 
-	log.Fatal(http.ListenAndServe(confVars.port, nil))
+	log.Fatal(http.ListenAndServe(confVars.port, handlers.CompressHandler(serv)))
 }
