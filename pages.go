@@ -262,15 +262,8 @@ func tallyPages(buf *bytes.Buffer) {
 // directory.
 func writeIndexLinks(f os.FileInfo, buf *bytes.Buffer) {
 	var page *Page
-	exists := false
 	var err error
-	for k := range cachedPages {
-		if f.Name() == k {
-			exists = true
-			break
-		}
-	}
-	if exists {
+	if _, exists := cachedPages[f.Name()]; exists {
 		// pull the page from the cache
 		page, err = pullFromCache(f.Name())
 		if err != nil {
@@ -280,7 +273,7 @@ func writeIndexLinks(f os.FileInfo, buf *bytes.Buffer) {
 		// if it hasn't been cached, cache it.
 		// usually means the page is new.
 		newpage := newBarePage(confVars.pageDir+"/"+f.Name(), f.Name())
-		if err = newpage.cache(); err != nil {
+		if err := newpage.cache(); err != nil {
 			log.Printf("While caching page %v during the index generation, caught an error: %v\n", f.Name(), err)
 		}
 		page, err = pullFromCache(f.Name())
