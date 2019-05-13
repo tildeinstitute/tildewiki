@@ -86,8 +86,8 @@ like above, and enter the directory. Once in the directory, you'll need to build
 $ go build
 ```
 
-It won't take long. Also, for those new to `go`, it doesn't need to live in your `GOPATH` as
-it's been set up to use Go Modules. Vendored dependencies are also included.
+It won't take long. Also, it doesn't need to live in your `GOPATH` as
+it's been set up to use Go Modules.
 
 After it finishes, you can leave the binary where it is or move it somewhere else. Remember
 to move the `pages` and `assets` directories with it, along with `tildewiki.yaml`.
