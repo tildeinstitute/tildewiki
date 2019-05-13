@@ -38,8 +38,8 @@ default (and includes as an example, a simple but nice local CSS file)<sup><a hr
   * File to use for index page
   * Logging output (file, `stdout`, `null`) and file location
 * Runs as a multithreaded service, rather than via CGI
-* Easily use `Nginx` to proxy requests to it. This allows you to use your
-existing SSL certificates.
+* Easily use [Caddy](https://caddyserver.com) or Nginx to proxy requests to it. This allows you to use your
+existing SSL certificates (or, in the case of Caddy, painlessly generate new ones).
 
 ## <a name="installation"></a>Installation
 
