@@ -376,7 +376,7 @@ func genPageCache() {
 			go func(f os.FileInfo) {
 				confVars.mu.RLock()
 				page := newBarePage(confVars.pageDir+"/"+f.Name(), f.Name())
-				confVars.mu.RLock()
+				confVars.mu.RUnlock()
 				if err := page.cache(); err != nil {
 					log.Printf("While generating initial cache, caught error for %v: %v\n", f.Name(), err.Error())
 				}
@@ -393,7 +393,7 @@ func genPageCache() {
 		log.Printf("**NOTICE** TildeWiki's cache may not function correctly until this is resolved.\n")
 		log.Printf("\tPlease verify the directory in tildewiki.yml is correct and restart TildeWiki\n")
 	}
-	confVars.mu.RLock()
+	confVars.mu.RUnlock()
 }
 
 // Wrapper function to check the cache
