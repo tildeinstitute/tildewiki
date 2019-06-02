@@ -56,14 +56,18 @@ func buildPage(filename string) (*Page, error) {
 		title = shortname
 	}
 	if desc != "" {
+		confVars.mu.RLock()
 		desc = confVars.descSep + " " + desc
+		confVars.mu.RUnlock()
 	}
 	if author != "" {
 		author = "`by " + author + "`"
 	}
 
 	// longtitle is used in the <title> tags of the output html
+	confVars.mu.RLock()
 	longtitle := title + " " + confVars.titleSep + " " + confVars.wikiName
+	confVars.mu.RUnlock()
 
 	// store the raw bytes of the document after parsing
 	// from markdown to HTML.
@@ -118,28 +122,40 @@ func (indexCache *indexPage) checkCache() bool {
 	// if the last tally time is past the
 	// interval in the config file, re-cache
 	if interval, err := time.ParseDuration(viper.GetString("IndexRefreshInterval")); err == nil {
+		imutex.RLock()
 		if time.Since(indexCache.LastTally) > interval {
+			imutex.RUnlock()
 			return true
 		}
+		imutex.RUnlock()
 	} else {
 		log.Printf("Couldn't parse index refresh interval: %v\n", err)
 	}
 
 	// if the stored mod time is different
 	// from the file's modtime, re-cache
+	confVars.mu.RLock()
 	if stat, err := os.Stat(confVars.assetsDir + "/" + confVars.indexFile); err == nil {
+		imutex.RLock()
 		if stat.ModTime() != indexCache.Modtime {
+			imutex.RUnlock()
+			confVars.mu.RUnlock()
 			return true
 		}
+		imutex.RUnlock()
 	} else {
 		log.Printf("Couldn't stat index page: %v\n", err)
 	}
+	confVars.mu.RUnlock()
 
 	// if the last tally time or stored mod time is zero, signal
 	// to re-cache the index
+	imutex.RLock()
 	if indexCache.LastTally.IsZero() || indexCache.Modtime.IsZero() {
+		imutex.RUnlock()
 		return true
 	}
+	imutex.RUnlock()
 
 	return false
 }
@@ -147,7 +163,9 @@ func (indexCache *indexPage) checkCache() bool {
 // Re-caches the index page.
 // This method helps satisfy the cacher interface.
 func (indexCache *indexPage) cache() error {
+	confVars.mu.RLock()
 	body := render(genIndex(), confVars.wikiName+" "+confVars.titleSep+" "+confVars.wikiDesc)
+	confVars.mu.RUnlock()
 	if body == nil {
 		return errors.New("indexPage.cache(): getting nil bytes")
 	}
@@ -161,7 +179,9 @@ func (indexCache *indexPage) cache() error {
 func genIndex() []byte {
 
 	var err error
+	confVars.mu.RLock()
 	indexpath := confVars.assetsDir + "/" + confVars.indexFile
+	confVars.mu.RUnlock()
 
 	// stat to check mod time
 	stat, err := os.Stat(indexpath)
@@ -171,7 +191,10 @@ func genIndex() []byte {
 
 	// if the index file has been modified,
 	// vaccuum up those bytes into the cache
+
+	imutex.RLock()
 	if indexCache.Modtime != stat.ModTime() {
+		imutex.RUnlock()
 		imutex.Lock()
 		indexCache.Raw, err = ioutil.ReadFile(indexpath)
 		imutex.Unlock()
@@ -179,6 +202,8 @@ func genIndex() []byte {
 			return []byte("Could not open \"" + indexpath + "\"")
 		}
 
+	} else {
+		imutex.RUnlock()
 	}
 
 	// body holds the bytes of the generated index page being sent to the client.
@@ -222,6 +247,7 @@ func tallyPages(buf *bytes.Buffer) {
 
 	// get a list of files in the directory specified
 	// in the config file parameter "PageDir"
+	confVars.mu.RLock()
 	if files, err := ioutil.ReadDir(confVars.pageDir); err == nil {
 
 		// entry is used in the loop to construct the markdown
@@ -231,6 +257,7 @@ func tallyPages(buf *bytes.Buffer) {
 			if err != nil || n == 0 {
 				log.Printf("Error writing to buffer: %v\n", err)
 			}
+			confVars.mu.RUnlock()
 			return
 		}
 
@@ -255,6 +282,7 @@ func tallyPages(buf *bytes.Buffer) {
 	if err != nil {
 		log.Printf("Error writing to buffer: %v\n", err)
 	}
+	confVars.mu.RUnlock()
 }
 
 // Takes in a file and outputs a markdown link to it.
@@ -272,7 +300,9 @@ func writeIndexLinks(f os.FileInfo, buf *bytes.Buffer) {
 	} else {
 		// if it hasn't been cached, cache it.
 		// usually means the page is new.
+		confVars.mu.RLock()
 		newpage := newBarePage(confVars.pageDir+"/"+f.Name(), f.Name())
+		confVars.mu.RUnlock()
 		if err := newpage.cache(); err != nil {
 			log.Printf("While caching page %v during the index generation, caught an error: %v\n", f.Name(), err)
 		}
@@ -285,7 +315,9 @@ func writeIndexLinks(f os.FileInfo, buf *bytes.Buffer) {
 	// and write the formatted link to the
 	// bytes.Buffer
 	linkname := bytes.TrimSuffix([]byte(page.Shortname), []byte(".md"))
+	confVars.mu.RLock()
 	n, err := buf.WriteString("* [" + page.Title + "](" + confVars.viewPath + string(linkname) + ") " + page.Desc + " " + page.Author + "\n")
+	confVars.mu.RUnlock()
 	if err != nil || n == 0 {
 		log.Printf("Error writing to buffer: %v\n", err)
 	}
@@ -334,6 +366,7 @@ func genPageCache() {
 
 	// spawn a new goroutine for each entry, to cache
 	// everything as quickly as possible
+	confVars.mu.RLock()
 	if wikipages, err := ioutil.ReadDir(confVars.pageDir); err == nil {
 		var wg sync.WaitGroup
 		for _, f := range wikipages {
@@ -341,7 +374,9 @@ func genPageCache() {
 			wg.Add(1)
 
 			go func(f os.FileInfo) {
+				confVars.mu.RLock()
 				page := newBarePage(confVars.pageDir+"/"+f.Name(), f.Name())
+				confVars.mu.RLock()
 				if err := page.cache(); err != nil {
 					log.Printf("While generating initial cache, caught error for %v: %v\n", f.Name(), err)
 				}
@@ -358,6 +393,7 @@ func genPageCache() {
 		log.Printf("**NOTICE** TildeWiki's cache may not function correctly until this is resolved.\n")
 		log.Printf("\tPlease verify the directory in tildewiki.yml is correct and restart TildeWiki\n")
 	}
+	confVars.mu.RLock()
 }
 
 // Wrapper function to check the cache

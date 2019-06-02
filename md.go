@@ -8,9 +8,11 @@ import (
 func setupMarkdown(css, title string) *bf.HTMLRenderer {
 	// if using local CSS file, use the virtually-served css
 	// path rather than the actual file name
+	confVars.mu.RLock()
 	if cssLocal([]byte(confVars.cssPath)) {
 		css = "/css"
 	}
+	confVars.mu.RUnlock()
 
 	// return the parameters used for the rendering
 	// of markdown to html.
@@ -30,5 +32,8 @@ func setupMarkdown(css, title string) *bf.HTMLRenderer {
 // Wrapper function to generate the parameters above and
 // pass them to the blackfriday library's parsing function
 func render(data []byte, title string) []byte {
-	return bf.Run(data, bf.WithRenderer(setupMarkdown(confVars.cssPath, title)))
+	confVars.mu.RLock()
+	cssPath := confVars.cssPath
+	confVars.mu.RUnlock()
+	return bf.Run(data, bf.WithRenderer(setupMarkdown(cssPath, title)))
 }

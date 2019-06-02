@@ -68,7 +68,11 @@ func Test_indexHandler(t *testing.T) {
 func Test_iconHandler(t *testing.T) {
 	name := "Icon Handler Test"
 	initConfigParams()
+
+	confVars.mu.RLock()
 	icon, _ := ioutil.ReadFile(confVars.assetsDir + "/" + confVars.iconPath)
+	confVars.mu.RUnlock()
+
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "localhost:8080/icon", nil)
 	t.Run(name, func(t *testing.T) {

@@ -15,8 +15,13 @@ func init() {
 
 	// set up logging if the config file params
 	// are set
-	if confVars.fileLogging && !confVars.quietLogging {
-		if llogfile, err := os.OpenFile(confVars.logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600); err == nil {
+	confVars.mu.RLock()
+	filog := confVars.fileLogging
+	qlog := confVars.quietLogging
+	logfi := confVars.logFile
+	confVars.mu.RUnlock()
+	if filog && !qlog {
+		if llogfile, err := os.OpenFile(logfi, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600); err == nil {
 			log.SetOutput(llogfile)
 
 			go func() {
@@ -34,7 +39,7 @@ func init() {
 	}
 
 	// Tell TildeWiki to be quiet,
-	if confVars.quietLogging {
+	if qlog {
 		if llogfile, err := os.Open("/dev/null"); err == nil {
 			log.SetOutput(llogfile)
 

@@ -67,9 +67,13 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 // This is due to the default behavior of
 // not serving naked paths but virtual ones.
 func iconHandler(w http.ResponseWriter, r *http.Request) {
+	confVars.mu.RLock()
+	assetsDir := confVars.assetsDir
+	iconPath := confVars.iconPath
+	confVars.mu.RUnlock()
 
 	// read the raw bytes of the image
-	longname := confVars.assetsDir + "/" + confVars.iconPath
+	longname := assetsDir + "/" + iconPath
 	icon, err := ioutil.ReadFile(longname)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -108,16 +112,20 @@ func iconHandler(w http.ResponseWriter, r *http.Request) {
 // not serving naked paths but virtual ones.
 func cssHandler(w http.ResponseWriter, r *http.Request) {
 
+	confVars.mu.RLock()
+	cssPath := confVars.cssPath
+	confVars.mu.RUnlock()
+
 	// check if using local or remote CSS.
 	// if remote, don't bother doing anything
 	// and redirect requests to /
-	if !cssLocal([]byte(confVars.cssPath)) {
+	if !cssLocal([]byte(cssPath)) {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 
 	// read the raw bytes of the stylesheet
-	css, err := ioutil.ReadFile(confVars.cssPath)
+	css, err := ioutil.ReadFile(cssPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			log.Printf("CSS file specified in config does not exist: /css request 404\n")
@@ -130,7 +138,7 @@ func cssHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// stat to get the mod time for the etag header
-	stat, err := os.Stat(confVars.cssPath)
+	stat, err := os.Stat(cssPath)
 	if err != nil {
 		log.Printf("Couldn't stat CSS file to send ETag header: %v\n", err)
 	}
@@ -168,7 +176,9 @@ func validatePath(fn func(http.ResponseWriter, *http.Request, string)) http.Hand
 // if the markdown doc can't be read, default to
 // net/http's error handling
 func error500(w http.ResponseWriter, _ *http.Request) {
+	confVars.mu.RLock()
 	e500 := confVars.assetsDir + "/500.md"
+	confVars.mu.RUnlock()
 
 	file, err := ioutil.ReadFile(e500)
 	if err != nil {
@@ -190,7 +200,9 @@ func error500(w http.ResponseWriter, _ *http.Request) {
 // if the markdown doc can't be read, default to
 // net/http's error handling
 func error404(w http.ResponseWriter, r *http.Request) {
+	confVars.mu.RLock()
 	e404 := confVars.assetsDir + "/404.md"
+	confVars.mu.RUnlock()
 
 	file, err := ioutil.ReadFile(e404)
 	if err != nil {
