@@ -201,7 +201,7 @@ Number of 5xx responses:                            0
 
 ## <a name="notes"></a>Notes
 * Builds with `Go 1.11` and `Go 1.12`.
-* Tested on Linux (Ubuntu 18.04LTS, Debian 9, 10, and Sid), OpenBSD 6.4, and macOS 10.13
+* Tested on Linux (Ubuntu 18.04LTS, Debian 9, 10, and Sid) and OpenBSD 6.4
 
 1. <a name="1"></a>For [tildeverse](https://tildeverse.org) projects, we tend to use a PR
 workflow for collaboration. For example, wiki pages are submitted to the repo via pull
