@@ -38,9 +38,9 @@ func pageHandler(w http.ResponseWriter, r *http.Request, filename string) {
 	w.Header().Set("Content-Type", htmlutf8)
 	_, err = w.Write(page.Body)
 	if err != nil {
-		log.Printf("Error writing %s to HTTP stream: %v\n", filename, err)
-		error500(w, r)
+		log500(w, r, err)
 	}
+	log200(r)
 }
 
 // Handler for viewing the index page.
@@ -58,9 +58,9 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", htmlutf8)
 	_, err := w.Write(indexCache.Body)
 	if err != nil {
-		log.Printf("Error writing %s to HTTP stream: %v\n", confVars.indexFile, err)
-		error500(w, r)
+		log500(w, r, err)
 	}
+	log200(r)
 }
 
 // Serves the favicon as a URL.
@@ -81,8 +81,7 @@ func iconHandler(w http.ResponseWriter, r *http.Request) {
 			error404(w, r)
 			return
 		}
-		log.Printf("%v\n", err)
-		error500(w, r)
+		log500(w, r, err)
 		return
 	}
 
@@ -102,9 +101,9 @@ func iconHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", http.DetectContentType(icon))
 	_, err = w.Write(icon)
 	if err != nil {
-		log.Printf("Error writing favicon to HTTP stream: %v\n", err)
-		error500(w, r)
+		log500(w, r, err)
 	}
+	log200(r)
 }
 
 // Serves the local css file as a url.
@@ -132,8 +131,7 @@ func cssHandler(w http.ResponseWriter, r *http.Request) {
 			error404(w, r)
 			return
 		}
-		log.Printf("%v\n", err)
-		error500(w, r)
+		log500(w, r, err)
 		return
 	}
 
@@ -152,9 +150,9 @@ func cssHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", cssutf8)
 	_, err = w.Write(css)
 	if err != nil {
-		log.Printf("Error writing CSS file to HTTP stream: %v\n", err)
-		error500(w, r)
+		log500(w, r, err)
 	}
+	log200(r)
 }
 
 // Validate the request path, then pass everything on
@@ -168,53 +166,5 @@ func validatePath(fn func(http.ResponseWriter, *http.Request, string)) http.Hand
 			return
 		}
 		fn(w, r, m[2])
-	}
-}
-
-// this is a custom 500 page using a markdown doc
-// in the assets directory.
-// if the markdown doc can't be read, default to
-// net/http's error handling
-func error500(w http.ResponseWriter, _ *http.Request) {
-	confVars.mu.RLock()
-	e500 := confVars.assetsDir + "/500.md"
-	confVars.mu.RUnlock()
-
-	file, err := ioutil.ReadFile(e500)
-	if err != nil {
-		log.Printf("Tried to read 500.md: %v\n", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", htmlutf8)
-	_, err = w.Write(render(file, "500: Internal Server Error"))
-	if err != nil {
-		log.Printf("Failed to write to HTTP stream: %v\n", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
-
-// this is a custom 404 page using a markdown doc
-// in the assets directory.
-// if the markdown doc can't be read, default to
-// net/http's error handling
-func error404(w http.ResponseWriter, r *http.Request) {
-	confVars.mu.RLock()
-	e404 := confVars.assetsDir + "/404.md"
-	confVars.mu.RUnlock()
-
-	file, err := ioutil.ReadFile(e404)
-	if err != nil {
-		log.Printf("Tried to read 404.md: %v\n", err)
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", htmlutf8)
-	_, err = w.Write(render(file, "404: Not Found"))
-	if err != nil {
-		log.Printf("Failed to write to HTTP stream: %v\n", err)
-		error500(w, r)
 	}
 }
