@@ -6,12 +6,10 @@ Originally designed around the needs of the [tildeverse](https://tildeverse.org)
 
 [\[Features\]](#features) | [\[Installation\]](#installation) | [\[Benchmarks\]](#benchmarks) | [\[Notes\]](#notes)
 
-## [v0.6.2](https://github.com/gbmor/tildewiki/releases/tag/v0.6.2)
-A ton of refactoring has gone into `v0.6`
-* Various performance improvements
-* Code readability improvements
-* Script to automate build/install
-* Startup script to daemonize the process
+## [v0.6.3](https://github.com/gbmor/tildewiki/releases/tag/v0.6.3)
+Version 0.6.3 Changes:
+* User/Requester IP and User-Agent logged
+* More concurrency protection
 * Bugfixes! Yay!
 
 ### [Development Branch](https://github.com/gbmor/tildewiki/tree/dev)
@@ -54,7 +52,7 @@ First, clone the repository or download and untar a release archive, then enter 
 ```
 $ git clone git://github.com/gbmor/tildewiki.git && cd tildewiki
 
-$ curl -L https://github.com/gbmor/tildewiki/archive/v0.6.2.tar.gz | tar xzvf - && cd tildewiki-v0.6.2
+$ curl -L https://github.com/gbmor/tildewiki/archive/v0.6.3.tar.gz | tar xzvf - && cd tildewiki-v0.6.3
 ```
 
 If you used `git`, the master branch will be the most recent release. Development work stays
@@ -202,8 +200,8 @@ Number of 5xx responses:                            0
 ```
 
 ## <a name="notes"></a>Notes
-* Builds with `Go 1.11` and `Go 1.12`. Not tested with any other version.
-* Tested on Linux (Ubuntu 18.04LTS, Debian 9) and OpenBSD 6.4
+* Builds with `Go 1.11` and `Go 1.12`.
+* Tested on Linux (Ubuntu 18.04LTS, Debian 9, 10, and Sid), OpenBSD 6.4, and macOS 10.13
 
 1. <a name="1"></a>For [tildeverse](https://tildeverse.org) projects, we tend to use a PR
 workflow for collaboration. For example, wiki pages are submitted to the repo via pull
