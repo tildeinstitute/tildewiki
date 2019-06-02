@@ -25,6 +25,10 @@ type cacher interface {
 	checkCache() bool
 }
 
+type ipCtxKey int
+
+const ctxKey ipCtxKey = iota
+
 type confParams struct {
 	port                 string
 	pageDir              string

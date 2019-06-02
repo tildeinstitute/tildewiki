@@ -59,9 +59,17 @@ func main() {
 		log.Printf("**NOTICE** Using reversed page listings on index ... \n")
 	}
 
-	err := http.ListenAndServe(confVars.port, handlers.CompressHandler(serv))
+	portnum := confVars.port
+	server := &http.Server{
+		Handler:      handlers.CompressHandler(ipMiddleware(serv)),
+		Addr:         portnum,
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
+
+	err := server.ListenAndServe()
 	if err != nil {
-		log.Printf("%v\n", err)
+		log.Printf("%v\n", err.Error())
 	}
 
 	// signal to close the log file
