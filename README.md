@@ -10,6 +10,7 @@ Originally designed around the needs of the [tildeverse](https://tildeverse.org)
 Version 0.6.3 Changes:
 * User/Requester IP and User-Agent logged
 * More concurrency protection
+* Fixed malformed errors in logs
 * Bugfixes! Yay!
 
 ### [Development Branch](https://github.com/gbmor/tildewiki/tree/dev)
