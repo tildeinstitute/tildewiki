@@ -7,10 +7,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/gorilla/mux"
 )
 
 // handler for viewing content pages (not the index page)
-func pageHandler(w http.ResponseWriter, r *http.Request, filename string) {
+func pageHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	filename := vars["pageReq"]
 	// get the file name from the request name
 	filename += ".md"
 
@@ -153,18 +157,4 @@ func cssHandler(w http.ResponseWriter, r *http.Request) {
 		log500(w, r, err)
 	}
 	log200(r)
-}
-
-// Validate the request path, then pass everything on
-// to the appropriate handler function.
-func validatePath(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		m := confVars.validPath.FindStringSubmatch(r.URL.Path)
-		if m == nil {
-			log.Printf("Invalid path requested :: %v\n", r.URL.Path)
-			error404(w, r)
-			return
-		}
-		fn(w, r, m[2])
-	}
 }

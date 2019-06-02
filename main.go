@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 )
 
 // TildeWiki version
@@ -21,9 +22,10 @@ func main() {
 
 	confVars.mu.RLock()
 	filog := confVars.fileLogging
+	portnum := confVars.port
 	qlog := confVars.quietLogging
 	reversed := confVars.reverseTally
-	portnum := confVars.port
+	viewPath := confVars.viewPath
 	confVars.mu.RUnlock()
 
 	// watch for SIGINT aka ^C
@@ -50,14 +52,14 @@ func main() {
 	log.Println("**NOTICE** Building initial cache ...")
 	genPageCache()
 
-	serv := http.NewServeMux()
+	serv := mux.NewRouter().StrictSlash(true)
 
-	serv.HandleFunc("/", indexHandler)
-	serv.HandleFunc(confVars.viewPath, validatePath(pageHandler))
-	serv.HandleFunc("/css", cssHandler)
-	serv.HandleFunc("/icon", iconHandler)
-	serv.HandleFunc("/500", error500)
-	serv.HandleFunc("/404", error404)
+	serv.Path("/").HandlerFunc(indexHandler)
+	serv.Path(viewPath + "{pageReq:[a-zA-Z0-9_-]+}").HandlerFunc(pageHandler)
+	serv.Path("/css").HandlerFunc(cssHandler)
+	serv.Path("/icon").HandlerFunc(iconHandler)
+	serv.Path("/500").HandlerFunc(error500)
+	serv.Path("/404").HandlerFunc(error404)
 
 	// let the user know if using reversed page listings
 	if reversed {
