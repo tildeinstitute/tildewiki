@@ -22,7 +22,7 @@ func buildPage(filename string) (*Page, error) {
 	// open the page into *os.File
 	file, err := os.Open(filename)
 	if err != nil {
-		log.Printf("%v\n", err)
+		log.Printf("%v\n", err.Error())
 		return nil, err
 	}
 
@@ -30,21 +30,21 @@ func buildPage(filename string) (*Page, error) {
 	defer func() {
 		err = file.Close()
 		if err != nil {
-			log.Printf("%v\n", err)
+			log.Printf("%v\n", err.Error())
 		}
 	}()
 
 	// stat the file to get mod time later
 	stat, err := file.Stat()
 	if err != nil {
-		log.Printf("Couldn't stat %s: %v\n", filename, err)
+		log.Printf("Couldn't stat %s: %v\n", filename, err.Error())
 	}
 
 	// body holds the raw bytes from the file
 	var body pagedata
 	body, err = ioutil.ReadAll(file)
 	if err != nil {
-		log.Printf("%v\n", err)
+		log.Printf("%v\n", err.Error())
 	}
 
 	// extract the file name from the path
@@ -129,7 +129,7 @@ func (indexCache *indexPage) checkCache() bool {
 		}
 		imutex.RUnlock()
 	} else {
-		log.Printf("Couldn't parse index refresh interval: %v\n", err)
+		log.Printf("Couldn't parse index refresh interval: %v\n", err.Error())
 	}
 
 	// if the stored mod time is different
@@ -144,7 +144,7 @@ func (indexCache *indexPage) checkCache() bool {
 		}
 		imutex.RUnlock()
 	} else {
-		log.Printf("Couldn't stat index page: %v\n", err)
+		log.Printf("Couldn't stat index page: %v\n", err.Error())
 	}
 	confVars.mu.RUnlock()
 
@@ -186,7 +186,7 @@ func genIndex() []byte {
 	// stat to check mod time
 	stat, err := os.Stat(indexpath)
 	if err != nil {
-		log.Printf("Couldn't stat index: %v\n", err)
+		log.Printf("Couldn't stat index: %v\n", err.Error())
 	}
 
 	// if the index file has been modified,
@@ -225,7 +225,7 @@ func genIndex() []byte {
 		} else {
 			n, err := buf.Write(append(builder.Bytes(), byte('\n')))
 			if err != nil || n == 0 {
-				log.Printf("Error writing to buffer: %v\n", err)
+				log.Printf("Error writing to buffer: %v\n", err.Error())
 			}
 		}
 	}
@@ -255,7 +255,7 @@ func tallyPages(buf *bytes.Buffer) {
 		if len(files) == 0 {
 			n, err := buf.WriteString("*No wiki pages! Add some content.*\n")
 			if err != nil || n == 0 {
-				log.Printf("Error writing to buffer: %v\n", err)
+				log.Printf("Error writing to buffer: %v\n", err.Error())
 			}
 			confVars.mu.RUnlock()
 			return
@@ -274,13 +274,13 @@ func tallyPages(buf *bytes.Buffer) {
 	} else {
 		n, err := buf.WriteString("*PageDir can't be read.*\n")
 		if err != nil || n == 0 {
-			log.Printf("Error writing to buffer: %v\n", err)
+			log.Printf("Error writing to buffer: %v\n", err.Error())
 		}
 	}
 
 	err := buf.WriteByte(byte('\n'))
 	if err != nil {
-		log.Printf("Error writing to buffer: %v\n", err)
+		log.Printf("Error writing to buffer: %v\n", err.Error())
 	}
 	confVars.mu.RUnlock()
 }
@@ -295,7 +295,7 @@ func writeIndexLinks(f os.FileInfo, buf *bytes.Buffer) {
 		// pull the page from the cache
 		page, err = pullFromCache(f.Name())
 		if err != nil {
-			log.Printf("%v\n", err)
+			log.Printf("%v\n", err.Error())
 		}
 	} else {
 		// if it hasn't been cached, cache it.
@@ -304,11 +304,11 @@ func writeIndexLinks(f os.FileInfo, buf *bytes.Buffer) {
 		newpage := newBarePage(confVars.pageDir+"/"+f.Name(), f.Name())
 		confVars.mu.RUnlock()
 		if err := newpage.cache(); err != nil {
-			log.Printf("While caching page %v during the index generation, caught an error: %v\n", f.Name(), err)
+			log.Printf("While caching page %v during the index generation, caught an error: %v\n", f.Name(), err.Error())
 		}
 		page, err = pullFromCache(f.Name())
 		if err != nil {
-			log.Printf("%v\n", err)
+			log.Printf("%v\n", err.Error())
 		}
 	}
 	// get the URI path from the file name
@@ -319,7 +319,7 @@ func writeIndexLinks(f os.FileInfo, buf *bytes.Buffer) {
 	n, err := buf.WriteString("* [" + page.Title + "](" + confVars.viewPath + string(linkname) + ") " + page.Desc + " " + page.Author + "\n")
 	confVars.mu.RUnlock()
 	if err != nil || n == 0 {
-		log.Printf("Error writing to buffer: %v\n", err)
+		log.Printf("Error writing to buffer: %v\n", err.Error())
 	}
 }
 
@@ -334,7 +334,7 @@ func (page *Page) cache() error {
 		cachedPages[newpage.Shortname] = newpage
 		pmutex.Unlock()
 	} else {
-		log.Printf("Couldn't cache %v: %v", page.Longname, err)
+		log.Printf("Couldn't cache %v: %v", page.Longname, err.Error())
 		return err
 	}
 	return nil
@@ -378,7 +378,7 @@ func genPageCache() {
 				page := newBarePage(confVars.pageDir+"/"+f.Name(), f.Name())
 				confVars.mu.RLock()
 				if err := page.cache(); err != nil {
-					log.Printf("While generating initial cache, caught error for %v: %v\n", f.Name(), err)
+					log.Printf("While generating initial cache, caught error for %v: %v\n", f.Name(), err.Error())
 				}
 				log.Printf("Cached page %v\n", page.Shortname)
 
@@ -389,7 +389,7 @@ func genPageCache() {
 		wg.Wait()
 
 	} else {
-		log.Printf("Initial cache build :: Can't read directory: %s\n", err)
+		log.Printf("Initial cache build :: Can't read directory: %s\n", err.Error())
 		log.Printf("**NOTICE** TildeWiki's cache may not function correctly until this is resolved.\n")
 		log.Printf("\tPlease verify the directory in tildewiki.yml is correct and restart TildeWiki\n")
 	}
@@ -403,7 +403,7 @@ func pingCache(c cacher) {
 
 	if c.checkCache() {
 		if err := c.cache(); err != nil {
-			log.Printf("Pinged cache, received error while caching: %v\n", err)
+			log.Printf("Pinged cache, received error while caching: %v\n", err.Error())
 		}
 	}
 }

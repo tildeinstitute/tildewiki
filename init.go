@@ -29,12 +29,12 @@ func init() {
 				log.Printf("Closing log file ...\n")
 				err := llogfile.Close()
 				if err != nil {
-					log.Printf("Couldn't close log file: %v\n", err)
+					log.Printf("Couldn't close log file: %v\n", err.Error())
 				}
 			}()
 
 		} else {
-			log.Printf("Couldn't log to file: %v\n", err)
+			log.Printf("Couldn't log to file: %v\n", err.Error())
 		}
 	}
 
@@ -51,12 +51,12 @@ func init() {
 				log.Printf("Closing log file ...\n")
 				err := llogfile.Close()
 				if err != nil {
-					log.Printf("Couldn't close log file: %v\n", err)
+					log.Printf("Couldn't close log file: %v\n", err.Error())
 				}
 			}()
 
 		} else {
-			log.Printf("Couldn't quiet logging: %v\n", err)
+			log.Printf("Couldn't quiet logging: %v\n", err.Error())
 		}
 	}
 }
