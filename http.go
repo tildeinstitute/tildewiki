@@ -70,7 +70,7 @@ func log500(w http.ResponseWriter, r *http.Request, topErr error) {
 
 	file, err := ioutil.ReadFile(e500)
 	if err != nil {
-		log.Printf("Tried to read 500.md: %v\n", err)
+		log.Printf("Tried to read 500.md: %v\n", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -78,7 +78,7 @@ func log500(w http.ResponseWriter, r *http.Request, topErr error) {
 	w.Header().Set("Content-Type", htmlutf8)
 	_, err = w.Write(render(file, "500: Internal Server Error"))
 	if err != nil {
-		log.Printf("Failed to write to HTTP stream: %v\n", err)
+		log.Printf("Failed to write to HTTP stream: %v\n", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -94,7 +94,7 @@ func error404(w http.ResponseWriter, r *http.Request) {
 
 	file, err := ioutil.ReadFile(e404)
 	if err != nil {
-		log.Printf("Tried to read 404.md: %v\n", err)
+		log.Printf("Tried to read 404.md: %v\n", err.Error())
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
@@ -102,7 +102,7 @@ func error404(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", htmlutf8)
 	_, err = w.Write(render(file, "404: Not Found"))
 	if err != nil {
-		log.Printf("Failed to write to HTTP stream: %v\n", err)
+		log.Printf("Failed to write to HTTP stream: %v\n", err.Error())
 		error500(w, r)
 	}
 }

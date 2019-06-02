@@ -88,7 +88,7 @@ func iconHandler(w http.ResponseWriter, r *http.Request) {
 	// stat to get the mod time for the etag header
 	stat, err := os.Stat(longname)
 	if err != nil {
-		log.Printf("Couldn't stat icon to send ETag header: %v\n", err)
+		log.Printf("Couldn't stat icon to send ETag header: %v\n", err.Error())
 	}
 
 	// the etag header is used for browser-level caching.
@@ -138,7 +138,7 @@ func cssHandler(w http.ResponseWriter, r *http.Request) {
 	// stat to get the mod time for the etag header
 	stat, err := os.Stat(cssPath)
 	if err != nil {
-		log.Printf("Couldn't stat CSS file to send ETag header: %v\n", err)
+		log.Printf("Couldn't stat CSS file to send ETag header: %v\n", err.Error())
 	}
 
 	// the etag header is used for browser-level caching.

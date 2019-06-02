@@ -53,7 +53,7 @@ func initConfigParams() {
 
 	err := conf.ReadInConfig()
 	if err != nil {
-		log.Fatalln("Config file error: ", err)
+		log.Fatalln("Config file error: ", err.Error())
 	}
 
 	// assign the config to the confVars object
