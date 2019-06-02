@@ -30,6 +30,7 @@ type ipCtxKey int
 const ctxKey ipCtxKey = iota
 
 type confParams struct {
+	mu                   sync.RWMutex
 	port                 string
 	pageDir              string
 	assetsDir            string

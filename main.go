@@ -19,6 +19,13 @@ var closelog = make(chan bool, 1)
 
 func main() {
 
+	confVars.mu.RLock()
+	filog := confVars.fileLogging
+	qlog := confVars.quietLogging
+	reversed := confVars.reverseTally
+	portnum := confVars.port
+	confVars.mu.RUnlock()
+
 	// watch for SIGINT aka ^C
 	// close the log file then exit
 	c := make(chan os.Signal, 1)
@@ -28,7 +35,7 @@ func main() {
 		for sigint := range c {
 			log.Printf("\n\nCaught %v. Cleaning up ...\n", sigint)
 
-			if confVars.fileLogging {
+			if filog {
 				// signal to close the log file
 				closelog <- true
 				time.Sleep(50 * time.Millisecond)
@@ -52,14 +59,13 @@ func main() {
 	serv.HandleFunc("/500", error500)
 	serv.HandleFunc("/404", error404)
 
-	log.Println("**NOTICE** Binding to " + confVars.port)
-
 	// let the user know if using reversed page listings
-	if confVars.reverseTally {
+	if reversed {
 		log.Printf("**NOTICE** Using reversed page listings on index ... \n")
 	}
 
-	portnum := confVars.port
+	log.Println("**NOTICE** Binding to " + portnum)
+
 	server := &http.Server{
 		Handler:      handlers.CompressHandler(ipMiddleware(serv)),
 		Addr:         portnum,
@@ -73,7 +79,7 @@ func main() {
 	}
 
 	// signal to close the log file
-	if confVars.fileLogging || confVars.quietLogging {
+	if filog || qlog {
 		closelog <- true
 		close(closelog)
 	}
