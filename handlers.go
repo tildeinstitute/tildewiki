@@ -40,6 +40,7 @@ func pageHandler(w http.ResponseWriter, r *http.Request) {
 	// send the page to the client
 	w.Header().Set("ETag", "\""+etag+"\"")
 	w.Header().Set("Content-Type", htmlutf8)
+	w.Header().Set("Link", "</>; rel=\"contents\", </css>; rel=\"stylesheet\"")
 	_, err = w.Write(page.Body)
 	if err != nil {
 		log500(w, r, err)
@@ -60,6 +61,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	// serve the index page
 	w.Header().Set("ETag", "\""+etag+"\"")
 	w.Header().Set("Content-Type", htmlutf8)
+	w.Header().Set("Link", "</>; rel=\"contents\", </css>; rel=\"stylesheet\"")
 	_, err := w.Write(indexCache.Body)
 	if err != nil {
 		log500(w, r, err)
