@@ -6,7 +6,6 @@ import (
 )
 
 func init() {
-
 	// show the logo, repo link, etc
 	setUpUsTheWiki()
 

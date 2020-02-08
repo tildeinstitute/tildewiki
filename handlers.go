@@ -50,7 +50,6 @@ func pageHandler(w http.ResponseWriter, r *http.Request) {
 
 // Handler for viewing the index page.
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-
 	// check the index page's cache
 	pingCache(indexCache)
 
@@ -116,7 +115,6 @@ func iconHandler(w http.ResponseWriter, r *http.Request) {
 // This is due to the default behavior of
 // not serving naked paths but virtual ones.
 func cssHandler(w http.ResponseWriter, r *http.Request) {
-
 	confVars.mu.RLock()
 	cssPath := confVars.cssPath
 	confVars.mu.RUnlock()

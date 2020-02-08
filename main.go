@@ -19,7 +19,6 @@ const twvers = "0.6.3"
 var closelog = make(chan struct{}, 1)
 
 func main() {
-
 	confVars.mu.RLock()
 	filog := confVars.fileLogging
 	portnum := confVars.port

@@ -18,7 +18,6 @@ import (
 // Loads a given wiki page and returns a page object.
 // Used for building the initial cache and re-caching.
 func buildPage(filename string) (*Page, error) {
-
 	// open the page into *os.File
 	file, err := os.Open(filename)
 	if err != nil {
@@ -82,7 +81,6 @@ func buildPage(filename string) (*Page, error) {
 //		author:
 //		description:
 func (body pagedata) getMeta() (string, string, string) {
-
 	// a bit redundant, but scanner is simpler to use
 	bytereader := bytes.NewReader(body)
 	metafinder := bufio.NewScanner(bytereader)
@@ -118,7 +116,6 @@ func (body pagedata) getMeta() (string, string, string) {
 // index needs to be re-cached.
 // This method helps satisfy the cacher interface.
 func (indexCache *indexPage) checkCache() bool {
-
 	// if the last tally time is past the
 	// interval in the config file, re-cache
 	if interval, err := time.ParseDuration(viper.GetString("IndexRefreshInterval")); err == nil {
@@ -177,7 +174,6 @@ func (indexCache *indexPage) cache() error {
 
 // Generate the front page of the wiki
 func genIndex() []byte {
-
 	var err error
 	confVars.mu.RLock()
 	indexpath := confVars.assetsDir + "/" + confVars.indexFile
@@ -244,7 +240,6 @@ func genIndex() []byte {
 // Called by genIndex() when the anchor
 // comment has been found.
 func tallyPages(buf *bytes.Buffer) {
-
 	// get a list of files in the directory specified
 	// in the config file parameter "PageDir"
 	confVars.mu.RLock()
@@ -347,7 +342,6 @@ func (page *Page) cache() error {
 // page.Recache field is set to `true`.
 // This method helps satisfy the cacher interface.
 func (page *Page) checkCache() bool {
-
 	if newpage, err := os.Stat(page.Longname); err == nil {
 		if newpage.ModTime() != page.Modtime || page.Recache {
 			return true
@@ -363,16 +357,13 @@ func (page *Page) checkCache() bool {
 // into cache, saving their modification time as well to
 // detect changes to a page.
 func genPageCache() {
-
 	// spawn a new goroutine for each entry, to cache
 	// everything as quickly as possible
 	confVars.mu.RLock()
 	if wikipages, err := ioutil.ReadDir(confVars.pageDir); err == nil {
 		var wg sync.WaitGroup
 		for _, f := range wikipages {
-
 			wg.Add(1)
-
 			go func(f os.FileInfo) {
 				confVars.mu.RLock()
 				page := newBarePage(confVars.pageDir+"/"+f.Name(), f.Name())
@@ -385,9 +376,7 @@ func genPageCache() {
 				wg.Done()
 			}(f)
 		}
-
 		wg.Wait()
-
 	} else {
 		log.Printf("Initial cache build :: Can't read directory: %s\n", err.Error())
 		log.Printf("**NOTICE** TildeWiki's cache may not function correctly until this is resolved.\n")
@@ -400,7 +389,6 @@ func genPageCache() {
 // of any cacher type, and if true,
 // re-cache the data
 func pingCache(c cacher) {
-
 	if c.checkCache() {
 		if err := c.cache(); err != nil {
 			log.Printf("Pinged cache, received error while caching: %v\n", err.Error())
@@ -411,7 +399,6 @@ func pingCache(c cacher) {
 // Pulling from cache is its own function.
 // Less worrying about mutexes.
 func pullFromCache(filename string) (*Page, error) {
-
 	pmutex.RLock()
 	if page, ok := cachedPages[filename]; ok {
 		pmutex.RUnlock()

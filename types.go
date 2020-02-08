@@ -77,7 +77,6 @@ type pagedata []byte
 
 // Creates a filled page object
 func newPage(longname, shortname, title, author, desc string, modtime time.Time, body []byte, raw pagedata, recache bool) *Page {
-
 	return &Page{
 		Longname:  longname,
 		Shortname: shortname,

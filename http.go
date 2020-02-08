@@ -12,7 +12,6 @@ import (
 
 // Attach requester's IP address to context value
 func newCtxUserIP(ctx context.Context, r *http.Request) context.Context {
-
 	base := strings.Split(r.RemoteAddr, ":")
 	uip := base[0]
 
@@ -27,7 +26,6 @@ func newCtxUserIP(ctx context.Context, r *http.Request) context.Context {
 
 // Retrieve an IP address from context passed with the request
 func getIPfromCtx(ctx context.Context) net.IP {
-
 	uip, ok := ctx.Value(ctxKey).(string)
 	if !ok {
 		log.Printf("Error retrieving IP from request.\n")
@@ -59,7 +57,6 @@ func error500(w http.ResponseWriter, r *http.Request) {
 // if the markdown doc can't be read, default to
 // net/http's error handling
 func log500(w http.ResponseWriter, r *http.Request, topErr error) {
-
 	useragent := r.Header["User-Agent"]
 	uip := getIPfromCtx(r.Context())
 	log.Printf("**** %v :: 500 :: %v %v :: %v :: %v\n", uip, r.Method, r.URL, useragent, topErr.Error())
