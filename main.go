@@ -16,7 +16,7 @@ const twvers = "0.6.3"
 
 // Makes the deferred close functions for the log file
 // block until exit
-var closelog = make(chan bool, 1)
+var closelog = make(chan struct{}, 1)
 
 func main() {
 
@@ -39,7 +39,7 @@ func main() {
 
 			if filog {
 				// signal to close the log file
-				closelog <- true
+				closelog <- struct{}{}
 				time.Sleep(50 * time.Millisecond)
 			}
 
@@ -82,7 +82,7 @@ func main() {
 
 	// signal to close the log file
 	if filog || qlog {
-		closelog <- true
+		closelog <- struct{}{}
 		close(closelog)
 	}
 }
