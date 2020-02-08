@@ -40,11 +40,9 @@ func setConfVars() {
 func initConfigParams() {
 	conf := viper.GetViper()
 
-	// type of config file to look for
 	conf.SetConfigType("yaml")
-	// name of config file to look for
 	conf.SetConfigName("tildewiki")
-	// location of said config file
+
 	conf.AddConfigPath(".")
 	conf.AddConfigPath("$HOME/.config/")
 	conf.AddConfigPath("/usr/local/tildewiki/")
@@ -53,14 +51,11 @@ func initConfigParams() {
 
 	err := conf.ReadInConfig()
 	if err != nil {
-		log.Fatalln("Config file error: ", err.Error())
+		log.Fatalf("Config file error: %s\n", err.Error())
 	}
 
-	// assign the config to the confVars object
 	setConfVars()
 
-	// WatchConfig() is a function provided by blackfriday that watches the config
-	// file for any changes and automatically reloads it if needed
 	conf.WatchConfig()
 	conf.OnConfigChange(func(e fsnotify.Event) {
 		log.Println("**NOTICE** Config file change detected: ", e.Name)

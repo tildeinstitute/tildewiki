@@ -31,7 +31,6 @@ func main() {
 	// close the log file then exit
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
-
 	go func() {
 		for sigint := range c {
 			log.Printf("\n\nCaught %v. Cleaning up ...\n", sigint)
@@ -60,13 +59,11 @@ func main() {
 	serv.Path("/500").HandlerFunc(error500)
 	serv.Path("/404").HandlerFunc(error404)
 
-	// let the user know if using reversed page listings
 	if reversed {
 		log.Printf("**NOTICE** Using reversed page listings on index ... \n")
 	}
 
 	log.Println("**NOTICE** Binding to " + portnum)
-
 	server := &http.Server{
 		Handler:      handlers.CompressHandler(ipMiddleware(serv)),
 		Addr:         portnum,

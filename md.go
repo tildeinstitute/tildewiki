@@ -14,8 +14,6 @@ func setupMarkdown(css, title string) *bf.HTMLRenderer {
 	}
 	confVars.mu.RUnlock()
 
-	// return the parameters used for the rendering
-	// of markdown to html.
 	var params = bf.HTMLRendererParameters{
 		CSS:   css,
 		Title: title,

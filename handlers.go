@@ -15,55 +15,46 @@ import (
 func pageHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	filename := vars["pageReq"]
-	// get the file name from the request name
 	filename += ".md"
 
-	// pull the page from cache
 	page, err := pullFromCache(filename)
 	if err != nil {
 		log.Printf("%v\n", err)
 	}
 
-	// see if it needs to be cached
 	pingCache(page)
 
-	// if the page doesn't exist, redirect to the index
 	if page.Body == nil {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 
-	// the etag header is used for browser-level caching.
-	// sending the sha256 sum of the modtime in hexadecimal
 	etag := fmt.Sprintf("%x", sha256.Sum256([]byte(page.Modtime.String())))
 
-	// send the page to the client
 	w.Header().Set("ETag", "\""+etag+"\"")
 	w.Header().Set("Content-Type", htmlutf8)
 	w.Header().Set("Link", "</>; rel=\"contents\", </css>; rel=\"stylesheet\"")
 	_, err = w.Write(page.Body)
 	if err != nil {
 		log500(w, r, err)
+		return
 	}
 	log200(r)
 }
 
 // Handler for viewing the index page.
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	// check the index page's cache
 	pingCache(indexCache)
 
-	// the etag header is used for browser-level caching.
-	// sending the sha256 sum of the modtime in hexadecimal
 	etag := fmt.Sprintf("%x", sha256.Sum256([]byte(indexCache.Modtime.String())))
 
-	// serve the index page
 	w.Header().Set("ETag", "\""+etag+"\"")
 	w.Header().Set("Content-Type", htmlutf8)
 	w.Header().Set("Link", "</>; rel=\"contents\", </css>; rel=\"stylesheet\"")
 	_, err := w.Write(indexCache.Body)
 	if err != nil {
 		log500(w, r, err)
+		return
 	}
 	log200(r)
 }
@@ -77,7 +68,6 @@ func iconHandler(w http.ResponseWriter, r *http.Request) {
 	iconPath := confVars.iconPath
 	confVars.mu.RUnlock()
 
-	// read the raw bytes of the image
 	longname := assetsDir + "/" + iconPath
 	icon, err := ioutil.ReadFile(longname)
 	if err != nil {
@@ -90,23 +80,19 @@ func iconHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// stat to get the mod time for the etag header
 	stat, err := os.Stat(longname)
 	if err != nil {
 		log.Printf("Couldn't stat icon to send ETag header: %v\n", err.Error())
 	}
 
-	// the etag header is used for browser-level caching.
-	// sending the sha256 sum of the modtime in hexadecimal
 	etag := fmt.Sprintf("%x", sha256.Sum256([]byte(stat.ModTime().String())))
 
-	// check the mime type, then send
-	// the bytes to the client
 	w.Header().Set("ETag", "\""+etag+"\"")
 	w.Header().Set("Content-Type", http.DetectContentType(icon))
 	_, err = w.Write(icon)
 	if err != nil {
 		log500(w, r, err)
+		return
 	}
 	log200(r)
 }
@@ -127,7 +113,6 @@ func cssHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// read the raw bytes of the stylesheet
 	css, err := ioutil.ReadFile(cssPath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -139,22 +124,19 @@ func cssHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// stat to get the mod time for the etag header
 	stat, err := os.Stat(cssPath)
 	if err != nil {
 		log.Printf("Couldn't stat CSS file to send ETag header: %v\n", err.Error())
 	}
 
-	// the etag header is used for browser-level caching.
-	// sending the sha256 sum of the modtime in hexadecimal
 	etag := fmt.Sprintf("%x", sha256.Sum256([]byte(stat.ModTime().String())))
 
-	// send it to the client
 	w.Header().Set("ETag", "\""+etag+"\"")
 	w.Header().Set("Content-Type", cssutf8)
 	_, err = w.Write(css)
 	if err != nil {
 		log500(w, r, err)
+		return
 	}
 	log200(r)
 }

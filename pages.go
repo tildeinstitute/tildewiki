@@ -18,14 +18,12 @@ import (
 // Loads a given wiki page and returns a page object.
 // Used for building the initial cache and re-caching.
 func buildPage(filename string) (*Page, error) {
-	// open the page into *os.File
 	file, err := os.Open(filename)
 	if err != nil {
 		log.Printf("%v\n", err.Error())
 		return nil, err
 	}
 
-	// the cleanup crew
 	defer func() {
 		err = file.Close()
 		if err != nil {
@@ -33,20 +31,17 @@ func buildPage(filename string) (*Page, error) {
 		}
 	}()
 
-	// stat the file to get mod time later
 	stat, err := file.Stat()
 	if err != nil {
 		log.Printf("Couldn't stat %s: %v\n", filename, err.Error())
 	}
 
-	// body holds the raw bytes from the file
 	var body pagedata
 	body, err = ioutil.ReadAll(file)
 	if err != nil {
 		log.Printf("%v\n", err.Error())
 	}
 
-	// extract the file name from the path
 	_, shortname := filepath.Split(filename)
 
 	// get meta info on file from the header comment
@@ -86,10 +81,7 @@ func (body pagedata) getMeta() (string, string, string) {
 	metafinder := bufio.NewScanner(bytereader)
 	var title, desc, author string
 
-	// scan the file line by line until it finds
-	// the comments.
 	for metafinder.Scan() {
-
 		splitter := bytes.Split(metafinder.Bytes(), []byte(":"))
 
 		switch string(bytes.ToLower(splitter[0])) {
@@ -106,7 +98,6 @@ func (body pagedata) getMeta() (string, string, string) {
 		if title != "" && desc != "" && author != "" {
 			break
 		}
-
 	}
 
 	return title, desc, author
@@ -179,14 +170,10 @@ func genIndex() []byte {
 	indexpath := confVars.assetsDir + "/" + confVars.indexFile
 	confVars.mu.RUnlock()
 
-	// stat to check mod time
 	stat, err := os.Stat(indexpath)
 	if err != nil {
 		log.Printf("Couldn't stat index: %v\n", err.Error())
 	}
-
-	// if the index file has been modified,
-	// vaccuum up those bytes into the cache
 
 	imutex.RLock()
 	if indexCache.Modtime != stat.ModTime() {
@@ -197,13 +184,10 @@ func genIndex() []byte {
 		if err != nil {
 			return []byte("Could not open \"" + indexpath + "\"")
 		}
-
 	} else {
 		imutex.RUnlock()
 	}
 
-	// body holds the bytes of the generated index page being sent to the client.
-	// create the byte array and the buffer used to write to it
 	body := make([]byte, 0)
 	buf := bytes.NewBuffer(body)
 
@@ -244,7 +228,6 @@ func tallyPages(buf *bytes.Buffer) {
 	// in the config file parameter "PageDir"
 	confVars.mu.RLock()
 	if files, err := ioutil.ReadDir(confVars.pageDir); err == nil {
-
 		// entry is used in the loop to construct the markdown
 		// link to the given page
 		if len(files) == 0 {
@@ -256,7 +239,6 @@ func tallyPages(buf *bytes.Buffer) {
 			return
 		}
 
-		// true if reversing page order, otherwise don't reverse
 		if confVars.reverseTally {
 			for i := len(files) - 1; i >= 0; i-- {
 				writeIndexLinks(files[i], buf)
@@ -287,7 +269,6 @@ func writeIndexLinks(f os.FileInfo, buf *bytes.Buffer) {
 	var page *Page
 	var err error
 	if _, exists := cachedPages[f.Name()]; exists {
-		// pull the page from the cache
 		page, err = pullFromCache(f.Name())
 		if err != nil {
 			log.Printf("%v\n", err.Error())
@@ -321,7 +302,6 @@ func writeIndexLinks(f os.FileInfo, buf *bytes.Buffer) {
 // Caches a page.
 // This method helps satisfy the cacher interface.
 func (page *Page) cache() error {
-
 	// If buildPage() successfully returns a page
 	// object ptr, then push it into the cache
 	if newpage, err := buildPage(page.Longname); err == nil {
