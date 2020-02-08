@@ -46,12 +46,12 @@ func pageHandler(w http.ResponseWriter, r *http.Request) {
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	pingCache(indexCache)
 
-	etag := fmt.Sprintf("%x", sha256.Sum256([]byte(indexCache.Modtime.String())))
+	etag := fmt.Sprintf("%x", sha256.Sum256([]byte(indexCache.page.Modtime.String())))
 
 	w.Header().Set("ETag", "\""+etag+"\"")
 	w.Header().Set("Content-Type", htmlutf8)
 	w.Header().Set("Link", "</>; rel=\"contents\", </css>; rel=\"stylesheet\"")
-	_, err := w.Write(indexCache.Body)
+	_, err := w.Write(indexCache.page.Body)
 	if err != nil {
 		log500(w, r, err)
 		return

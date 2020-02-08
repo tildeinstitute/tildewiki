@@ -7,16 +7,16 @@ import (
 )
 
 // The in-memory page cache
-var cachedPages = make(map[string]*Page)
-
-// Mutex for the page cache
-var pmutex = &sync.RWMutex{}
+var pageCache = &pagesCache{
+	mu:   new(sync.RWMutex),
+	pool: make(map[string]*Page),
+}
 
 // The in-memory index cache
-var indexCache = &indexPage{}
-
-// Mutex for the index cache
-var imutex = &sync.RWMutex{}
+var indexCache = &indexCacheBlk{
+	mu:   new(sync.RWMutex),
+	page: new(indexPage),
+}
 
 // indexPage and Page types implement
 // this interface, currently.
@@ -28,6 +28,16 @@ type cacher interface {
 type ipCtxKey int
 
 const ctxKey ipCtxKey = iota
+
+type pagesCache struct {
+	mu   *sync.RWMutex
+	pool map[string]*Page
+}
+
+type indexCacheBlk struct {
+	mu   *sync.RWMutex
+	page *indexPage
+}
 
 type confParams struct {
 	mu                   sync.RWMutex

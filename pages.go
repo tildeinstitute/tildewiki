@@ -106,16 +106,16 @@ func (body pagedata) getMeta() (string, string, string) {
 // Checks the index page's cache. Returns true if the
 // index needs to be re-cached.
 // This method helps satisfy the cacher interface.
-func (indexCache *indexPage) checkCache() bool {
+func (indexCache *indexCacheBlk) checkCache() bool {
 	// if the last tally time is past the
 	// interval in the config file, re-cache
 	if interval, err := time.ParseDuration(viper.GetString("IndexRefreshInterval")); err == nil {
-		imutex.RLock()
-		if time.Since(indexCache.LastTally) > interval {
-			imutex.RUnlock()
+		indexCache.mu.RLock()
+		if time.Since(indexCache.page.LastTally) > interval {
+			indexCache.mu.RUnlock()
 			return true
 		}
-		imutex.RUnlock()
+		indexCache.mu.RUnlock()
 	} else {
 		log.Printf("Couldn't parse index refresh interval: %v\n", err.Error())
 	}
@@ -124,13 +124,13 @@ func (indexCache *indexPage) checkCache() bool {
 	// from the file's modtime, re-cache
 	confVars.mu.RLock()
 	if stat, err := os.Stat(confVars.assetsDir + "/" + confVars.indexFile); err == nil {
-		imutex.RLock()
-		if stat.ModTime() != indexCache.Modtime {
-			imutex.RUnlock()
+		indexCache.mu.RLock()
+		if stat.ModTime() != indexCache.page.Modtime {
+			indexCache.mu.RUnlock()
 			confVars.mu.RUnlock()
 			return true
 		}
-		imutex.RUnlock()
+		indexCache.mu.RUnlock()
 	} else {
 		log.Printf("Couldn't stat index page: %v\n", err.Error())
 	}
@@ -138,28 +138,28 @@ func (indexCache *indexPage) checkCache() bool {
 
 	// if the last tally time or stored mod time is zero, signal
 	// to re-cache the index
-	imutex.RLock()
-	if indexCache.LastTally.IsZero() || indexCache.Modtime.IsZero() {
-		imutex.RUnlock()
+	indexCache.mu.RLock()
+	if indexCache.page.LastTally.IsZero() || indexCache.page.Modtime.IsZero() {
+		indexCache.mu.RUnlock()
 		return true
 	}
-	imutex.RUnlock()
+	indexCache.mu.RUnlock()
 
 	return false
 }
 
 // Re-caches the index page.
 // This method helps satisfy the cacher interface.
-func (indexCache *indexPage) cache() error {
+func (indexCache *indexCacheBlk) cache() error {
 	confVars.mu.RLock()
 	body := render(genIndex(), confVars.wikiName+" "+confVars.titleSep+" "+confVars.wikiDesc)
 	confVars.mu.RUnlock()
 	if body == nil {
 		return errors.New("indexPage.cache(): getting nil bytes")
 	}
-	imutex.Lock()
-	indexCache.Body = body
-	imutex.Unlock()
+	indexCache.mu.Lock()
+	indexCache.page.Body = body
+	indexCache.mu.Unlock()
 	return nil
 }
 
@@ -175,17 +175,17 @@ func genIndex() []byte {
 		log.Printf("Couldn't stat index: %v\n", err.Error())
 	}
 
-	imutex.RLock()
-	if indexCache.Modtime != stat.ModTime() {
-		imutex.RUnlock()
-		imutex.Lock()
-		indexCache.Raw, err = ioutil.ReadFile(indexpath)
-		imutex.Unlock()
+	indexCache.mu.RLock()
+	if indexCache.page.Modtime != stat.ModTime() {
+		indexCache.mu.RUnlock()
+		indexCache.mu.Lock()
+		indexCache.page.Raw, err = ioutil.ReadFile(indexpath)
+		indexCache.mu.Unlock()
 		if err != nil {
 			return []byte("Could not open \"" + indexpath + "\"")
 		}
 	} else {
-		imutex.RUnlock()
+		indexCache.mu.RUnlock()
 	}
 
 	body := make([]byte, 0)
@@ -194,9 +194,9 @@ func genIndex() []byte {
 	// scan the file line by line until it finds the anchor
 	// comment. replace the anchor comment with a list of
 	// wiki pages sorted alphabetically by title.
-	imutex.RLock()
-	builder := bufio.NewScanner(bytes.NewReader(indexCache.Raw))
-	imutex.RUnlock()
+	indexCache.mu.RLock()
+	builder := bufio.NewScanner(bytes.NewReader(indexCache.page.Raw))
+	indexCache.mu.RUnlock()
 	builder.Split(bufio.ScanLines)
 
 	for builder.Scan() {
@@ -213,9 +213,9 @@ func genIndex() []byte {
 	// the LastTally field lets us know
 	// when the index was last generated
 	// by this function.
-	imutex.Lock()
-	indexCache.LastTally = time.Now()
-	imutex.Unlock()
+	indexCache.mu.Lock()
+	indexCache.page.LastTally = time.Now()
+	indexCache.mu.Unlock()
 
 	return buf.Bytes()
 }
@@ -268,7 +268,7 @@ func tallyPages(buf *bytes.Buffer) {
 func writeIndexLinks(f os.FileInfo, buf *bytes.Buffer) {
 	var page *Page
 	var err error
-	if _, exists := cachedPages[f.Name()]; exists {
+	if _, exists := pageCache.pool[f.Name()]; exists {
 		page, err = pullFromCache(f.Name())
 		if err != nil {
 			log.Printf("%v\n", err.Error())
@@ -305,9 +305,9 @@ func (page *Page) cache() error {
 	// If buildPage() successfully returns a page
 	// object ptr, then push it into the cache
 	if newpage, err := buildPage(page.Longname); err == nil {
-		pmutex.Lock()
-		cachedPages[newpage.Shortname] = newpage
-		pmutex.Unlock()
+		pageCache.mu.Lock()
+		pageCache.pool[newpage.Shortname] = newpage
+		pageCache.mu.Unlock()
 	} else {
 		log.Printf("Couldn't cache %v: %v", page.Longname, err.Error())
 		return err
@@ -379,12 +379,12 @@ func pingCache(c cacher) {
 // Pulling from cache is its own function.
 // Less worrying about mutexes.
 func pullFromCache(filename string) (*Page, error) {
-	pmutex.RLock()
-	if page, ok := cachedPages[filename]; ok {
-		pmutex.RUnlock()
+	pageCache.mu.RLock()
+	if page, ok := pageCache.pool[filename]; ok {
+		pageCache.mu.RUnlock()
 		return page, nil
 	}
-	pmutex.RUnlock()
+	pageCache.mu.RUnlock()
 
 	return nil, fmt.Errorf("error pulling %v from cache", filename)
 }
@@ -393,7 +393,7 @@ func pullFromCache(filename string) (*Page, error) {
 // Used to trigger a forced re-cache on the
 // next page load.
 func triggerRecache() {
-	for _, v := range cachedPages {
+	for _, v := range pageCache.pool {
 		v.Recache = true
 	}
 }

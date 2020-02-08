@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"sync"
 	"testing"
 	"time"
 )
@@ -112,7 +113,7 @@ func Benchmark_genIndex(b *testing.B) {
 	genPageCache()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		indexCache.Modtime = time.Time{}
+		indexCache.page.Modtime = time.Time{}
 		genIndex()
 	}
 }
@@ -187,9 +188,12 @@ var IndexCacheCases = []struct {
 	},
 }
 
-var testIndex = indexPage{
-	Modtime:   time.Time{},
-	LastTally: time.Time{},
+var testIndex = indexCacheBlk{
+	mu: &sync.RWMutex{},
+	page: &indexPage{
+		Modtime:   time.Time{},
+		LastTally: time.Time{},
+	},
 }
 
 // Check if checkCache() method on indexPage type
@@ -206,8 +210,8 @@ func Test_indexPage_checkCache(t *testing.T) {
 			if tt.name == "test1" {
 				tt.fields.Modtime = testindexstat.ModTime()
 			}
-			testIndex.Modtime = tt.fields.Modtime
-			testIndex.LastTally = tt.fields.LastTally
+			testIndex.page.Modtime = tt.fields.Modtime
+			testIndex.page.LastTally = tt.fields.LastTally
 			if got := testIndex.checkCache(); got != tt.want {
 				t.Errorf("indexPage.checkCache() - got %v, want %v\n", got, tt.want)
 			}
@@ -228,10 +232,10 @@ func Benchmark_indexPage_checkCache(b *testing.B) {
 func Test_indexPage_cache(t *testing.T) {
 	for _, tt := range IndexCacheCases {
 		t.Run(tt.name, func(t *testing.T) {
-			testIndex.Modtime = tt.fields.Modtime
-			testIndex.LastTally = tt.fields.LastTally
+			testIndex.page.Modtime = tt.fields.Modtime
+			testIndex.page.LastTally = tt.fields.LastTally
 			testIndex.cache()
-			if testIndex.Body == nil {
+			if testIndex.page.Body == nil {
 				t.Errorf("indexPage_cache(): Returning nil for field Body.\n")
 			}
 		})
@@ -302,7 +306,7 @@ func TestPage_cache(t *testing.T) {
 				Raw:       tt.fields.Raw,
 			}
 			if err := page.cache(); !tt.wantErr {
-				cachedpage := cachedPages[tt.fields.Shortname]
+				cachedpage := pageCache.pool[tt.fields.Shortname]
 				if !bytes.Equal(cachedpage.Raw, tt.fields.Raw) {
 					t.Errorf("page.cache(): byte mismatch for %v: %v\n", page.Shortname, err)
 				}
@@ -362,7 +366,7 @@ func Test_genPageCache(t *testing.T) {
 	log.SetOutput(hush)
 	genPageCache()
 	t.Run("genPageCache", func(t *testing.T) {
-		for k, v := range cachedPages {
+		for k, v := range pageCache.pool {
 			if v.Body == nil || v.Raw == nil || v.Longname == "" {
 				t.Errorf("Test_genPageCache(): %v holds incorrect data or nil bytes\n", k)
 			}
@@ -385,7 +389,7 @@ func Test_pullFromCache(t *testing.T) {
 	log.SetOutput(hush)
 	genPageCache()
 	t.Run("pullFromCache", func(t *testing.T) {
-		for k := range cachedPages {
+		for k := range pageCache.pool {
 			page, err := pullFromCache(k)
 			if page == nil || err != nil {
 				t.Errorf("%v returned nil\n", k)
@@ -399,7 +403,7 @@ func Benchmark_pullFromCache(b *testing.B) {
 	genPageCache()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		for k := range cachedPages {
+		for k := range pageCache.pool {
 			pullFromCache(k)
 		}
 	}
@@ -413,7 +417,7 @@ func Test_triggerRecache(t *testing.T) {
 	genPageCache()
 	t.Run("triggerRecache", func(t *testing.T) {
 		triggerRecache()
-		for k, v := range cachedPages {
+		for k, v := range pageCache.pool {
 			if !v.Recache {
 				t.Errorf("Recache didn't trip for %v\n", k)
 			}

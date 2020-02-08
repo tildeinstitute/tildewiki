@@ -58,7 +58,7 @@ func Test_indexHandler(t *testing.T) {
 		if resp.StatusCode != 200 {
 			t.Errorf("indexHandler(): %v\n", resp.StatusCode)
 		}
-		if !bytes.Equal(body, indexCache.Body) {
+		if !bytes.Equal(body, indexCache.page.Body) {
 			t.Errorf("indexHandler(): Byte mismatch\n")
 		}
 	})
