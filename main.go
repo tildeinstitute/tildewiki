@@ -12,7 +12,7 @@ import (
 )
 
 // TildeWiki version
-const twvers = "0.6.3"
+const twvers = "0.6.4"
 
 // Makes the deferred close functions for the log file
 // block until exit

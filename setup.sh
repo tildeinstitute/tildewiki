@@ -74,7 +74,7 @@ display_logo()
  / /_/ / / /_/ /  __/ |/ |/ / / ,< / /
  \__/_/_/\__,_/\___/|__/|__/_/_/|_/_/
 
-        :: TildeWiki v0.5.4 ::
+        :: TildeWiki v0.6.4 ::
      (c)2019 Ben Morrison (gbmor)
               GPL v3
    https://github.com/gbmor/tildewiki
