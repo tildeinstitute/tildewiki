@@ -6,15 +6,10 @@ Originally designed around the needs of the [tildeverse](https://tildeverse.org)
 
 [\[Features\]](#features) | [\[Installation\]](#installation) | [\[Benchmarks\]](#benchmarks) | [\[Notes\]](#notes)
 
-## [v0.6.3](https://github.com/gbmor/tildewiki/releases/tag/v0.6.3)
-Version 0.6.3 Changes:
-* User/Requester IP and User-Agent logged
-* More concurrency protection
-* Fixed malformed errors in logs
-* Bugfixes! Yay!
-
-### [Development Branch](https://github.com/gbmor/tildewiki/tree/dev)
-Contains the changes going into the next version
+## [v0.6.4](https://github.com/gbmor/tildewiki/releases/tag/v0.6.4)
+Version 0.6.4 Changes:
+* Cleaned up code so it's nicer to read. Less extraneous whitespace, unnecessary comments, etc.
+* Refactored index and page cache a bit
 
 ### Currently powering the [tilde.institute](https://tilde.institute) wiki: 
 * [https://wiki.tilde.institute](https://wiki.tilde.institute) 
