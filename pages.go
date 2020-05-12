@@ -322,6 +322,10 @@ func (page *Page) cache() error {
 // page.Recache field is set to `true`.
 // This method helps satisfy the cacher interface.
 func (page *Page) checkCache() bool {
+	if page == nil {
+		return true
+	}
+
 	if newpage, err := os.Stat(page.Longname); err == nil {
 		if newpage.ModTime() != page.Modtime || page.Recache {
 			return true
